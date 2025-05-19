@@ -1,0 +1,356 @@
+code,term
+1078881000119102,Primary adenocarcinoma of lower lobe of left lung
+1078901000119100,Primary adenocarcinoma of upper lobe of left lung
+1078931000119107,Primary adenocarcinoma of lower lobe of right lung
+1078951000119101,Primary adenocarcinoma of middle lobe of right lung
+1078961000119104,Primary adenocarcinoma of upper lobe of right lung
+1080451000119101,Primary large cell carcinoma of lower lobe of left lung
+1080471000119105,Primary large cell carcinoma of upper lobe of left lung
+1080501000119104,Primary large cell carcinoma of lower lobe of right lung
+1080531000119106,Primary large cell carcinoma of upper lobe of right lung
+1081841000119106,Primary small cell carcinoma of lower lobe of left lung
+1081861000119105,Primary small cell carcinoma of upper lobe of left lung
+1081891000119103,Primary small cell carcinoma of lower lobe of right lung
+1081911000119101,Primary small cell carcinoma of middle lobe of right lung
+1081921000119108,Primary small cell carcinoma of upper lobe of right lung
+1082111000119109,Primary squamous cell carcinoma of lower lobe of left lung
+1082121000119102,Primary squamous cell carcinoma of left main bronchus
+1082141000119108,Primary squamous cell carcinoma of upper lobe of left lung
+1082231000119109,Primary squamous cell carcinoma of lower lobe of right lung
+1082241000119100,Primary squamous cell carcinoma of right main bronchus
+1082251000119103,Primary squamous cell carcinoma of middle lobe of right lung
+1082271000119107,Primary squamous cell carcinoma of upper lobe of right lung
+109371002,Overlapping malignant neoplasm of bronchus and lung
+109390005,Kaposi's sarcoma of lung
+10995411000119108,History of malignant carcinoid tumor of bronchus
+1141627001,Non-small cell lung carcinoma with neuregulin 1 gene fusion
+1179762006,Malignant neoplasm of middle lobe of right lung
+1196841007,Primary desmoplastic mesothelioma of pleura
+1196856003,Primary biphasic malignant mesothelioma of pleura
+1196883002,Primary epithelioid malignant mesothelioma of pleura
+1197259008,Primary sarcomatoid malignant mesothelioma of pleura
+1197296004,Primary malignant germ cell neoplasm of pleura
+12240951000119107,Squamous cell carcinoma of left lung
+12240991000119102,Squamous cell carcinoma of right lung
+1237048006,Metastatic squamous cell carcinoma to bronchus
+1237466009,Metastatic squamous cell carcinoma to bronchus of left upper lobe
+1237467000,Metastatic squamous cell carcinoma to bronchus of right upper lobe
+1237469002,Metastatic squamous cell carcinoma to bronchus of left lower lobe
+1237471002,Metastatic squamous cell carcinoma to bronchus of right lower lobe
+1237472009,Metastatic squamous cell carcinoma to bronchus of middle lobe of right lung
+1237516000,Metastatic carcinoma to lower lobe of lung
+1237518004,Metastatic carcinoma to main bronchus
+1254728008,Metastatic adenoid cystic carcinoma to trachea
+1254732002,Metastatic large cell carcinoma to lung
+1254733007,Metastatic large cell carcinoma to right lung
+1254734001,Metastatic large cell carcinoma to left lung
+1254735000,Metastatic large cell carcinoma to bilateral lungs
+1254740008,Metastatic giant cell carcinoma to lung
+1254745003,Metastatic giant cell carcinoma to left lung
+1254746002,Metastatic giant cell carcinoma to right lung
+1254747006,Metastatic giant cell carcinoma to bilateral lungs
+1254783002,Verrucous carcinoma of trachea
+1254785009,Squamous cell adenoid carcinoma of trachea
+1254786005,Spindle cell carcinoma of trachea
+1254787001,Papillary squamous cell carcinoma of trachea
+1254788006,Lymphoepithelial carcinoma of trachea
+1254789003,Clear cell squamous cell carcinoma of trachea
+1254790007,Basaloid squamous cell carcinoma of trachea
+1255085007,Adenocarcinoma of trachea
+1255392007,Undifferentiated carcinoma of trachea
+1255393002,Undifferentiated carcinoma of lung
+1255395009,Spindle cell carcinoma of lung
+1255629002,Signet ring cell carcinoma of lung
+1255630007,Signet ring cell carcinoma of trachea
+1255641009,Pleomorphic carcinoma of lung
+1255643007,Acinar cell carcinoma of trachea
+1255644001,Acinar cell carcinoma of lung
+1255651005,Basaloid squamous cell carcinoma of lung
+1255655001,Giant cell carcinoma of trachea
+1255658004,Carcinosarcoma of lung
+1255662005,Myoepithelial carcinoma of lung
+1255663000,Myoepithelial carcinoma of trachea
+1255725002,Non-small cell adenocarcinoma of lung
+1259366006,Primary adenoid cystic carcinoma of trachea
+1259367002,Primary squamous cell carcinoma of bronchus
+1259368007,Primary large cell carcinoma of lung
+1259369004,Primary giant cell carcinoma of lung
+1259370003,Primary oat cell carcinoma of lung
+1259371004,Primary squamous cell carcinoma of lung
+1259409000,Primary squamous cell carcinoma of bronchus in left lower lobe
+1259410005,Primary squamous cell carcinoma of bronchus in left upper lobe
+1259411009,Primary squamous cell carcinoma of bronchus in right lower lobe
+1259412002,Primary squamous cell carcinoma of bronchus of middle lobe of right lung
+1259413007,Primary squamous cell carcinoma of bronchus in right upper lobe
+1259461000,Primary squamous cell carcinoma of right lung
+1259463002,Primary squamous cell carcinoma of left lung
+1259528009,Primary carcinoma of main bronchus
+1259668002,Primary acinar cell cystadenocarcinoma of lung
+1259686004,Primary non-small cell lung carcinoma with neuregulin 1 gene fusion
+1259716003,Primary malignant mesothelioma
+1259726005,Primary epithelioid hemangioendothelioma of lung
+1259727001,Primary non-small cell lung cancer
+1259754003,Primary squamous non-small cell lung cancer
+1259757005,Primary nonsquamous nonsmall cell neoplasm of lung
+1259758000,Primary reactive oxygen species 1 positive non-small cell lung cancer
+1259760003,Primary non-small cell lung cancer with mutation in epidermal growth factor receptor
+1259761004,Primary non-small cell lung cancer without mutation in epidermal growth factor receptor
+1259768005,Primary non-small cell lung cancer negative for epidermal growth factor receptor expression
+1259776007,"Primary non-small cell lung cancer, positive for epidermal growth factor receptor expression"
+1259794001,Primary Pancoast tumor
+1259820006,Primary reactive oxygen species 1 negative non-small cell lung cancer
+1259821005,Primary anaplastic lymphoma kinase fusion oncogene positive non-small cell lung cancer
+1259822003,Primary anaplastic lymphoma kinase fusion oncogene negative non-small cell lung cancer
+1260019009,Adenoid cystic carcinoma of lung
+1260032004,Clear cell adenocarcinoma of lung
+1260033009,Clear cell adenocarcinoma of trachea
+1260038000,Adenosquamous carcinoma of trachea
+1260042002,Adenosquamous carcinoma of lung
+1260056000,Clear cell squamous cell carcinoma of lung
+1260057009,Mucinous adenocarcinoma of lung
+1260059007,Mucinous bronchiolo-alveolar carcinoma of lung
+1260060002,Mucinous adenocarcinoma of trachea
+1260062005,Mucoepidermoid carcinoma of lung
+1260064006,Mucinous cystadenocarcinoma of trachea
+1260065007,Mucinous cystadenocarcinoma of lung
+1260066008,Papillary adenocarcinoma of trachea
+1260068009,Papillary adenocarcinoma of lung
+1260070000,Non-mucinous bronchiolo-alveolar carcinoma of lung
+1260071001,Papillary squamous cell carcinoma of lung
+1260072008,Pseudosarcomatous carcinoma of lung
+1260075005,Solid carcinoma of trachea
+1260076006,Small cell non-keratinizing squamous cell carcinoma of lung
+1260077002,Solid carcinoma of lung
+1260087003,Fetal adenocarcinoma of lung
+1260092001,Mixed mucinous and non-mucinous bronchiolo-alveolar carcinoma of lung
+1260093006,Mixed subtype adenocarcinoma of lung
+1260115001,Salivary gland type carcinoma of lung
+1268348008,Primary small cell carcinoma of lung
+1268704000,Primary malignant mesothelioma of pleura
+1268899005,Primary pleuropulmonary blastoma
+1268902008,Primary pulmonary blastoma
+145298771000119104,Malignant carcinoid tumor of left lung
+15955901000119104,Primary small cell carcinoma of right lung
+15955941000119102,Primary small cell carcinoma of left lung
+15956221000119105,Metastatic adenocarcinoma to right lung
+15956261000119100,Metastatic adenocarcinoma to left lung
+15956341000119105,Adenocarcinoma of left lung
+15956381000119100,Adenocarcinoma of right lung
+15956661000119102,Metastatic small cell carcinoma to right lung
+15956701000119109,Metastatic small cell carcinoma to left lung
+15956741000119106,Metastatic small cell carcinoma to bilateral lungs
+15957141000119109,Metastatic squamous cell carcinoma to bilateral lungs
+15957181000119104,Metastatic squamous cell carcinoma to right lung
+15957221000119107,Metastatic squamous cell carcinoma to left lung
+15957261000119102,Kaposi sarcoma of bilateral lungs
+161428004,History of - * bronchus (context-dependent category)
+16527441000119105,Primary non-small cell carcinoma of lower lobe of left lung
+16527481000119100,Primary non-small cell carcinoma of middle lobe of right lung
+16527521000119100,Primary non-small cell carcinoma of upper lobe of left lung
+16527561000119105,Primary non-small cell carcinoma of lower lobe of right lung
+16527601000119105,Primary non-small cell carcinoma of right lung
+16527641000119107,Primary non-small cell carcinoma of left lung
+16527721000119108,Primary non-small cell carcinoma of upper lobe of right lung
+16848061000119103,History of primary malignant neoplasm of left lung
+16848101000119100,History of primary malignant neoplasm of right lung
+16848141000119103,History of primary non-small cell carcinoma of right lung
+16848181000119108,History of primary non-small cell carcinoma of left lung
+16848221000119100,History of primary non-small cell carcinoma of bilateral lungs
+16848261000119105,History of primary malignant neoplasm of bilateral lungs
+187853005,Malignant neoplasm of cartilage of trachea
+187854004,Malignant neoplasm of mucosa of trachea
+187855003,Malignant neoplasm of trachea NOS
+187857006,Malignant neoplasm of carina of bronchus
+187859009,Malignant neoplasm of main bronchus NOS
+187861000,Malignant neoplasm of upper lobe bronchus
+187862007,Malignant neoplasm of upper lobe of lung
+187863002,"Malignant neoplasm of upper lobe, bronchus or lung NOS"
+187864008,"Malignant neoplasm of middle lobe, bronchus or lung"
+187865009,Malignant neoplasm of middle lobe bronchus
+187866005,Malignant neoplasm of middle lobe of lung
+187867001,"Malignant neoplasm of middle lobe, bronchus or lung NOS"
+187868006,"Malignant neoplasm of lower lobe, bronchus or lung"
+187869003,Malignant neoplasm of lower lobe bronchus
+187870002,Malignant neoplasm of lower lobe of lung
+187871003,"Malignant neoplasm of lower lobe, bronchus or lung NOS"
+187874006,Malignant neoplasm of other sites of bronchus or lung
+189815007,Pulmonary blastoma
+190092003,"[X]Malignant neoplasm of bronchus or lung, unspecified"
+233647007,Malignant chylothorax
+254619006,Adenoid cystic carcinoma of trachea
+254620000,Squamous cell carcinoma of trachea
+254622008,Squamous cell carcinoma of bronchus
+254625005,Malignant tumor of lung parenchyma
+254626006,Adenocarcinoma of lung
+254628007,Carcinoma of lung parenchyma
+254629004,Large cell carcinoma of lung
+254630009,Clear cell carcinoma of lung
+254631008,Giant cell carcinoma of lung
+254632001,Small cell carcinoma of lung
+254633006,Oat cell carcinoma of lung
+254634000,Squamous cell carcinoma of lung
+254637007,Non-small cell lung cancer
+254638002,Pancoast tumor
+254645002,Malignant mesothelioma of pleura
+266988009,History of - * trachea/lung (context-dependent category)
+269464000,"Malignant neoplasm of upper lobe, bronchus or lung"
+269465004,Malignant neoplasm of bronchus or lung NOS
+275532001,History of - * lung (context-dependent category)
+275533006,History of - * trachea (context-dependent category)
+313353007,Squamous cell carcinoma of bronchus in left lower lobe
+313354001,Squamous cell carcinoma of bronchus in left upper lobe
+313355000,Squamous cell carcinoma of bronchus in right lower lobe
+313356004,Squamous cell carcinoma of bronchus of middle lobe of right lung
+313357008,Squamous cell carcinoma of bronchus in right upper lobe
+314954002,Local recurrence of malignant tumor of lung
+315734003,"[V]Personal history of malignant neoplasm of trachea, bronchus or lung"
+354391000119100,Kaposi sarcoma of left lung
+354461000119102,Kaposi sarcoma of right lung
+354721000119103,Primary malignant neoplasm of left main bronchus
+354731000119100,Primary malignant neoplasm of right main bronchus
+363358000,Malignant tumor of lung
+363432004,Malignant tumor of trachea
+363493006,Malignant tumor of bronchus
+372065009,Malignant neoplasm of main bronchus
+372110008,"Primary malignant neoplasm of lower lobe, bronchus or lung"
+372111007,Carcinoma of lower lobe of lung
+372112000,"Primary malignant neoplasm of middle lobe, bronchus or lung"
+372113005,"Carcinoma of middle lobe, bronchus or lung"
+372120003,Carcinoma of main bronchus
+372135002,"Primary malignant neoplasm of upper lobe, bronchus or lung"
+373627005,Bronchioloalveolar carcinoma
+412341000000106,"[V]Personal history of malignant neoplasm of trachea, bronchus or lung"
+415077006,Personal history of primary malignant neoplasm of bronchus
+415082004,Personal history of primary malignant neoplasm of lung
+415085002,Personal history of primary malignant neoplasm of trachea
+422968005,"Non-small cell carcinoma of lung, TNM stage 3"
+423050000,"Large cell carcinoma of lung, TNM stage 2"
+423121009,"Non-small cell carcinoma of lung, TNM stage 4"
+423295000,"Squamous cell carcinoma of lung, TNM stage 1"
+423468007,"Squamous cell carcinoma of lung, TNM stage 2"
+423600008,"Large cell carcinoma of lung, TNM stage 4"
+424078005,"Adenocarcinoma of lung, stage I"
+424132000,"Non-small cell carcinoma of lung, TNM stage 1"
+424454009,"Adenocarcinoma of lung, stage III"
+424632001,"Adenocarcinoma of lung, stage II"
+424938000,"Large cell carcinoma of lung, TNM stage 1"
+424970000,"Large cell carcinoma of lung, TNM stage 3"
+424993006,"Adenocarcinoma of lung, stage IV"
+425048006,"Non-small cell carcinoma of lung, TNM stage 2"
+425230006,"Squamous cell carcinoma of lung, TNM stage 3"
+425376008,"Squamous cell carcinoma of lung, TNM stage 4"
+426964009,"Non-small cell lung cancer, positive for epidermal growth factor receptor expression"
+427038005,"Non-small cell lung cancer, negative for epidermal growth factor receptor expression"
+429226001,History of non-small cell malignant neoplasm of lung
+429355006,History of malignant neoplasm of pleura
+432007009,History of malignant mesothelioma of pleura
+440173001,Nonsquamous nonsmall cell neoplasm of lung
+448372003,Non-Hodgkin's lymphoma of lung
+448993007,Malignant epithelial neoplasm of lung
+479031000000103,"[X]Malignant neoplasm of bronchus or lung, unspecified"
+550101000000109,Malignant neoplasm of trachea NOS
+550111000000106,Malignant neoplasm of main bronchus NOS
+557081000000104,"Malignant neoplasm of upper lobe, bronchus or lung NOS"
+557091000000102,"Malignant neoplasm of middle lobe, bronchus or lung NOS"
+557101000000105,"Malignant neoplasm of lower lobe, bronchus or lung NOS"
+557111000000107,Malignant neoplasm of other sites of bronchus or lung
+573491000000102,Malignant neoplasm of bronchus or lung NOS
+619792361000119102,History of primary small cell carcinoma of lung
+67811000119102,"Primary small cell malignant neoplasm of lung, TNM stage 1"
+67821000119109,"Primary small cell malignant neoplasm of lung, TNM stage 2"
+67831000119107,"Primary small cell malignant neoplasm of lung, TNM stage 3"
+67841000119103,"Primary small cell malignant neoplasm of lung, TNM stage 4"
+683991000119103,Extensive stage primary small cell carcinoma of lung
+703228009,Non-small cell lung cancer with mutation in epidermal growth factor receptor
+703230006,Non-small cell lung cancer without mutation in epidermal growth factor receptor
+707377003,Primary signet ring cell carcinoma of trachea
+707378008,Primary myoepithelial carcinoma of trachea
+707379000,Primary mucoepidermoid carcinoma of trachea
+707380002,Primary salivary gland type carcinoma of trachea
+707383000,Primary mucinous cystadenocarcinoma of trachea
+707384006,Primary solid carcinoma of trachea
+707385007,Primary undifferentiated carcinoma of trachea
+707386008,Primary acinar cell carcinoma of trachea
+707388009,Primary squamous cell carcinoma of trachea
+707389001,Primary clear cell squamous cell carcinoma of trachea
+707390005,Primary basaloid squamous cell carcinoma of trachea
+707391009,Primary papillary squamous cell carcinoma of trachea
+707392002,Primary giant cell carcinoma of trachea
+707393007,Primary adenosquamous carcinoma of trachea
+707394001,Primary spindle cell carcinoma of trachea
+707403002,Primary fetal adenocarcinoma of lung
+707404008,Primary mixed subtype adenocarcinoma of lung
+707405009,Primary adenosquamous carcinoma of lung
+707407001,Primary signet ring cell carcinoma of lung
+707408006,Primary small cell non-keratinizing squamous cell carcinoma of lung
+707409003,Primary acinar cell carcinoma of lung
+707410008,Primary solid carcinoma of lung
+707411007,Primary papillary adenocarcinoma of lung
+707451005,Primary adenocarcinoma of lung
+707452003,Primary mucinous adenocarcinoma of lung
+707453008,Primary clear cell squamous cell carcinoma of lung
+707454002,Primary basaloid squamous cell carcinoma of lung
+707455001,Primary papillary squamous cell carcinoma of lung
+707456000,Primary undifferentiated carcinoma of lung
+707457009,Primary spindle cell carcinoma of lung
+707458004,Primary pleomorphic carcinoma of lung
+707460002,Primary pseudosarcomatous carcinoma of lung
+707464006,Primary myoepithelial carcinoma of lung
+707465007,Primary mucoepidermoid carcinoma of lung
+707466008,Primary adenoid cystic carcinoma of lung
+707467004,Primary salivary gland type carcinoma of lung
+707468009,Primary mixed mucinous and non-mucinous bronchiolo-alveolar carcinoma of lung
+707469001,Primary non-mucinous bronchiolo-alveolar carcinoma of lung
+707470000,Primary mucinous bronchiolo-alveolar carcinoma of lung
+707471001,Primary clear cell adenocarcinoma of trachea
+707472008,Primary papillary adenocarcinoma of trachea
+707473003,Primary mucinous adenocarcinoma of trachea
+707475005,Primary adenocarcinoma of trachea
+707493006,Primary lymphoepithelial carcinoma of trachea
+707494000,Primary verrucous carcinoma of trachea
+707495004,Primary squamous cell adenoid carcinoma of trachea
+707595001,Primary mucinous cystadenocarcinoma of lung
+707596000,Primary carcinosarcoma of lung
+707670009,Pleuropulmonary blastoma
+707671008,Pleuropulmonary blastoma type I
+707672001,Pleuropulmonary blastoma type II
+707673006,Pleuropulmonary blastoma type III
+707674000,Primary malignant epithelial neoplasm of trachea
+711414003,Primary clear cell adenocarcinoma of lung
+722425009,Reactive oxygen species 1 positive non-small cell lung cancer
+722527003,Primary malignant neuroendocrine neoplasm of bronchus
+722528008,Primary malignant neuroendocrine neoplasm of lung
+723301009,Squamous non-small cell lung cancer
+724056005,Malignant neoplasm of lower lobe of right lung
+724058006,Malignant neoplasm of upper lobe of left lung
+724059003,Malignant neoplasm of lower lobe of left lung
+724060008,Malignant neoplasm of right upper lobe of lung
+726653000,Malignant carcinoid tumor of bronchus
+733144006,Malignant epithelial neoplasm of bronchus
+793197981000119106,Malignant carcinoid tumor of right lung
+822969007,Acinar cell cystadenocarcinoma of lung
+830055006,Anaplastic lymphoma kinase fusion oncogene negative non-small cell lung cancer
+830060005,Reactive oxygen species 1 negative non-small cell lung cancer
+830151004,Anaplastic lymphoma kinase fusion oncogene positive non-small cell lung cancer
+83270006,Neoplastic pleural effusion
+860792009,Pleural effusion due to malignant neoplastic disease
+890528009,Primary malignant neoplasm of left lung
+890529001,Primary malignant neoplasm of right lung
+890534002,Primary malignant neoplasm of bilateral lungs
+91221000119102,Metastatic malignant melanoma to pleura
+93729006,Primary malignant neoplasm of bronchus of left lower lobe
+93730001,Primary malignant neoplasm of bronchus of left upper lobe
+93731002,Primary malignant neoplasm of bronchus of right lower lobe
+93732009,Primary malignant neoplasm of bronchus of middle lobe of right lung
+93733004,Primary malignant neoplasm of bronchus of right upper lobe
+93734005,Primary malignant neoplasm of bronchus
+93739000,Primary malignant neoplasm of carina
+93827000,Primary malignant neoplasm of hilus of lung
+93864006,Primary malignant neoplasm of lower lobe of left lung
+93865007,Primary malignant neoplasm of upper lobe of left lung
+93880001,Primary malignant neoplasm of lung
+93882009,Primary malignant neoplasm of main bronchus
+93991009,Primary malignant neoplasm of right lower lobe of lung
+93992002,Primary malignant neoplasm of middle lobe of right lung
+93993007,Primary malignant neoplasm of upper lobe of right lung
+94104001,Primary malignant neoplasm of trachea

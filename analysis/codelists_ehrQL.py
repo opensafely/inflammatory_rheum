@@ -1,21 +1,21 @@
 # ehrQL codelists
-from databuilder.ehrql import codelist_from_csv
+from ehrql import codelist_from_csv
 
-# DEMOGRAPHIC CODELIST
+# Demographics
 ethnicity_codes = codelist_from_csv(
-    "codelists/opensafely-ethnicity.csv",
-    column="Code",
+    "codelists/opensafely-ethnicity-snomed-0removed.csv",
+    column="code",
     category_column="Grouping_6",
 )
 
-# SMOKING CODELIST
+# Smoking
 clear_smoking_codes = codelist_from_csv(
     "codelists/opensafely-smoking-clear.csv",
     column="CTV3Code",
     category_column="Category",
 )
 
-# CLINICAL CONDITIONS CODELISTS
+# Inflammatory rheumatology diagnoses
 ankylosing_spondylitis_codes = codelist_from_csv(
     "codelists/user-markdrussell-axial-spondyloarthritis.csv", column="code",
 )
@@ -39,61 +39,82 @@ eia_diagnosis_codes = (
     undifferentiated_arthritis_codes
 )
 
-chronic_cardiac_disease_codes = codelist_from_csv(
-    "codelists/opensafely-chronic-cardiac-disease.csv", column="CTV3ID",
+# Relevant comorbidities
+chd_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-chd_cod.csv", column="code",
 )
 
 diabetes_codes = codelist_from_csv(
-    "codelists/opensafely-diabetes.csv", column="CTV3ID",
+    "codelists/nhsd-primary-care-domain-refsets-dmtype2audit_cod.csv", column="code",
 )
 
-hba1c_new_codes = ["XaPbt", "Xaeze", "Xaezd"]
-hba1c_old_codes = ["X772q", "XaERo", "XaERp"]
-
-hypertension_codes = codelist_from_csv(
-    "codelists/opensafely-hypertension.csv", column="CTV3ID",
-)
-
-chronic_respiratory_disease_codes = codelist_from_csv(
-    "codelists/opensafely-chronic-respiratory-disease.csv",
-    column="CTV3ID",
+ild_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-interstitial-lung-disease-codes.csv",
+    column="code",
 )
 
 copd_codes = codelist_from_csv(
-    "codelists/opensafely-current-copd.csv", column="CTV3ID",
-)
-
-chronic_liver_disease_codes = codelist_from_csv(
-    "codelists/opensafely-chronic-liver-disease.csv", column="CTV3ID",
+    "codelists/nhsd-primary-care-domain-refsets-copd_cod.csv", column="code",
 )
 
 stroke_codes = codelist_from_csv(
-    "codelists/opensafely-stroke-updated.csv", column="CTV3ID",
+    "codelists/nhsd-primary-care-domain-refsets-strk_cod.csv", column="code",
+)
+
+tia_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-tia_cod.csv", column="code",
+)
+
+cva_codes = (
+    stroke_codes +
+    tia_codes
 )
 
 lung_cancer_codes = codelist_from_csv(
-    "codelists/opensafely-lung-cancer.csv", column="CTV3ID",
+    "codelists/nhsd-primary-care-domain-refsets-lung-cancer-codes.csv", column="code",
 )
 
 haem_cancer_codes = codelist_from_csv(
-    "codelists/opensafely-haematological-cancer.csv", column="CTV3ID",
+    "codelists/nhsd-primary-care-domain-refsets-c19haemcan_cod.csv", column="code",
 )
 
-other_cancer_codes = codelist_from_csv(
-    "codelists/opensafely-cancer-excluding-lung-and-haematological.csv",
-    column="CTV3ID",
+solid_cancer_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-solid-cancer-diagnosis-codes.csv", column="code",
 )
-
-creatinine_codes = ["XE2q5"]
 
 ckd_codes = codelist_from_csv(
-    "codelists/opensafely-chronic-kidney-disease.csv", column="CTV3ID",
+    "codelists/nhsd-primary-care-domain-refsets-ckdatrisk2_cod.csv", column="code",
+)
+
+creatinine_codes = codelist_from_csv(
+    "codelists/ardens-creatinine-level.csv", column="code",
+)
+
+depression_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-depr_cod.csv", column="code",
+)
+
+osteoporosis_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-osteo_cod.csv", column="code",
+)
+
+## Fragility fracture
+fracture_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-ff_cod.csv", column="code",
+)
+
+dementia_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-dem_cod.csv", column="code",
 )
 
 bmi_codes = ["60621009", "846931000000101"]
 
 referral_rheumatology = codelist_from_csv(
     "codelists/user-markdrussell-referral-rheumatology.csv", column = "code"
+)
+
+rf_codes = codelist_from_csv(
+    "codelists/ardens-rheumatoid-factor.csv", column = "code"
 )
 
 # MEDICATIONS

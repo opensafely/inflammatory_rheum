@@ -3,10 +3,10 @@ version: '4.0'
 actions:
              
   generate_dataset:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition.py --output output/dataset.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition.py --output output/dataset.csv
     outputs:
       highly_sensitive:
-        cohort: output/dataset.csv.gz 
+        cohort: output/dataset.csv 
 
   # create_cohorts_ehrQL:
   #   run: stata-mp:latest analysis/000_define_covariates_ehrQL.do
