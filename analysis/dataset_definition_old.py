@@ -5,7 +5,7 @@ import codelists_ehrQL as codelists
 
 # Dates for study
 start_date = "2016-04-01"
-end_date = "2025-03-31"
+end_date = "2025-03-01"
 
 dataset = create_dataset()
 
@@ -97,6 +97,7 @@ dataset.pre_reg = preceding_registration(dataset.eia_code_date).exists_for_patie
 
 # Practice region
 dataset.region = preceding_registration(dataset.eia_code_date).practice_nuts1_region_name
+dataset.stp = preceding_registration(dataset.eia_code_date).practice_stp
 
 # Baseline comorbidities (first match before rheum diagnostic code); uses NHSE Ref Sets
 def first_comorbidity_in_period(dx_codelist):
@@ -108,19 +109,19 @@ def first_comorbidity_in_period(dx_codelist):
         clinical_events.date
     ).first_for_patient()
 
-dataset.chd_before_date=first_comorbidity_in_period(codelists.chd_codes).date
-dataset.dm_before_date=first_comorbidity_in_period(codelists.diabetes_codes).date
-dataset.ild_before_date=first_comorbidity_in_period(codelists.ild_codes).date
-dataset.copd_before_date=first_comorbidity_in_period(codelists.copd_codes).date
-dataset.cva_before_date=first_comorbidity_in_period(codelists.cva_codes).date
-dataset.lung_ca_before_date=first_comorbidity_in_period(codelists.lung_cancer_codes).date
-dataset.solid_ca_before_date=first_comorbidity_in_period(codelists.solid_cancer_codes).date
-dataset.haem_ca_before_date=first_comorbidity_in_period(codelists.haem_cancer_codes).date
-dataset.ckd_before_date=first_comorbidity_in_period(codelists.ckd_codes).date
-dataset.depr_before_date=first_comorbidity_in_period(codelists.depression_codes).date
-dataset.osteop_before_date=first_comorbidity_in_period(codelists.osteoporosis_codes).date
-dataset.frac_before_date=first_comorbidity_in_period(codelists.fracture_codes).date
-dataset.dem_before_date=first_comorbidity_in_period(codelists.dementia_codes).date
+dataset.chd_before=first_comorbidity_in_period(codelists.chd_codes).date
+dataset.dm_before=first_comorbidity_in_period(codelists.diabetes_codes).date
+dataset.ild_before=first_comorbidity_in_period(codelists.ild_codes).date
+dataset.copd_before=first_comorbidity_in_period(codelists.copd_codes).date
+dataset.cva_before=first_comorbidity_in_period(codelists.cva_codes).date
+dataset.lung_ca_before=first_comorbidity_in_period(codelists.lung_cancer_codes).date
+dataset.solid_ca_before=first_comorbidity_in_period(codelists.solid_cancer_codes).date
+dataset.haem_ca_before=first_comorbidity_in_period(codelists.haem_cancer_codes).date
+dataset.ckd_before=first_comorbidity_in_period(codelists.ckd_codes).date
+dataset.depr_before=first_comorbidity_in_period(codelists.depression_codes).date
+dataset.osteop_before=first_comorbidity_in_period(codelists.osteoporosis_codes).date
+dataset.frac_before=first_comorbidity_in_period(codelists.fracture_codes).date
+dataset.dementia_before=first_comorbidity_in_period(codelists.dementia_codes).date
 
 # Subsequent comorbidities (first match after rheum diagnostic code); uses NHSE Ref Sets
 def new_comorbidity_in_period(dx_codelist):
@@ -132,19 +133,19 @@ def new_comorbidity_in_period(dx_codelist):
         clinical_events.date
     ).first_for_patient()
 
-dataset.chd_after_date=new_comorbidity_in_period(codelists.chd_codes).date
-dataset.dm_after_date=new_comorbidity_in_period(codelists.diabetes_codes).date
-dataset.ild_after_date=new_comorbidity_in_period(codelists.ild_codes).date
-dataset.copd_after_date=new_comorbidity_in_period(codelists.copd_codes).date
-dataset.cva_after_date=new_comorbidity_in_period(codelists.cva_codes).date
-dataset.lung_ca_after_date=new_comorbidity_in_period(codelists.lung_cancer_codes).date
-dataset.solid_ca_after_date=new_comorbidity_in_period(codelists.solid_cancer_codes).date
-dataset.haem_ca_after_date=new_comorbidity_in_period(codelists.haem_cancer_codes).date
-dataset.ckd_after_date=new_comorbidity_in_period(codelists.ckd_codes).date
-dataset.depr_after_date=new_comorbidity_in_period(codelists.depression_codes).date
-dataset.osteop_after_date=new_comorbidity_in_period(codelists.osteoporosis_codes).date
-dataset.frac_after_date=new_comorbidity_in_period(codelists.fracture_codes).date
-dataset.dem_after_date=new_comorbidity_in_period(codelists.dementia_codes).date
+dataset.chd_after=new_comorbidity_in_period(codelists.chd_codes).date
+dataset.dm_after=new_comorbidity_in_period(codelists.diabetes_codes).date
+dataset.ild_after=new_comorbidity_in_period(codelists.ild_codes).date
+dataset.copd_after=new_comorbidity_in_period(codelists.copd_codes).date
+dataset.cva_after=new_comorbidity_in_period(codelists.cva_codes).date
+dataset.lung_ca_after=new_comorbidity_in_period(codelists.lung_cancer_codes).date
+dataset.solid_ca_after=new_comorbidity_in_period(codelists.solid_cancer_codes).date
+dataset.haem_ca_after=new_comorbidity_in_period(codelists.haem_cancer_codes).date
+dataset.ckd_after=new_comorbidity_in_period(codelists.ckd_codes).date
+dataset.depr_after=new_comorbidity_in_period(codelists.depression_codes).date
+dataset.osteop_after=new_comorbidity_in_period(codelists.osteoporosis_codes).date
+dataset.frac_after=new_comorbidity_in_period(codelists.fracture_codes).date
+dataset.dementia_after=new_comorbidity_in_period(codelists.dementia_codes).date
 
 # Relevant blood tests (last match before rheum diagnostic code)
 def last_test_in_period(dx_codelist):
@@ -156,7 +157,7 @@ def last_test_in_period(dx_codelist):
         clinical_events.date
     ).last_for_patient()
 
-dataset.creatinine_value=last_test_in_period(codelists.creatinine_codes).numeric_value
+dataset.creatinine=last_test_in_period(codelists.creatinine_codes).numeric_value
 dataset.creatinine_date=last_test_in_period(codelists.creatinine_codes).date
 
 # Relevant blood tests for rheumatoid factor (not time restriction; takes last recorded value in study period)
@@ -167,7 +168,7 @@ def any_test_in_period(dx_codelist):
         clinical_events.date
     ).last_for_patient()
 
-dataset.rf_value=any_test_in_period(codelists.rf_codes).numeric_value
+dataset.rf=any_test_in_period(codelists.rf_codes).numeric_value
 dataset.rf_date=any_test_in_period(codelists.rf_codes).date
 
 # BMI
@@ -181,7 +182,7 @@ bmi_record = clinical_events.where(
         clinical_events.date
     ).last_for_patient()
 
-dataset.bmi_value = bmi_record.numeric_value
+dataset.bmi = bmi_record.numeric_value
 dataset.bmi_date = bmi_record.date
 
 ## Smoking status
@@ -222,8 +223,9 @@ rheum_appt = opa.where(
 
 dataset.rheum_appt_date = rheum_appt.appointment_date
 dataset.rheum_appt_medium = rheum_appt.consultation_medium_used
-dataset.rheum_appt_ref_date = rheum_appt.referral_request_received_date
-#dataset.rheum_provider = rheum_appt.provider_code
+
+### ADD DATE OF HES REFERRAL RECEIVED
+### ADD PROVIDER CODE
 
 ## Date of first rheum appointment in the 1 year before rheum diagnostic code (without first attendance option selected)
 dataset.rheum_appt_any_date = opa.where(
@@ -272,7 +274,7 @@ dataset.rheum_appt4_date = opa.where(
 
 # Rheumatology referrals
 ## Last referral in the 2 years before rheumatology outpatient
-dataset.rheum_ref_gp_preappt_date = clinical_events.where(
+dataset.referral_rheum_prerheum = clinical_events.where(
         clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
     ).where(
         (clinical_events.date >= (dataset.rheum_appt_date - years(2))) & (clinical_events.date <= dataset.rheum_appt_date)
@@ -281,7 +283,7 @@ dataset.rheum_ref_gp_preappt_date = clinical_events.where(
     ).last_for_patient().date
 
 ## Last referral in the 2 years before rheum diagnostic code
-dataset.rheum_ref_gp_precode_date = clinical_events.where(
+dataset.referral_rheum_precode = clinical_events.where(
         clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
     ).where(
         (clinical_events.date >= (dataset.eia_code_date - years(2))) & (clinical_events.date <= dataset.eia_code_date)
@@ -292,11 +294,20 @@ dataset.rheum_ref_gp_precode_date = clinical_events.where(
 # GP consultations
 ## This replicates status codes used in cohort_extractor for consultations that occurred
 cohort_extractor_appointment_statuses = [
+    #"Booked",
     "Arrived",
+    #"Did Not Attend",
     "In Progress",
     "Finished",
+    #"Requested",
+    #"Blocked",
     "Visit",
     "Waiting",
+    #"Cancelled by Patient",
+    #"Cancelled by Unit",
+    #"Cancelled by Other Service",
+    #"No Access Visit",
+    #"Cancelled Due To Death",
     "Patient Walked Out",
 ]
 
@@ -321,8 +332,8 @@ dataset.last_gp_precode_date = appointments.where(
 ## Last GP consultation in the 2 years before rheum ref pre-appt
 dataset.last_gp_refrheum_date = appointments.where(
         (appointments.status.is_in(cohort_extractor_appointment_statuses)) &
-        (appointments.start_date >= (dataset.rheum_ref_GP_preappt_date - years(2))) &
-        (appointments.start_date <= dataset.rheum_ref_GP_preappt_date)
+        (appointments.start_date >= (dataset.referral_rheum_prerheum - years(2))) &
+        (appointments.start_date <= dataset.referral_rheum_prerheum)
     ).sort_by(
         appointments.start_date
     ).last_for_patient().start_date
@@ -330,8 +341,8 @@ dataset.last_gp_refrheum_date = appointments.where(
 ## Last GP consultation in the 2 years before rheum ref pre-code
 dataset.last_gp_refcode_date = appointments.where(
         (appointments.status.is_in(cohort_extractor_appointment_statuses)) &
-        (appointments.start_date >= (dataset.rheum_ref_GP_precode_date - years(2))) &
-        (appointments.start_date <= dataset.rheum_ref_GP_precode_date)
+        (appointments.start_date >= (dataset.referral_rheum_precode - years(2))) &
+        (appointments.start_date <= dataset.referral_rheum_precode)
     ).sort_by(
         appointments.start_date
     ).last_for_patient().start_date
@@ -400,10 +411,10 @@ rtt_closed = wl_clockstops.where(
 #         & wl_clockstops.waiting_list_type.is_in(["IRTT","ORTT","PTLO","PTLI","PLTI","RTTO","RTTI","PTL0","PTL1"])
     # )
 
-dataset.rtt_cl_start_date = rtt_closed.referral_to_treatment_period_start_date
+dataset.rtt_cl_start = rtt_closed.referral_to_treatment_period_start_date
 dataset.rtt_cl_ref_date = rtt_closed.referral_request_received_date
-dataset.rtt_cl_end_date = rtt_closed.referral_to_treatment_period_end_date
-dataset.rtt_cl_wait = (dataset.rtt_cl_end_date - dataset.rtt_cl_start_date).days
+dataset.rtt_cl_end = rtt_closed.referral_to_treatment_period_end_date
+dataset.rtt_cl_wait = (dataset.rtt_cl_end - dataset.rtt_cl_start).days
 
 # And RTT open pathways - snapshot May 2022
 rtt_open = wl_openpathways.where(
@@ -414,10 +425,10 @@ rtt_open = wl_openpathways.where(
         wl_openpathways.referral_to_treatment_period_start_date,
     ).first_for_patient()
 
-dataset.rtt_op_start_date = rtt_open.referral_to_treatment_period_start_date
+dataset.rtt_op_start = rtt_open.referral_to_treatment_period_start_date
 dataset.rtt_op_ref_date = rtt_open.referral_request_received_date
-dataset.rtt_op_end_date = rtt_open.referral_to_treatment_period_end_date
-dataset.rtt_op_wait = (dataset.rtt_op_end_date - dataset.rtt_op_start_date).days
+dataset.rtt_op_end = rtt_open.referral_to_treatment_period_end_date
+dataset.rtt_op_wait = (dataset.rtt_op_end - dataset.rtt_op_start).days
 
 # Define population
 dataset.define_population(
