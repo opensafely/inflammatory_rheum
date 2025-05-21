@@ -1,5 +1,5 @@
 from ehrql import create_dataset, days, months, years, case, when
-from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, addresses, appointments, opa, opa_cost, wl_clockstops, wl_openpathways
+from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, addresses, appointments, opa, wl_clockstops, wl_openpathways
 from datetime import date
 import codelists_ehrQL as codelists
 
@@ -9,7 +9,7 @@ end_date = "2025-03-31"
 
 dataset = create_dataset()
 
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data(population_size=10000, legacy=True)
 
 # First rheum diagnostic code in primary care record
 def first_code_in_period(dx_codelist):
@@ -97,6 +97,14 @@ dataset.pre_reg = preceding_registration(dataset.eia_code_date).exists_for_patie
 
 # Practice region
 dataset.region = preceding_registration(dataset.eia_code_date).practice_nuts1_region_name
+
+# Define study population
+dataset.define_population(
+    ((dataset.eia_code_date >= start_date) & (dataset.eia_code_date <= end_date)) &
+    ((dataset.age >= 18) & (dataset.age <= 110)) &
+    (dataset.pre_reg) &
+    (dataset.sex.is_in(["male", "female"]))
+)
 
 # Baseline comorbidities (first match before rheum diagnostic code); uses NHSE Ref Sets
 def first_comorbidity_in_period(dx_codelist):
@@ -321,8 +329,8 @@ dataset.last_gp_precode_date = appointments.where(
 ## Last GP consultation in the 2 years before rheum ref pre-appt
 dataset.last_gp_refrheum_date = appointments.where(
         (appointments.status.is_in(cohort_extractor_appointment_statuses)) &
-        (appointments.start_date >= (dataset.rheum_ref_GP_preappt_date - years(2))) &
-        (appointments.start_date <= dataset.rheum_ref_GP_preappt_date)
+        (appointments.start_date >= (dataset.rheum_ref_gp_preappt_date - years(2))) &
+        (appointments.start_date <= dataset.rheum_ref_gp_preappt_date)
     ).sort_by(
         appointments.start_date
     ).last_for_patient().start_date
@@ -330,8 +338,8 @@ dataset.last_gp_refrheum_date = appointments.where(
 ## Last GP consultation in the 2 years before rheum ref pre-code
 dataset.last_gp_refcode_date = appointments.where(
         (appointments.status.is_in(cohort_extractor_appointment_statuses)) &
-        (appointments.start_date >= (dataset.rheum_ref_GP_precode_date - years(2))) &
-        (appointments.start_date <= dataset.rheum_ref_GP_precode_date)
+        (appointments.start_date >= (dataset.rheum_ref_gp_precode_date - years(2))) &
+        (appointments.start_date <= dataset.rheum_ref_gp_precode_date)
     ).sort_by(
         appointments.start_date
     ).last_for_patient().start_date
@@ -418,11 +426,3 @@ dataset.rtt_op_start_date = rtt_open.referral_to_treatment_period_start_date
 dataset.rtt_op_ref_date = rtt_open.referral_request_received_date
 dataset.rtt_op_end_date = rtt_open.referral_to_treatment_period_end_date
 dataset.rtt_op_wait = (dataset.rtt_op_end_date - dataset.rtt_op_start_date).days
-
-# Define population
-dataset.define_population(
-    ((dataset.eia_code_date >= start_date) & (dataset.eia_code_date < end_date)) &
-    ((dataset.age >= 18) & (dataset.age <= 110)) &
-    (dataset.pre_reg) &
-    (dataset.sex.is_in(["male", "female"]))
-)

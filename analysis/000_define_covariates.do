@@ -48,6 +48,7 @@ global end_year = year(date("$end_date", "DMY"))
 global max_year = $end_year - $base_year
 
 **Conversion for dates====================================================*
+
 ***Variables ending in _date that are string
 ds *_date, has(type string)
 local string_dates `r(varlist)'
@@ -359,7 +360,7 @@ replace rheum_appt2=0 if rheum_appt2_date>(eia_code_date + 60) & rheum_appt2_dat
 replace rheum_appt2_date=. if rheum_appt2_date>(eia_code_date + 60) & rheum_appt2_date!=. //replace as missing those appts >60 days after EIA code_yea
 replace rheum_appt3=0 if rheum_appt3_date>(eia_code_date + 60) & rheum_appt3_date!=. //replace as missing those appts >60 days after EIA code
 replace rheum_appt3_date=. if rheum_appt3_date>(eia_code_date + 60) & rheum_appt3_date!=. //replace as missing those appts >60 days after EIA code
-replace rheum_appt4=0 if rheum_appt4_date>(eia_code_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
+replace rheum_appt4=0 if rheum_appt4_date>(eia_code_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code - THIS IS AN IMPORTANT ONE TO CHECK
 replace rheum_appt4_date=. if rheum_appt4_date>(eia_code_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
 
 *Check if first csDMARD/biologic was after rheum appt date=====================================================*/
@@ -546,28 +547,40 @@ lab val rheum_appt_6m rheum_appt_6m
 **Define Rheumatology referrals ======================================*/
 
 ***From HES OPA (referral_request_received_date)
-tab rheum_appt_ref_date, missing
-tab mo_year_diagn rheum_appt_ref_date, missing
-tab mo_year_diagn rheum_appt_ref_date if rheum_appt!=., missing
+tab rheum_appt_ref, missing
+codebook rheum_appt_ref_date
+tab mo_year_diagn rheum_appt_ref, missing
+tab mo_year_diagn rheum_appt_ref if rheum_appt!=., missing
 
 ***From RTT clock-stop data (only available for those with clock-stop date between May 2021 and May 2022)
-tab rtt_cl_ref_date, missing
-tab mo_year_diagn rtt_cl_ref_date, missing
-tab mo_year_diagn rtt_cl_ref_date if rheum_appt!=., missing
-tab rtt_cl_start_date, missing //check how this differs
+tab rtt_cl_ref, missing
+codebook rtt_cl_ref_date
+tab rtt_cl_ref if rheum_appt!=0 & rtt_cl_ref_date<=rheum_appt_date, missing 
+tab mo_year_diagn rtt_cl_ref, missing
+tab mo_year_diagn rtt_cl_ref if rheum_appt!=., missing
+tab rtt_cl_start, missing //check how this differs
+codebook rtt_cl_start_date
+tab rtt_cl_start if rheum_appt!=0 & rtt_cl_start_date<=rheum_appt_date, missing 
 
 ***From RTT open pathway data (only available as a snapshot of those with open RTT pathways as of May 2022)
-tab rtt_op_ref_date, missing
-tab mo_year_diagn rtt_op_ref_date, missing
-tab mo_year_diagn rtt_op_ref_date if rheum_appt!=., missing
-tab rtt_op_start_date, missing //check how this differs
+tab rtt_op_ref, missing
+codebook rtt_op_ref_date
+tab rtt_op_ref if rheum_appt!=0 & rtt_op_ref_date<=rheum_appt_date, missing 
+tab mo_year_diagn rtt_op_ref, missing
+tab mo_year_diagn rtt_op_ref if rheum_appt!=., missing
+tab rtt_op_start, missing //check how this differs
+codebook rtt_op_start_date
+tab rtt_op_start if rheum_appt!=0 & rtt_op_start_date<=rheum_appt_date, missing 
 
 ***Combination of RTT clock-stop and open pathway
 gen rtt_ref_date = rtt_cl_ref_date
 replace rtt_ref_date = rtt_op_ref_date if rtt_cl_ref_date==. & rtt_op_ref_date!=. //need to think how to handle duplicate pathways
-tab rtt_ref_date, missing
-tab mo_year_diagn rtt_ref_date, missing
-tab mo_year_diagn rtt_ref_date if rheum_appt!=., missing
+format %td rtt_ref_date
+gen rtt_ref =1 if rtt_ref_date!=.
+recode rtt_ref .=0
+tab rtt_ref, missing
+tab mo_year_diagn rtt_ref, missing
+tab mo_year_diagn rtt_ref if rheum_appt!=0 & rtt_ref_date<=rheum_appt_date, missing 
 
 ***From clinical events (Nb. low capture of coded rheumatology referrals in clinical events at present)
 tab rheum_ref_gp_preappt, missing //last rheum referral in the 2 years before rheumatology outpatient (requires rheum appt to have been present)
@@ -639,7 +652,7 @@ tab has_12m_post_appt
 **AMEND THE BELOW ONCE REFERRAL DATE KNOWN
 
 **Time from last GP appt to rheum ref before rheum appt (i.e. if appts are present and in correct time order)
-gen time_gp_rheum_ref_appt = (rheum_ref_GP_preappt_date - last_gp_refrheum_date) if rheum_ref_gp_preappt_date!=. & last_gp_refrheum_date!=. & rheum_appt_date!=. & (rheum_ref_gp_preappt_date>=last_gp_refrheum_date) & (rheum_ref_gp_preappt_date<=rheum_appt_date)
+gen time_gp_rheum_ref_appt = (rheum_ref_gp_preappt_date - last_gp_refrheum_date) if rheum_ref_gp_preappt_date!=. & last_gp_refrheum_date!=. & rheum_appt_date!=. & (rheum_ref_gp_preappt_date>=last_gp_refrheum_date) & (rheum_ref_gp_preappt_date<=rheum_appt_date)
 tabstat time_gp_rheum_ref_appt, stats (n mean p50 p25 p75) //all patients (should be same number as all_appts)
 
 gen gp_ref_cat=1 if time_gp_rheum_ref_appt<=3 & time_gp_rheum_ref_appt!=. 
@@ -668,6 +681,8 @@ tabstat time_gp_rheum_ref_comb, stats (n mean p50 p25 p75)
 
 *Time to rheum appointment=============================================*/
 
+**AMEND THE BELOW ONCE REFERRAL DATE KNOWN
+
 **Time from last GP pre-rheum appt to first rheum appt (proxy for referral to appt delay)
 gen time_gp_rheum_appt = (rheum_appt_date - last_gp_prerheum_date) if rheum_appt_date!=. & last_gp_prerheum_date!=. & (rheum_appt_date>=last_gp_prerheum_date)
 tabstat time_gp_rheum_appt, stats (n mean p50 p25 p75)
@@ -675,6 +690,22 @@ tabstat time_gp_rheum_appt, stats (n mean p50 p25 p75)
 **Time from rheum ref to rheum appt (i.e. if appts are present and in correct order)
 gen time_ref_rheum_appt = (rheum_appt_date - rheum_ref_gp_preappt_date) if rheum_appt_date!=. & rheum_ref_gp_preappt_date!=. & (rheum_ref_gp_preappt_date<=rheum_appt_date)
 tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from rheum appt received date to rheum appt (i.e. if appts are present and in correct order)
+gen time_hes_rheum_appt = (rheum_appt_date - rheum_appt_ref_date) if rheum_appt_date!=. & rheum_appt_ref_date!=. & (rheum_appt_ref_date<=rheum_appt_date)
+tabstat time_hes_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from RTT combined ref date to rheum appt (i.e. if appts are present and in correct order)
+gen time_rtt_rheum_appt = (rheum_appt_date - rtt_ref_date) if rheum_appt_date!=. & rtt_ref_date!=. & (rtt_ref_date<=rheum_appt_date)
+tabstat time_rtt_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from RTT closed ref date to rheum appt (i.e. if appts are present and in correct order)
+gen time_rtt_cl_rheum_appt = (rheum_appt_date - rtt_cl_ref_date) if rheum_appt_date!=. & rtt_cl_ref_date!=. & (rtt_cl_ref_date<=rheum_appt_date)
+tabstat time_rtt_cl_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from RTT open ref date to rheum appt (i.e. if appts are present and in correct order)
+gen time_rtt_op_rheum_appt = (rheum_appt_date - rtt_op_ref_date) if rheum_appt_date!=. & rtt_op_ref_date!=. & (rtt_op_ref_date<=rheum_appt_date)
+tabstat time_rtt_op_rheum_appt, stats (n mean p50 p25 p75)
 
 gen gp_appt_cat=1 if time_gp_rheum_appt<=21 & time_gp_rheum_appt!=. 
 replace gp_appt_cat=2 if time_gp_rheum_appt>21 & time_gp_rheum_appt<=42 & time_gp_rheum_appt!=. & gp_appt_cat==.
@@ -687,26 +718,12 @@ tab gp_appt_cat, missing
 forvalues i = 1/$max_year {
     local start = $base_year + `i' - 1
     local end = `start' + 1
-    label define appt_year_lbl `i' "Apr `start'–Mar `end'", add
+	gen gp_appt_cat_`start'=gp_appt_cat if appt_year==`i'
+    lab define gp_appt_cat_`start' 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
+	lab val gp_appt_cat_`start' gp_appt_cat_`start'
+	lab var gp_appt_cat_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
+	tab gp_appt_cat_`start', missing
 }
-
-gen gp_appt_cat_`start'=gp_appt_cat if appt_year==`i'
-
-lab define gp_appt_cat_19 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
-lab val gp_appt_cat_19 gp_appt_cat_19
-lab var gp_appt_cat_19 "Time to rheumatology assessment, Apr 2019-2020"
-lab define gp_appt_cat_20 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
-lab val gp_appt_cat_20 gp_appt_cat_20
-lab var gp_appt_cat_20 "Time to rheumatology assessment, Apr 2020-2021"
-lab define gp_appt_cat_21 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
-lab val gp_appt_cat_21 gp_appt_cat_21
-lab var gp_appt_cat_21 "Time to rheumatology assessment, Apr 2021-2022"
-lab define gp_appt_cat_22 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
-lab val gp_appt_cat_22 gp_appt_cat_22
-lab var gp_appt_cat_22 "Time to rheumatology assessment, Apr 2022-2023"
-lab define gp_appt_cat_23 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
-lab val gp_appt_cat_23 gp_appt_cat_23
-lab var gp_appt_cat_23 "Time to rheumatology assessment, Apr 2023-2024"
 
 gen gp_appt_3w=1 if time_gp_rheum_appt<=21 & time_gp_rheum_appt!=. 
 replace gp_appt_3w=2 if time_gp_rheum_appt>21 & time_gp_rheum_appt!=.
@@ -714,6 +731,8 @@ lab define gp_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
 lab val gp_appt_3w gp_appt_3w
 lab var gp_appt_3w "Time to rheumatology assessment, overall"
 tab gp_appt_3w, missing
+
+**AMEND THE BELOW ONCE REFERRAL DATE KNOWN
 
 gen ref_appt_cat=1 if time_ref_rheum_appt<=21 & time_ref_rheum_appt!=. 
 replace ref_appt_cat=2 if time_ref_rheum_appt>21 & time_ref_rheum_appt<=42 & time_ref_rheum_appt!=. & ref_appt_cat==.
@@ -723,17 +742,22 @@ lab val ref_appt_cat ref_appt_cat
 lab var ref_appt_cat "Time to rheumatology assessment"
 tab ref_appt_cat, missing
 
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+	gen ref_appt_cat_`start'=ref_appt_cat if appt_year==`i'
+    lab define ref_appt_cat_`start' 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
+	lab val ref_appt_cat_`start' ref_appt_cat_`start'
+	lab var ref_appt_cat_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
+	tab ref_appt_cat_`start', missing
+}
+
 gen ref_appt_3w=1 if time_ref_rheum_appt<=21 & time_ref_rheum_appt!=. 
 replace ref_appt_3w=2 if time_ref_rheum_appt>21 & time_ref_rheum_appt!=.
 lab define ref_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
 lab val ref_appt_3w ref_appt_3w
 lab var ref_appt_3w "Time to rheumatology assessment"
 tab ref_appt_3w, missing
-
-**Time from rheum ref or last GP to rheum appt (combined; includes those with no rheum ref)
-gen time_refgp_rheum_appt = time_ref_rheum_appt
-replace time_refgp_rheum_appt = time_gp_rheum_appt if time_ref_rheum_appt==. & time_gp_rheum_appt!=.
-tabstat time_refgp_rheum_appt, stats (n mean p50 p25 p75)
 
 *Time to EIA code==================================================*/
 
