@@ -17,9 +17,9 @@ USER-INSTALLED ADO:
 ==============================================================================*/
 
 **Set filepaths
-global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+*global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
 *global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
-*global projectdir `c(pwd)'
+global projectdir `c(pwd)'
 
 capture mkdir "$projectdir/output/data"
 capture mkdir "$projectdir/output/figures"
@@ -40,7 +40,6 @@ import delimited "$projectdir/output/dataset.csv", clear
 adopath + "$projectdir/analysis/extra_ados"
 
 **Set index dates ===========================================================*/
-global year_preceding = "01/04/2015"
 global start_date = "01/04/2016" //for outpatient analyses, data may only be available from April 2019
 global end_date = "31/03/2025"
 global base_year = year(date("$start_date", "DMY"))
@@ -79,7 +78,8 @@ foreach var of local dates {
 
 /*
 **Will also need to amend conversion for biologic dates ====================================================*
-***Some dates are given with month/year only, so adding day 15 to enable them to be processed as dates 
+***Some dates are given with month/year only, so adding day 15 to enable them to be processed as dates
+***Would do this by labelling as _date_hcd then doing similar to above/below, but adding 15 days first
 
 foreach var of varlist 	 abatacept_date						///
 						 adalimumab_date					///	
@@ -365,22 +365,42 @@ replace rheum_appt4_date=. if rheum_appt4_date>(eia_code_date + 60) & rheum_appt
 
 *Check if first csDMARD/biologic was after rheum appt date=====================================================*/
 **csDMARDs (not including high cost MTX; wouldn't be shared care)
-gen csdmard=1 if hydroxychloroquine==1 | leflunomide==1 | methotrexate==1 | methotrexate_inj==1 | sulfasalazine==1
+gen csdmard=1 if hydroxychloroquine==1 | leflunomide==1 | methotrexate_oral==1 | methotrexate_inj==1 | sulfasalazine==1
 recode csdmard .=0 
 tab csdmard, missing
 
 **Date of first csDMARD script (not including high cost MTX prescriptions)
-gen csdmard_date=min(hydroxychloroquine_date, leflunomide_date, methotrexate_date, methotrexate_inj_date, sulfasalazine_date)
+gen csdmard_date=min(hydroxychloroquine_date, leflunomide_date, methotrexate_oral_date, methotrexate_inj_date, sulfasalazine_date)
 format %td csdmard_date
+
+**Generate combined methotrexate (primary care only)
+gen mtx = 1 if methotrexate_oral==1 | methotrexate_inj==1
+recode mtx .=0
+lab var mtx "Methotrexate"
+gen mtx_date = min(methotrexate_oral_date, methotrexate_inj_date) if mtx == 1
+format %td mtx_date
+
+**Exclude if first csdmard was more than 60 days before first rheum appt
+tab csdmard if rheum_appt_date!=. & csdmard_date!=. & csdmard_date<rheum_appt_date
+tab csdmard if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date 
+gen pre_ra_csdmard_time = (rheum_appt_date - csdmard_date) if rheum_appt_date!=. & csdmard_date!=. & csdmard_date<rheum_appt_date
+tabstat pre_ra_csdmard_time, stats (n mean p50 p25 p75) // how long before were csdmards prescribed
+tab mtx if rheum_appt_date!=. & mtx_date!=. & (mtx_date + 60)<rheum_appt_date 
+tab hydroxychloroquine if rheum_appt_date!=. & hydroxychloroquine_date!=. & (hydroxychloroquine_date + 60)<rheum_appt_date 
+tab sulfasalazine if rheum_appt_date!=. & sulfasalazine_date!=. & (sulfasalazine_date + 60)<rheum_appt_date 
+tab leflunomide if rheum_appt_date!=. & leflunomide_date!=. & (leflunomide_date + 60)<rheum_appt_date 
+drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date //drop if first csDMARD more than 60 days before first attendance at a rheum appt 
+tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date
+drop if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date //drop if first csDMARD more than 60 days before first captured rheum appt that did not have first attendance tag
 
 /*
 **csDMARDs (including high cost MTX)
-gen csdmard_hcd=1 if hydroxychloroquine==1 | leflunomide==1 | methotrexate==1 | methotrexate_inj==1 | methotrexate_hcd==1 | sulfasalazine==1
+gen csdmard_hcd=1 if hydroxychloroquine==1 | leflunomide==1 | methotrexate==1 | methotrexate_hcd==1 | sulfasalazine==1
 recode csdmard_hcd .=0 
 tab csdmard_hcd, missing
 
 **Date of first csDMARD script (including high cost MTX prescriptions)
-gen csdmard_hcd_date=min(hydroxychloroquine_date, leflunomide_date, methotrexate_date, methotrexate_inj_date, methotrexate_hcd_date, sulfasalazine_date)
+gen csdmard_hcd_date=min(hydroxychloroquine_date, leflunomide_date, methotrexate_date, methotrexate_hcd_date, sulfasalazine_date)
 format %td csdmard_hcd_date
 
 **Biologic use
@@ -391,16 +411,7 @@ tab biologic, missing
 **Date of first biologic script
 gen biologic_date=min(abatacept_date, adalimumab_date, baricitinib_date, certolizumab_date, etanercept_date, golimumab_date, guselkumab_date, infliximab_date, ixekizumab_date, rituximab_date, sarilumab_date, secukinumab_date, tocilizumab_date, tofacitinib_date, upadacitinib_date, ustekinumab_date)
 format %td biologic_date
-*/
 
-**Exclude if first csdmard was more than 60 days before first rheum appt
-tab csdmard if rheum_appt_date!=. & csdmard_date!=. & csdmard_date<rheum_appt_date
-tab csdmard if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date 
-drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date //drop if first csDMARD more than 60 days before first attendance at a rheum appt 
-tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date
-drop if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date //drop if first csDMARD more than 60 days before first captured rheum appt that did not have first attendance tag
-
-/*
 tab biologic if rheum_appt_date!=. & biologic_date!=. & biologic_date<rheum_appt_date 
 tab biologic if rheum_appt_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_date 
 drop if rheum_appt_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_date //drop if first biologic more than 60 days before first rheum_appt_date
@@ -787,31 +798,21 @@ tabstat time_rheum2_eia_code, stats (n mean p50 p25 p75)
 gen time_rheum3_eia_code = (eia_code_date - rheum_appt3_date) if eia_code_date!=. & rheum_appt3_date!=. 
 tabstat time_rheum3_eia_code, stats (n mean p50 p25 p75) 
 
-*Time from rheum appt to first csDMARD prescriptions on primary care record======================================================================*/
+*Time from rheum appt to first csDMARD prescriptions in primary care record======================================================================*/
 
-**Time to first csDMARD script for RA patients not including high cost MTX prescriptions; prescription must be within 6 months of first rheum appt for all csDMARDs below ==================*/
-gen time_to_csdmard=(csdmard_date-rheum_appt_date) if csdmard==1 & rheum_appt_date!=. & (csdmard_date<=rheum_appt_date+180)
-tabstat time_to_csdmard if ra_code==1, stats (n mean p50 p25 p75)
+**Time to first csDMARD script not including high cost MTX prescriptions; prescription must be within 6 months of first rheum appt for all csDMARDs below ==================*/
+gen time_to_csdmard=(csdmard_date-rheum_appt_date) if csdmard==1 & rheum_appt_date!=. & (csdmard_date<=(rheum_appt_date+180))
+tabstat time_to_csdmard, stats (n mean p50 p25 p75)
+
+**All generate time to first csDMARD script not including high cost MTX prescriptions; with no time restriction ==================*/
+gen time_to_csdmard_unr=(csdmard_date-rheum_appt_date) if csdmard==1 & rheum_appt_date!=.
+tabstat time_to_csdmard_unr, stats (n mean p50 p25 p75)
 
 /*
 **Time to first csDMARD script for RA patients (including high cost MTX prescriptions)
 gen time_to_csdmard_hcd=(csdmard_hcd_date-rheum_appt_date) if csdmard_hcd==1 & rheum_appt_date!=. & (csdmard_hcd_date<=rheum_appt_date+180)
 tabstat time_to_csdmard_hcd if ra_code==1, stats (n mean p50 p25 p75) 
 */
-
-**Time to first csDMARD script for PsA patients (not including high cost MTX prescriptions)
-tabstat time_to_csdmard if psa_code==1, stats (n mean p50 p25 p75)
-
-/*
-**Time to first csDMARD script for PsA patients (including high cost MTX prescriptions)
-tabstat time_to_csdmard_hcd if psa_code==1, stats (n mean p50 p25 p75) 
-*/
-
-**Time to first csDMARD script for axSpA patients (not including high cost MTX prescriptions)
-tabstat time_to_csdmard if anksp_code==1, stats (n mean p50 p25 p75)
-
-**Time to first csDMARD script for Undiff IA patients (not including high cost MTX prescriptions)
-tabstat time_to_csdmard if undiff_code==1, stats (n mean p50 p25 p75)
 
 **csDMARD time categories (not including high cost MTX prescriptions)
 gen csdmard_time=1 if time_to_csdmard<=90 & time_to_csdmard!=. 
@@ -820,36 +821,23 @@ replace csdmard_time=3 if time_to_csdmard>180 | time_to_csdmard==.
 lab define csdmard_time 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months", modify
 lab val csdmard_time csdmard_time
 lab var csdmard_time "csDMARD in primary care, overall" 
-tab csdmard_time if ra_code==1, missing 
-tab csdmard_time if psa_code==1, missing
-tab csdmard_time if anksp_code==1, missing
-tab csdmard_time if undiff_code==1, missing
+tab csdmard_time, missing
+tab csdmard_time if has_6m_follow_up==1, missing
+tab csdmard_time if ra_code==1 & has_6m_follow_up==1, missing 
+tab csdmard_time if psa_code==1 & has_6m_follow_up==1, missing
+tab csdmard_time if anksp_code==1 & has_6m_follow_up==1, missing
+tab csdmard_time if undiff_code==1 & has_6m_follow_up==1, missing
 
-gen csdmard_time_19=csdmard_time if appt_year==1
-recode csdmard_time_19 .=4
-gen csdmard_time_20=csdmard_time if appt_year==2
-recode csdmard_time_20 .=4
-gen csdmard_time_21=csdmard_time if appt_year==3
-recode csdmard_time_21 .=4
-gen csdmard_time_22=csdmard_time if appt_year==4
-recode csdmard_time_22 .=4
-gen csdmard_time_23=csdmard_time if appt_year==5
-recode csdmard_time_23 .=4
-lab define csdmard_time_19 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside 2019", modify
-lab val csdmard_time_19 csdmard_time_19
-lab var csdmard_time_19 "csDMARD in primary care, Apr 2019-2020" 
-lab define csdmard_time_20 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside 2020", modify
-lab val csdmard_time_20 csdmard_time_20
-lab var csdmard_time_20 "csDMARD in primary care, Apr 2020-2021" 
-lab define csdmard_time_21 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside 2021", modify
-lab val csdmard_time_21 csdmard_time_21
-lab var csdmard_time_21 "csDMARD in primary care, Apr 2021-2022" 
-lab define csdmard_time_22 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside 2022", modify
-lab val csdmard_time_22 csdmard_time_22
-lab var csdmard_time_22 "csDMARD in primary care, Apr 2022-2023" 
-lab define csdmard_time_23 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside 2022", modify
-lab val csdmard_time_23 csdmard_time_23
-lab var csdmard_time_23 "csDMARD in primary care, Apr 2023-2024" 
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+	gen csdmard_time_`start'=csdmard_time if appt_year==`i'
+	recode csdmard_time_`start' .=4
+    lab define csdmard_time_`start' 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside `start'/`end'", modify
+	lab val csdmard_time_`start' csdmard_time_`start'
+	lab var csdmard_time_`start' "csDMARD in primary care, Apr `start'-Mar `end'"
+	tab csdmard_time_`start' if has_6m_follow_up==1, missing
+}
 
 **csDMARD time categories - binary 6 months
 gen csdmard_6m=1 if time_to_csdmard<=180 & time_to_csdmard!=. 
@@ -873,25 +861,42 @@ tab csdmard_hcd_time if anksp_code==1, missing
 tab csdmard_hcd_time if undiff_code==1, missing
 */
 
-**What was first csDMARD in GP record (not including high cost MTX prescriptions) - removed leflunomide (for OpenSAFELY report) due to small counts at more granular time periods
+**What was first csDMARD in GP record (not including high cost MTX prescriptions) - with time restriction - may need to remove leflunomide (for OpenSAFELY report) due to small counts at more granular time periods
 gen first_csD=""
-foreach var of varlist hydroxychloroquine_date methotrexate_date methotrexate_inj_date sulfasalazine_date {
+foreach var of varlist hydroxychloroquine_date mtx_date sulfasalazine_date leflunomide_date {
 	replace first_csD="`var'" if csdmard_date==`var' & csdmard_date!=. & (`var'<=(rheum_appt_date+180)) & time_to_csdmard!=.
 	}
 gen first_csDMARD = substr(first_csD, 1, length(first_csD) - 5) if first_csD!="" 
 drop first_csD
-replace first_csDMARD="Methotrexate" if first_csDMARD=="methotrexate" | first_csDMARD=="methotrexate_inj" //combine oral and s/c MTX
+replace first_csDMARD="Methotrexate" if first_csDMARD=="mtx"
 replace first_csDMARD="Sulfasalazine" if first_csDMARD=="sulfasalazine"
 replace first_csDMARD="Hydroxychloroquine" if first_csDMARD=="hydroxychloroquine" 
+replace first_csDMARD="Leflunomide" if first_csDMARD=="leflunomide" 
 tab first_csDMARD if ra_code==1 //for RA patients
 tab first_csDMARD if psa_code==1 //for PsA patients
 tab first_csDMARD if anksp_code==1 //for axSpA patients
 tab first_csDMARD if undiff_code==1 //for Undiff IA patients
 
+**What was first csDMARD in GP record (not including high cost MTX prescriptions) - without time restriction
+gen first_csD_unr=""
+foreach var of varlist hydroxychloroquine_date mtx_date sulfasalazine_date leflunomide_date {
+	replace first_csD_unr="`var'" if csdmard_date==`var' & csdmard_date!=.
+	}
+gen first_csDMARD_unr = substr(first_csD_unr, 1, length(first_csD_unr) - 5) if first_csD_unr!="" 
+drop first_csD_unr
+replace first_csDMARD_unr="Methotrexate" if first_csDMARD_unr=="mtx"
+replace first_csDMARD_unr="Sulfasalazine" if first_csDMARD_unr=="sulfasalazine"
+replace first_csDMARD_unr="Hydroxychloroquine" if first_csDMARD_unr=="hydroxychloroquine" 
+replace first_csDMARD_unr="Leflunomide" if first_csDMARD_unr=="leflunomide" 
+tab first_csDMARD_unr if ra_code==1 //for RA patients
+tab first_csDMARD_unr if psa_code==1 //for PsA patients
+tab first_csDMARD_unr if anksp_code==1 //for axSpA patients
+tab first_csDMARD_unr if undiff_code==1 //for Undiff IA patients
+
 /*
 **What was first csDMARD in GP record (including high cost MTX prescriptions)
 gen first_csD_hcd=""
-foreach var of varlist hydroxychloroquine_date methotrexate_date methotrexate_inj_date methotrexate_hcd_date sulfasalazine_date {
+foreach var of varlist hydroxychloroquine_date methotrexate_date methotrexate_hcd_date sulfasalazine_date leflunomide_date {
 	replace first_csD_hcd="`var'" if csdmard_hcd_date==`var' & csdmard_hcd_date!=. & (csdmard_hcd_date<=rheum_appt_date+180) & time_to_csdmard_hcd!=.
 	}
 gen first_csDMARD_hcd = substr(first_csD_hcd, 1, length(first_csD_hcd) - 5) if first_csD_hcd!=""
@@ -902,19 +907,11 @@ tab first_csDMARD_hcd if anksp_code==1 //for axSpA patients
 tab first_csDMARD_hcd if undiff_code==1 //for Undiff IA patients
 */
  
-**Methotrexate use (not including high cost MTX prescriptions)
-gen mtx=1 if methotrexate==1 | methotrexate_inj==1
-recode mtx .=0 
-
 /*
 **Methotrexate use (including high cost MTX prescriptions)
 gen mtx_hcd=1 if methotrexate==1 | methotrexate_inj==1 | methotrexate_hcd==1
 recode mtx_hcd .=0 
 */
-
-**Date of first methotrexate script (not including high cost MTX prescriptions)
-gen mtx_date=min(methotrexate_date, methotrexate_inj_date)
-format %td mtx_date
 
 /*
 **Date of first methotrexate script (including high cost MTX prescriptions)
@@ -922,8 +919,8 @@ gen mtx_hcd_date=min(methotrexate_date, methotrexate_inj_date, methotrexate_hcd_
 format %td mtx_hcd_date
 */
 
-**Methotrexate use (not including high cost MTX prescriptions)
-tab mtx if ra_code==1 //for RA patients; Nb. this is just a check; need time-to-MTX instead (below)
+**Methotrexate use (not including high cost MTX prescriptions); Nb. this is just a check; need time-to-MTX instead (below)
+tab mtx if ra_code==1 //for RA patients
 tab mtx if ra_code==1 & (mtx_date<=rheum_appt_date+180) //with 6-month limit
 tab mtx if ra_code==1 & (mtx_date<=rheum_appt_date+365) //with 12-month limit
 tab mtx if psa_code==1 //for PsA patients
@@ -947,7 +944,7 @@ tab mtx_hcd if undiff_code==1 & (mtx_hcd_date<=rheum_appt_date+365) //with 12-mo
 */
 
 **Check if medication issued >once
-gen mtx_shared=1 if mtx==1 & (methotrexate_count>1 | methotrexate_inj_count>1)
+gen mtx_shared=1 if mtx==1 & (methotrexate_oral_count>1 | methotrexate_inj_count>1)
 recode mtx_shared .=0
 tab mtx_shared
 
@@ -960,12 +957,12 @@ tab mtx_shared if undiff_code==1 //for undiff IA patients
 tab mtx_shared if undiff_code==1 & (mtx_date<=rheum_appt_date+180) //with 6-month limit
 
 **Check medication issue number
-gen mtx_issue=0 if mtx==1 & (methotrexate_count==0 | methotrexate_inj_count==0)
-replace mtx_issue=1 if mtx==1 & (methotrexate_count==1 | methotrexate_inj_count==1)
-replace mtx_issue=2 if mtx==1 & (methotrexate_count>1 | methotrexate_inj_count>1)
+gen mtx_issue=0 if mtx==1 & (methotrexate_oral_count==0 | methotrexate_inj_count==0)
+replace mtx_issue=1 if mtx==1 & (methotrexate_oral_count==1 | methotrexate_inj_count==1)
+replace mtx_issue=2 if mtx==1 & (methotrexate_oral_count>1 | methotrexate_inj_count>1)
 tab mtx_issue
 
-**Time to first methotrexate script for RA patients (not including high cost MTX prescriptions)
+**Time to first methotrexate script for RA patients (not including high cost MTX prescriptions) - with time restriction
 gen time_to_mtx=(mtx_date-rheum_appt_date) if mtx==1 & rheum_appt_date!=. & (mtx_date<=rheum_appt_date+180)
 tabstat time_to_mtx if ra_code==1, stats (n mean p50 p25 p75)
 
@@ -986,7 +983,7 @@ tabstat time_to_mtx_hcd if psa_code==1, stats (n mean p50 p25 p75)
 **Time to first methotrexate script for Undiff IA patients (not including high cost MTX prescriptions)
 tabstat time_to_mtx if undiff_code==1, stats (n mean p50 p25 p75)
 
-**Methotrexate time categories (not including high-cost MTX)  
+**Methotrexate time categories (not including high-cost MTX) - those with prescription date after 6 months (i.e. missing) are still counted
 gen mtx_time=1 if time_to_mtx<=90 & time_to_mtx!=. 
 replace mtx_time=2 if time_to_mtx>90 & time_to_mtx<=180 & time_to_mtx!=.
 replace mtx_time=3 if time_to_mtx>180 | time_to_mtx==.
@@ -1132,6 +1129,9 @@ gen csdmard_shared=1 if lef_shared==1 | mtx_shared==1 | hcq_shared==1 | ssz_shar
 recode csdmard_shared .=0
 tab csdmard_shared
 tab csdmard //for comparison
+
+**Generate number of csDMARD trials by time-points
+
 
 **Time to first biologic script; high_cost drug data available to Nov 2020. Not for analysis currently due to small numbers======================================================================*/
 

@@ -231,7 +231,6 @@ rheum_appt = opa.where(
 dataset.rheum_appt_date = rheum_appt.appointment_date
 dataset.rheum_appt_medium = rheum_appt.consultation_medium_used
 dataset.rheum_appt_ref_date = rheum_appt.referral_request_received_date
-#dataset.rheum_provider = rheum_appt.provider_code
 
 ## Date of first rheum appointment in the 1 year before rheum diagnostic code (without first attendance option selected)
 dataset.rheum_appt_any_date = opa.where(
@@ -367,10 +366,26 @@ def medication_dates_dmd (dx_codelist):
     ).first_for_patient()
 
 dataset.leflunomide_date = medication_dates_dmd(codelists.leflunomide_codes).date
-dataset.methotrexate_date = medication_dates_dmd(codelists.methotrexate_codes).date
+dataset.methotrexate_oral_date = medication_dates_dmd(codelists.methotrexate_codes).date
 dataset.methotrexate_inj_date = medication_dates_dmd(codelists.methotrexate_inj_codes).date
 dataset.sulfasalazine_date = medication_dates_dmd(codelists.sulfasalazine_codes).date
 dataset.hydroxychloroquine_date = medication_dates_dmd(codelists.hydroxychloroquine_codes).date
+
+## Date of late prescription before end date
+def medication_dates_dmd_last (dx_codelist):
+    return medications.where(
+            medications.dmd_code.is_in(dx_codelist)
+    ).where(
+            medications.date.is_on_or_before(end_date)
+    ).sort_by(
+            medications.date
+    ).last_for_patient()
+
+dataset.lef_last_date = medication_dates_dmd_last(codelists.leflunomide_codes).date
+dataset.mtx_oral_last_date = medication_dates_dmd_last(codelists.methotrexate_codes).date
+dataset.mtx_inj_last_date = medication_dates_dmd_last(codelists.methotrexate_inj_codes).date
+dataset.ssz_last_date = medication_dates_dmd_last(codelists.sulfasalazine_codes).date
+dataset.hcq_last_date = medication_dates_dmd_last(codelists.hydroxychloroquine_codes).date
 
 ## Count of prescriptions issued before end date
 def get_medcounts_for_dates (dx_codelist):
@@ -383,7 +398,7 @@ def get_medcounts_for_dates (dx_codelist):
     ).count_for_patient()
 
 dataset.leflunomide_count = get_medcounts_for_dates(codelists.leflunomide_codes)
-dataset.methotrexate_count = get_medcounts_for_dates(codelists.methotrexate_codes)
+dataset.methotrexate_oral_count = get_medcounts_for_dates(codelists.methotrexate_codes)
 dataset.methotrexate_inj_count = get_medcounts_for_dates(codelists.methotrexate_inj_codes)
 dataset.sulfasalazine_count = get_medcounts_for_dates(codelists.sulfasalazine_codes)
 dataset.hydroxychloroquine_count = get_medcounts_for_dates(codelists.hydroxychloroquine_codes)

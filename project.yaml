@@ -8,17 +8,17 @@ actions:
       highly_sensitive:
         cohort: output/dataset.csv 
 
-  # create_cohorts_ehrQL:
-  #   run: stata-mp:latest analysis/000_define_covariates_ehrQL.do
-  #   needs: [generate_dataset]
-  #   outputs:
-  #     highly_sensitive:
-  #       log1: logs/cleaning_dataset_ehrQL.log 
-  #       data1: output/data/file_eia_all_ehrQL.dta
+  create_cohorts:
+    run: stata-mp:latest analysis/000_define_covariates.do
+    needs: [generate_dataset]
+    outputs:
+      highly_sensitive:
+        log1: logs/cleaning_dataset.log 
+        data1: output/data/file_eia_all.dta
 
   # run_baseline_tables:
   #   run: stata-mp:latest analysis/100_baseline_characteristics.do
-  #   needs: [create_cohorts_ehrQL]
+  #   needs: [create_cohorts]
   #   outputs:
   #     moderately_sensitive:
   #       log1: logs/descriptive_tables.log   
@@ -50,7 +50,7 @@ actions:
   
   # run_itsa_models:
   #   run: stata-mp:latest analysis/200_itsa_models.do
-  #   needs: [create_cohorts_ehrQL]
+  #   needs: [create_cohorts]
   #   outputs:
   #     moderately_sensitive:
   #       log1: logs/itsa_models.log   
@@ -62,7 +62,7 @@ actions:
   
   # run_itsa_models_drugs:
   #   run: stata-mp:latest analysis/201_itsa_models_drugs.do
-  #   needs: [create_cohorts_ehrQL]
+  #   needs: [create_cohorts]
   #   outputs:
   #     moderately_sensitive:
   #       log1: logs/itsa_models_drugs.log   
@@ -74,7 +74,7 @@ actions:
 
   # run_box_plots:
   #   run: stata-mp:latest analysis/300_box_plots.do
-  #   needs: [create_cohorts_ehrQL]
+  #   needs: [create_cohorts]
   #   outputs:
   #     moderately_sensitive:
   #       log1: logs/box_plots.log
@@ -99,7 +99,7 @@ actions:
 
   # run_redacted_tables:
   #   run: stata-mp:latest analysis/400_redacted_tables.do
-  #   needs: [create_cohorts_ehrQL]
+  #   needs: [create_cohorts]
   #   outputs:
   #     moderately_sensitive:
   #       log1: logs/redacted_tables.log   
