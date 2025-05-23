@@ -19,7 +19,6 @@ nhsd-primary-care-domain-refsets/solid-cancer-diagnosis-codes/7cb7c707
 nhsd-primary-care-domain-refsets/lung-cancer-codes/76f3a1d2
 nhsd-primary-care-domain-refsets/ff_cod/7c4fb8c1
 nhsd-primary-care-domain-refsets/interstitial-lung-disease-codes/40949454
-ardens/rheumatoid-factor/4120a459
 opensafely/smoking-clear/2020-04-29
 opensafely/smoking-unclear/2020-04-29
 opensafely/high-cost-drugs-abatacept/07fc04eb
@@ -44,4 +43,11 @@ opensafely/leflunomide-dmd/1765d120
 opensafely/methotrexate-injectable/3328044b
 opensafely/methotrexate-oral/041a8320
 opensafely/sulfasalazine-oral-dmd/1a189116
-opensafely/dmards/2020-06-23
+user/markdrussell/corticosteroids-oral-im-or-iv-dmd/6e4446b9
+user/markdrussell/rheumatoid-factor/3c25604f
+user/markdrussell/rheumatoid-factor-positive-finding/2315ed1a
+user/markdrussell/cyclic-citrullinated-peptide-ccp-antibody/0a0679e5
+user/markdrussell/cyclic-citrullinated-peptide-ccp-antibody-positive-finding/70f706af
+user/markdrussell/seropositive-rheumatoid-arthritis/57e7937a
+user/markdrussell/erosive-rheumatoid-arthritis/3ed82045
+

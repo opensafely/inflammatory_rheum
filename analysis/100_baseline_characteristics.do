@@ -1,61 +1,89 @@
 version 16
 
 /*==============================================================================
-DO FILE NAME:			baseline tables
-PROJECT:				EIA OpenSAFELY project
-DATE: 					07/03/2022
-AUTHOR:					J Galloway / M Russell
-						adapted from C Rentsch										
-DESCRIPTION OF FILE:	baseline tables
-DATASETS USED:			main data file
-DATASETS CREATED: 		tables
+DO FILE NAME:			baseline tables and graphs
+PROJECT:				Inflammatory Rheum OpenSAFELY project
+DATE: 					20/05/2025
+AUTHOR:					M Russell									
+DESCRIPTION OF FILE:	baseline tables and incidence graphs
+DATASETS USED:			processed data file
+DATASETS CREATED: 		tables and figures
 OTHER OUTPUT: 			logfiles, printed to folder $Logdir
 USER-INSTALLED ADO: 	 
   (place .ado file(s) in analysis folder)						
 ==============================================================================*/
 
 **Set filepaths
-*global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY\Github Practice"
-*global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY\Github Practice"
+*global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+*global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
 global projectdir `c(pwd)'
-di "$projectdir"
 
-capture mkdir "$projectdir/output/tables"
 capture mkdir "$projectdir/output/figures"
+capture mkdir "$projectdir/output/tables"
 
 global logdir "$projectdir/logs"
-di "$logdir"
 
 **Open a log file
 cap log close
 log using "$logdir/descriptive_tables.log", replace
 
+di "$projectdir"
+di "$logdir"
+
 **Set Ado file path
 adopath + "$projectdir/analysis/extra_ados"
 
-**Use cleaned data from previous step
-use "$projectdir/output/data/file_eia_all_ehrQL.dta", clear
-
 set scheme plotplainblind
 
-**Set index dates ===========================================================*/
-global year_preceding = "01/04/2018"
-global start_date = "01/04/2019"
-global end_date = "01/10/2023"
+**Use cleaned data from previous step
+*use "$projectdir/output/data/file_eia_all.dta", clear
 
-*Descriptive statistics======================================================================*/
+**Set index dates =========================================================*/
+global start_date = "01/04/2016" //for outpatient analyses, data may only be available from April 2019
+global end_date = "31/03/2025"
+global base_year = year(date("$start_date", "DMY"))
+global end_year = year(date("$end_date", "DMY"))
+global max_year = $end_year - $base_year
+
+**Import denominators from measures files=================================*/
+
+***List of study years
+forvalues y = $base_year/$end_year {
+    local years "`years' `y'"
+}
+
+di "Year list: `years'"
+
+import delimited "$projectdir/output/measures/measures_dataset.csv", clear
+keep if measure == "Registered_patients_all"
+
+**Loop over diseases and years
+foreach disease in $diseases {
+	foreach year in `years' {
+		if (("`disease'" != "`first_disease'") | ("`year'" != "`first_year'"))  {
+		import delimited "$projectdir/output/measures/measures_dataset_`disease'_`year'.csv", clear
+		append using "$projectdir/output/data/measures_appended.dta"
+		save "$projectdir/output/data/measures_appended.dta", replace 
+		}
+	}
+}
+
+sort measure interval_start sex age
+save "$projectdir/output/data/measures_appended.dta", replace 
+
+*Descriptive statistics==================================================*/
 
 **Total number of patients with diagnosis date after 1st April 2019 and before end date
 tab eia_code
 
 **Verify that all diagnoses were in study windows
 tab mo_year_diagn, missing
-tab diagnosis_6m, missing
+tab diagnosis_3m, missing
 tab diagnosis_year, missing
 
 **EIA sub-diagnosis (most recent code)
 tab eia_diagnosis, missing
-bys eia_diagnosis: tab diagnosis_6m, missing
+bys eia_diagnosis: tab diagnosis_3m, missing
 bys eia_diagnosis: tab diagnosis_year, missing
 
 *Diagnostic incidence by year, by disease
@@ -65,6 +93,7 @@ recode psa_code 0=.
 recode anksp_code 0=.
 recode undiff_code 0=.
 collapse (count) total_diag=eia_code ra_diag=ra_code psa_diag=psa_code axspa_diag=anksp_code undiff_diag=undiff_code, by(diagnosis_year) 
+
 **Round to nearest 5
 foreach var of varlist *_diag {
 	gen `var'_round=round(`var', 5)

@@ -29,6 +29,14 @@ dataset.psa_code_date = first_code_in_period(codelists.psoriatic_arthritis_codes
 dataset.anksp_code_date = first_code_in_period(codelists.ankylosing_spondylitis_codes).date
 dataset.undiff_code_date = first_code_in_period(codelists.undifferentiated_arthritis_codes).date
 
+## RF, CCP and/or seropositive RA codes
+dataset.rf_code_date = first_code_in_period(codelists.rf_codes).date
+dataset.ccp_code_date = first_code_in_period(codelists.ccp_codes).date
+dataset.seropositive_code_date = first_code_in_period(codelists.seropositive_codes).date
+
+## Erosive RA codes
+dataset.erosive_ra_code_date = first_code_in_period(codelists.erosive_codes).date
+
 # Count of diagnostic codes in primary care record - could be used for sensitivity of those with 2+ codes
 def count_code_in_period(dx_codelist):
     return clinical_events.where(
@@ -167,7 +175,7 @@ def last_test_in_period(dx_codelist):
 dataset.creatinine_value=last_test_in_period(codelists.creatinine_codes).numeric_value
 dataset.creatinine_date=last_test_in_period(codelists.creatinine_codes).date
 
-# Relevant blood tests for rheumatoid factor (not time restriction; takes last recorded value in study period)
+# Relevant blood tests for rheumatoid factor or CCP (no time restriction; takes last recorded value in study period)
 def any_test_in_period(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
@@ -175,8 +183,11 @@ def any_test_in_period(dx_codelist):
         clinical_events.date
     ).last_for_patient()
 
-dataset.rf_value=any_test_in_period(codelists.rf_codes).numeric_value
-dataset.rf_date=any_test_in_period(codelists.rf_codes).date
+dataset.rf_test_value=any_test_in_period(codelists.rf_tests).numeric_value
+dataset.rf_test_date=any_test_in_period(codelists.rf_tests).date
+
+dataset.ccp_test_value=any_test_in_period(codelists.ccp_tests).numeric_value
+dataset.ccp_test_date=any_test_in_period(codelists.ccp_tests).date
 
 # BMI
 bmi_record = clinical_events.where(
@@ -354,8 +365,8 @@ dataset.has_12m_follow_up = practice_registrations.where(
         ((preceding_registration(dataset.eia_code_date).end_date.is_null()) & ((dataset.rheum_appt_date + months(12)) <= end_date))
     ).exists_for_patient()
 
-# Medications ## Check up to date
-## Date of first prescription before end date
+# Medications
+## Dates and counts of csDMARD prescriptions before end date (those with prescriptions of csDMARDs more than 60 days before first EIA code are excluded in data processing stages)
 def medication_dates_dmd (dx_codelist):
     return medications.where(
             medications.dmd_code.is_in(dx_codelist)
@@ -363,53 +374,70 @@ def medication_dates_dmd (dx_codelist):
             medications.date.is_on_or_before(end_date)
     ).sort_by(
             medications.date
-    ).first_for_patient()
+    )
 
-dataset.leflunomide_date = medication_dates_dmd(codelists.leflunomide_codes).date
-dataset.methotrexate_oral_date = medication_dates_dmd(codelists.methotrexate_codes).date
-dataset.methotrexate_inj_date = medication_dates_dmd(codelists.methotrexate_inj_codes).date
-dataset.sulfasalazine_date = medication_dates_dmd(codelists.sulfasalazine_codes).date
-dataset.hydroxychloroquine_date = medication_dates_dmd(codelists.hydroxychloroquine_codes).date
+### First prescriptions
+dataset.leflunomide_date = medication_dates_dmd(codelists.leflunomide_codes).first_for_patient().date
+dataset.methotrexate_oral_date = medication_dates_dmd(codelists.methotrexate_codes).first_for_patient().date
+dataset.methotrexate_inj_date = medication_dates_dmd(codelists.methotrexate_inj_codes).first_for_patient().date
+dataset.sulfasalazine_date = medication_dates_dmd(codelists.sulfasalazine_codes).first_for_patient().date
+dataset.hydroxychloroquine_date = medication_dates_dmd(codelists.hydroxychloroquine_codes).first_for_patient().date
 
-## Date of late prescription before end date
-def medication_dates_dmd_last (dx_codelist):
+## Last prescriptions before end date
+dataset.lef_last_date = medication_dates_dmd(codelists.leflunomide_codes).last_for_patient().date
+dataset.mtx_oral_last_date = medication_dates_dmd(codelists.methotrexate_codes).last_for_patient().date
+dataset.mtx_inj_last_date = medication_dates_dmd(codelists.methotrexate_inj_codes).last_for_patient().date
+dataset.ssz_last_date = medication_dates_dmd(codelists.sulfasalazine_codes).last_for_patient().date
+dataset.hcq_last_date = medication_dates_dmd(codelists.hydroxychloroquine_codes).last_for_patient().date
+
+## Count of prescriptions before end date
+dataset.leflunomide_count = medication_dates_dmd(codelists.leflunomide_codes).count_for_patient()
+dataset.methotrexate_oral_count = medication_dates_dmd(codelists.methotrexate_codes).count_for_patient()
+dataset.methotrexate_inj_count = medication_dates_dmd(codelists.methotrexate_inj_codes).count_for_patient()
+dataset.sulfasalazine_count = medication_dates_dmd(codelists.sulfasalazine_codes).count_for_patient()
+dataset.hydroxychloroquine_count = medication_dates_dmd(codelists.hydroxychloroquine_codes).count_for_patient()
+
+## Steroids
+### Dates and count of steroid prescriptions (oral, IM, IV) within 60 days before EIA code date and before end date
+def steroid_dates_dmd (dx_codelist):
     return medications.where(
             medications.dmd_code.is_in(dx_codelist)
     ).where(
             medications.date.is_on_or_before(end_date)
+    ).except_where( 
+            medications.date < (dataset.eia_code_date - days(60))
     ).sort_by(
             medications.date
-    ).last_for_patient()
+    )
 
-dataset.lef_last_date = medication_dates_dmd_last(codelists.leflunomide_codes).date
-dataset.mtx_oral_last_date = medication_dates_dmd_last(codelists.methotrexate_codes).date
-dataset.mtx_inj_last_date = medication_dates_dmd_last(codelists.methotrexate_inj_codes).date
-dataset.ssz_last_date = medication_dates_dmd_last(codelists.sulfasalazine_codes).date
-dataset.hcq_last_date = medication_dates_dmd_last(codelists.hydroxychloroquine_codes).date
+dataset.steroid_first_date = steroid_dates_dmd(codelists.steroid_codes).first_for_patient().date
+dataset.steroid_last_date = steroid_dates_dmd(codelists.steroid_codes).last_for_patient().date
+dataset.steroid_count = steroid_dates_dmd(codelists.steroid_codes).count_for_patient()
 
-## Count of prescriptions issued before end date
-def get_medcounts_for_dates (dx_codelist):
+### Same as the above, but limited up to 12 months after diagnosis date
+def steroid_12m_dates_dmd (dx_codelist):
     return medications.where(
             medications.dmd_code.is_in(dx_codelist)
     ).where(
-            medications.date.is_on_or_before(end_date)
+            medications.date.is_on_or_before(end_date) &  
+            medications.date.is_on_or_before(dataset.eia_code_date + years(1))  
+    ).except_where( 
+            medications.date < (dataset.eia_code_date - days(60))
     ).sort_by(
             medications.date
-    ).count_for_patient()
+    )
 
-dataset.leflunomide_count = get_medcounts_for_dates(codelists.leflunomide_codes)
-dataset.methotrexate_oral_count = get_medcounts_for_dates(codelists.methotrexate_codes)
-dataset.methotrexate_inj_count = get_medcounts_for_dates(codelists.methotrexate_inj_codes)
-dataset.sulfasalazine_count = get_medcounts_for_dates(codelists.sulfasalazine_codes)
-dataset.hydroxychloroquine_count = get_medcounts_for_dates(codelists.hydroxychloroquine_codes)
+dataset.steroid_12m_first_date = steroid_12m_dates_dmd(codelists.steroid_codes).first_for_patient().date
+dataset.steroid_12m_last_date = steroid_12m_dates_dmd(codelists.steroid_codes).last_for_patient().date
+dataset.steroid_12m_count = steroid_12m_dates_dmd(codelists.steroid_codes).count_for_patient()
 
 ## Will also need a high_cost_drugs function (MM-YY)
 
 # RTT dates -  all completed referral-to-treatment (RTT) pathways with a "clock stop" date between May 2021 and May 2022
-## Search for first rheumatology RTT between 1 year before and 60 days after EIA code date
+## Search for first rheumatology RTT from 1 year before EIA code date
 rtt_closed = wl_clockstops.where(
         (wl_clockstops.referral_to_treatment_period_start_date >= (dataset.eia_code_date - years(1))) & 
-        (wl_clockstops.referral_to_treatment_period_start_date <= (dataset.eia_code_date + days(60))) &
+        #(wl_clockstops.referral_to_treatment_period_start_date <= (dataset.eia_code_date + days(60))) &
         (wl_clockstops.activity_treatment_function_code.is_in(["410"]))
     ).sort_by(
         wl_clockstops.referral_to_treatment_period_start_date,
@@ -431,7 +459,7 @@ dataset.rtt_cl_wait = (dataset.rtt_cl_end_date - dataset.rtt_cl_start_date).days
 # And RTT open pathways - snapshot May 2022
 rtt_open = wl_openpathways.where(
         (wl_openpathways.referral_to_treatment_period_start_date >= (dataset.eia_code_date - years(1))) & 
-        (wl_openpathways.referral_to_treatment_period_start_date <= (dataset.eia_code_date + days(60))) &
+        #(wl_openpathways.referral_to_treatment_period_start_date <= (dataset.eia_code_date + days(60))) &
         (wl_openpathways.activity_treatment_function_code.is_in(["410"]))
     ).sort_by(
         wl_openpathways.referral_to_treatment_period_start_date,

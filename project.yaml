@@ -6,7 +6,17 @@ actions:
     run: ehrql:v1 generate-dataset analysis/dataset_definition.py --output output/dataset.csv
     outputs:
       highly_sensitive:
-        cohort: output/dataset.csv 
+        cohort: output/dataset.csv
+
+  generate_measures:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_measures.py
+      --output output/measures/measures_dataset.csv
+      --
+      --start-date "2016-04-01"
+      --intervals 9
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_dataset.csv      
 
   create_cohorts:
     run: stata-mp:latest analysis/000_define_covariates.do

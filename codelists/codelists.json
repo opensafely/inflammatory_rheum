@@ -126,12 +126,6 @@
       "downloaded_at": "2025-05-19 15:30:39.182052Z",
       "sha": "5b370eaa29f353194bd2611f85fadefa2e37b56a"
     },
-    "ardens-rheumatoid-factor.csv": {
-      "id": "ardens/rheumatoid-factor/4120a459",
-      "url": "https://www.opencodelists.org/codelist/ardens/rheumatoid-factor/4120a459/",
-      "downloaded_at": "2025-05-19 16:02:15.044731Z",
-      "sha": "c276cc581f34756db7b7643d015832dcb6081398"
-    },
     "opensafely-smoking-clear.csv": {
       "id": "opensafely/smoking-clear/2020-04-29",
       "url": "https://www.opencodelists.org/codelist/opensafely/smoking-clear/2020-04-29/",
@@ -276,11 +270,47 @@
       "downloaded_at": "2025-05-17 14:46:49.724923Z",
       "sha": "975f39500aa1e5c383b7b0de6e27de2cbe79709f"
     },
-    "opensafely-dmards.csv": {
-      "id": "opensafely/dmards/2020-06-23",
-      "url": "https://www.opencodelists.org/codelist/opensafely/dmards/2020-06-23/",
-      "downloaded_at": "2025-05-17 14:46:45.766685Z",
-      "sha": "c5c8b3fb290a31a49442ee57503b7c6067c44a40"
+    "user-markdrussell-corticosteroids-oral-im-or-iv-dmd.csv": {
+      "id": "user/markdrussell/corticosteroids-oral-im-or-iv-dmd/6e4446b9",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/corticosteroids-oral-im-or-iv-dmd/6e4446b9/",
+      "downloaded_at": "2025-05-23 09:10:07.724496Z",
+      "sha": "7578106f66d5bd0d02b206513d00426551ee4271"
+    },
+    "user-markdrussell-rheumatoid-factor.csv": {
+      "id": "user/markdrussell/rheumatoid-factor/3c25604f",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/rheumatoid-factor/3c25604f/",
+      "downloaded_at": "2025-05-23 09:10:07.867292Z",
+      "sha": "6577fe26f37e9f7d111d9ea33d1d5e2145aafb33"
+    },
+    "user-markdrussell-rheumatoid-factor-positive-finding.csv": {
+      "id": "user/markdrussell/rheumatoid-factor-positive-finding/2315ed1a",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/rheumatoid-factor-positive-finding/2315ed1a/",
+      "downloaded_at": "2025-05-23 09:10:08.024413Z",
+      "sha": "e01e74c5042a05dc44448a02eff960329144b888"
+    },
+    "user-markdrussell-cyclic-citrullinated-peptide-ccp-antibody.csv": {
+      "id": "user/markdrussell/cyclic-citrullinated-peptide-ccp-antibody/0a0679e5",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/cyclic-citrullinated-peptide-ccp-antibody/0a0679e5/",
+      "downloaded_at": "2025-05-23 09:10:08.168587Z",
+      "sha": "fceb31ebb334ca37a808c5ac394783004235b066"
+    },
+    "user-markdrussell-cyclic-citrullinated-peptide-ccp-antibody-positive-finding.csv": {
+      "id": "user/markdrussell/cyclic-citrullinated-peptide-ccp-antibody-positive-finding/70f706af",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/cyclic-citrullinated-peptide-ccp-antibody-positive-finding/70f706af/",
+      "downloaded_at": "2025-05-23 09:10:08.303312Z",
+      "sha": "5f45e94f0849f6bfb92550fd42ba3210aab4fa45"
+    },
+    "user-markdrussell-seropositive-rheumatoid-arthritis.csv": {
+      "id": "user/markdrussell/seropositive-rheumatoid-arthritis/57e7937a",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/seropositive-rheumatoid-arthritis/57e7937a/",
+      "downloaded_at": "2025-05-23 09:10:08.437833Z",
+      "sha": "726ee9f89359a631543404dfb5a525fdf75ee79e"
+    },
+    "user-markdrussell-erosive-rheumatoid-arthritis.csv": {
+      "id": "user/markdrussell/erosive-rheumatoid-arthritis/3ed82045",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/erosive-rheumatoid-arthritis/3ed82045/",
+      "downloaded_at": "2025-05-23 09:10:08.604414Z",
+      "sha": "d96b26f877863d6b21d8a1edccb6a4784287a658"
     }
   }
 }

@@ -113,8 +113,28 @@ referral_rheumatology = codelist_from_csv(
     "codelists/user-markdrussell-referral-rheumatology.csv", column = "code"
 )
 
+rf_tests = codelist_from_csv(
+    "codelists/user-markdrussell-rheumatoid-factor.csv", column = "code"
+)
+
+ccp_tests = codelist_from_csv(
+    "codelists/user-markdrussell-cyclic-citrullinated-peptide-ccp-antibody.csv", column = "code"
+)
+
 rf_codes = codelist_from_csv(
-    "codelists/ardens-rheumatoid-factor.csv", column = "code"
+    "codelists/user-markdrussell-rheumatoid-factor-positive-finding.csv", column = "code"
+)
+
+ccp_codes = codelist_from_csv(
+    "codelists/user-markdrussell-cyclic-citrullinated-peptide-ccp-antibody-positive-finding.csv", column = "code"
+)
+
+seropositive_codes = codelist_from_csv(
+    "codelists/user-markdrussell-seropositive-rheumatoid-arthritis.csv", column = "code"
+)
+
+erosive_codes = codelist_from_csv(
+    "codelists/user-markdrussell-erosive-rheumatoid-arthritis.csv", column = "code"
 )
 
 # MEDICATIONS
@@ -132,6 +152,9 @@ methotrexate_inj_codes = codelist_from_csv(
 )                   
 sulfasalazine_codes = codelist_from_csv(       
     "codelists/opensafely-sulfasalazine-oral-dmd.csv", column="code"
+)
+steroid_codes = codelist_from_csv(       
+    "codelists/user-markdrussell-corticosteroids-oral-im-or-iv-dmd.csv", column="code"
 )
 abatacept_codes = codelist_from_csv(       
     "codelists/opensafely-high-cost-drugs-abatacept.csv", column="olddrugname"
