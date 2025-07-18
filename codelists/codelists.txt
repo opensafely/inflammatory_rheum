@@ -1,6 +1,9 @@
 user/markdrussell/psoriatic-arthritis/6c69f57e
-user/markdrussell/axial-spondyloarthritis/057968b4 
-user/markdrussell/new-rheumatoid-arthritis/535a8249 
+user/markdrussell/psoriatic-arthritis-secondary-care/67a69bfb
+user/markdrussell/axial-spondyloarthritis/057968b4
+user/markdrussell/axial-spondyloarthritis-secondary-care/4e9728c6
+user/markdrussell/new-rheumatoid-arthritis/535a8249
+user/markdrussell/rheumatoid-arthritis-secondary-care/245780e9
 user/markdrussell/undiff-eia/459a5829
 user/markdrussell/referral-rheumatology/6bc8e5e3
 opensafely/ethnicity-snomed-0removed/22911876

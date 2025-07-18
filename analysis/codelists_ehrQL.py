@@ -16,27 +16,39 @@ clear_smoking_codes = codelist_from_csv(
 )
 
 # Inflammatory rheumatology diagnoses
-ankylosing_spondylitis_codes = codelist_from_csv(
+axialspa_snomed = codelist_from_csv(
     "codelists/user-markdrussell-axial-spondyloarthritis.csv", column="code",
 )
 
-psoriatic_arthritis_codes = codelist_from_csv(
+axialspa_icd = codelist_from_csv(
+    "codelists/user-markdrussell-axial-spondyloarthritis-secondary-care.csv", column="code",
+)
+
+psa_snomed = codelist_from_csv(
     "codelists/user-markdrussell-psoriatic-arthritis.csv", column="code",
 )
 
-rheumatoid_arthritis_codes = codelist_from_csv(
+psa_icd = codelist_from_csv(
+    "codelists/user-markdrussell-psoriatic-arthritis-secondary-care.csv", column="code",
+)
+
+rheumatoid_snomed = codelist_from_csv(
     "codelists/user-markdrussell-new-rheumatoid-arthritis.csv", column="code",
 )
 
-undifferentiated_arthritis_codes = codelist_from_csv(
+rheumatoid_icd = codelist_from_csv(
+    "codelists/user-markdrussell-rheumatoid-arthritis-secondary-care.csv", column="code",
+)
+
+undiffia_snomed = codelist_from_csv(
     "codelists/user-markdrussell-undiff-eia.csv", column="code",
 )
 
 eia_diagnosis_codes = (
-    ankylosing_spondylitis_codes +
-    psoriatic_arthritis_codes +
-    rheumatoid_arthritis_codes +
-    undifferentiated_arthritis_codes
+    axialspa_snomed +
+    psa_snomed +
+    rheumatoid_snomed +
+    undiffia_snomed
 )
 
 # Relevant comorbidities
