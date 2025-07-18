@@ -6,17 +6,35 @@
       "downloaded_at": "2022-04-04 10:14:14.758241Z",
       "sha": "78ddeb25b661ae4e2c9f2aff79a7d519989888ca"
     },
+    "user-markdrussell-psoriatic-arthritis-secondary-care.csv": {
+      "id": "user/markdrussell/psoriatic-arthritis-secondary-care/67a69bfb",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/psoriatic-arthritis-secondary-care/67a69bfb/",
+      "downloaded_at": "2025-07-18 13:10:16.306356Z",
+      "sha": "708b92bd8855c3b22c8cc4233e5620988ed9ded2"
+    },
     "user-markdrussell-axial-spondyloarthritis.csv": {
       "id": "user/markdrussell/axial-spondyloarthritis/057968b4",
       "url": "https://www.opencodelists.org/codelist/user/markdrussell/axial-spondyloarthritis/057968b4/",
       "downloaded_at": "2022-04-04 10:14:14.955907Z",
       "sha": "dd31e0813e19ce9818d6fe909d2104395abaf480"
     },
+    "user-markdrussell-axial-spondyloarthritis-secondary-care.csv": {
+      "id": "user/markdrussell/axial-spondyloarthritis-secondary-care/4e9728c6",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/axial-spondyloarthritis-secondary-care/4e9728c6/",
+      "downloaded_at": "2025-07-18 13:10:16.448681Z",
+      "sha": "08e1789359871e311d0751fce21784e9ee73762b"
+    },
     "user-markdrussell-new-rheumatoid-arthritis.csv": {
       "id": "user/markdrussell/new-rheumatoid-arthritis/535a8249",
       "url": "https://www.opencodelists.org/codelist/user/markdrussell/new-rheumatoid-arthritis/535a8249/",
       "downloaded_at": "2022-04-04 10:14:15.131930Z",
       "sha": "28044875a1f74e2d5d50be3178b6349720416e6d"
+    },
+    "user-markdrussell-rheumatoid-arthritis-secondary-care.csv": {
+      "id": "user/markdrussell/rheumatoid-arthritis-secondary-care/245780e9",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/rheumatoid-arthritis-secondary-care/245780e9/",
+      "downloaded_at": "2025-07-18 13:10:16.628877Z",
+      "sha": "d074444b6ba473ff132e2b8e00ee3c9ec61dc138"
     },
     "user-markdrussell-undiff-eia.csv": {
       "id": "user/markdrussell/undiff-eia/459a5829",
@@ -137,108 +155,6 @@
       "url": "https://www.opencodelists.org/codelist/opensafely/smoking-unclear/2020-04-29/",
       "downloaded_at": "2021-02-09 09:24:28.275164Z",
       "sha": "d9dad3e9d9491f765863b2617114c521957b6db1"
-    },
-    "opensafely-high-cost-drugs-abatacept.csv": {
-      "id": "opensafely/high-cost-drugs-abatacept/07fc04eb",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-abatacept/07fc04eb/",
-      "downloaded_at": "2021-03-23 10:46:46.784375Z",
-      "sha": "43762e43bb9ee06933add55c32b006e2e48ea11b"
-    },
-    "opensafely-high-cost-drugs-adalimumab.csv": {
-      "id": "opensafely/high-cost-drugs-adalimumab/6eec91b5",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-adalimumab/6eec91b5/",
-      "downloaded_at": "2021-03-23 10:46:46.963487Z",
-      "sha": "6398e54d534680c3c383e7206f7358d1b7fc5591"
-    },
-    "opensafely-high-cost-drugs-baricitinib.csv": {
-      "id": "opensafely/high-cost-drugs-baricitinib/0aaec4e1",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-baricitinib/0aaec4e1/",
-      "downloaded_at": "2021-03-23 10:46:47.291289Z",
-      "sha": "a6e674be8abc92e2ad7ed52cb0770b99d1b97a72"
-    },
-    "opensafely-high-cost-drugs-certolizumab.csv": {
-      "id": "opensafely/high-cost-drugs-certolizumab/2670f80c",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-certolizumab/2670f80c/",
-      "downloaded_at": "2021-03-23 10:46:47.605156Z",
-      "sha": "ba0483dbdb26ba08c291931d3c055e437e733c9c"
-    },
-    "opensafely-high-cost-drugs-etanercept.csv": {
-      "id": "opensafely/high-cost-drugs-etanercept/0d6184d7",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-etanercept/0d6184d7/",
-      "downloaded_at": "2021-03-23 10:46:47.759519Z",
-      "sha": "91b95f7f7e625c92c763474f802581cac3e19fbe"
-    },
-    "opensafely-high-cost-drugs-golimumab.csv": {
-      "id": "opensafely/high-cost-drugs-golimumab/745211a1",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-golimumab/745211a1/",
-      "downloaded_at": "2021-03-23 10:46:47.897158Z",
-      "sha": "0b94f4cd99bc8b868177907f4fc4eef764b48439"
-    },
-    "opensafely-high-cost-drugs-guselkumab.csv": {
-      "id": "opensafely/high-cost-drugs-guselkumab/5b429e6c",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-guselkumab/5b429e6c/",
-      "downloaded_at": "2021-03-23 10:46:48.050903Z",
-      "sha": "3931dbbc9b1396cba01ffe5e503722683037ace0"
-    },
-    "opensafely-high-cost-drugs-infliximab.csv": {
-      "id": "opensafely/high-cost-drugs-infliximab/42332b37",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-infliximab/42332b37/",
-      "downloaded_at": "2021-03-23 10:46:48.243052Z",
-      "sha": "afa32cad683536556f54ab70db72505fee240259"
-    },
-    "opensafely-high-cost-drugs-ixekizumab.csv": {
-      "id": "opensafely/high-cost-drugs-ixekizumab/2923b802",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-ixekizumab/2923b802/",
-      "downloaded_at": "2021-03-23 10:46:48.372771Z",
-      "sha": "fad17f975c9c7b27bc1e630e3ca8fb6073f60222"
-    },
-    "opensafely-high-cost-drugs-methotrexate.csv": {
-      "id": "opensafely/high-cost-drugs-methotrexate/70d89e1c",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-methotrexate/70d89e1c/",
-      "downloaded_at": "2021-03-23 10:46:48.684437Z",
-      "sha": "420ac0bfbfb49f0c056f9e1f0aef802f9b8c2a02"
-    },
-    "opensafely-high-cost-drugs-rituximab.csv": {
-      "id": "opensafely/high-cost-drugs-rituximab/57c92ae7",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-rituximab/57c92ae7/",
-      "downloaded_at": "2021-03-23 10:46:48.977545Z",
-      "sha": "b213460b76edad6e1f6f20ddfc9a35cc69975e54"
-    },
-    "opensafely-high-cost-drugs-sarilumab.csv": {
-      "id": "opensafely/high-cost-drugs-sarilumab/2e8937ee",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-sarilumab/2e8937ee/",
-      "downloaded_at": "2021-03-23 10:46:49.142741Z",
-      "sha": "1dab56819cd5bf4bae4299574d05b79b497549b9"
-    },
-    "opensafely-high-cost-drugs-secukinumab.csv": {
-      "id": "opensafely/high-cost-drugs-secukinumab/1579c4b9",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-secukinumab/1579c4b9/",
-      "downloaded_at": "2021-03-23 10:46:49.297009Z",
-      "sha": "8abcac75f113cc014f3834865346577bd528d39a"
-    },
-    "opensafely-high-cost-drugs-tocilizumab.csv": {
-      "id": "opensafely/high-cost-drugs-tocilizumab/635ade4e",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-tocilizumab/635ade4e/",
-      "downloaded_at": "2021-03-23 10:46:49.566592Z",
-      "sha": "1300d0afc59d16f03d4d49b2c16e79a1b0d1959e"
-    },
-    "opensafely-high-cost-drugs-tofacitinib.csv": {
-      "id": "opensafely/high-cost-drugs-tofacitinib/4a4b6b19",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-tofacitinib/4a4b6b19/",
-      "downloaded_at": "2021-03-23 10:46:49.717664Z",
-      "sha": "3fe67cdb14f3d7a45eb96c95102cfd3594324f87"
-    },
-    "opensafely-high-cost-drugs-upadacitinib.csv": {
-      "id": "opensafely/high-cost-drugs-upadacitinib/313bf7e4",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-upadacitinib/313bf7e4/",
-      "downloaded_at": "2021-03-23 10:46:49.874538Z",
-      "sha": "8253cdf55b1054f25c2a71525d210cf944d030d8"
-    },
-    "opensafely-high-cost-drugs-ustekinumab.csv": {
-      "id": "opensafely/high-cost-drugs-ustekinumab/182c84af",
-      "url": "https://www.opencodelists.org/codelist/opensafely/high-cost-drugs-ustekinumab/182c84af/",
-      "downloaded_at": "2021-03-23 10:46:50.027111Z",
-      "sha": "e6793c0c5c2f58c2244b9d68033112fc767d05c0"
     },
     "opensafely-hydroxychloroquine.csv": {
       "id": "opensafely/hydroxychloroquine/4c53b277",
