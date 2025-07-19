@@ -1,10 +1,10 @@
 {
   "files": {
     "user-markdrussell-psoriatic-arthritis.csv": {
-      "id": "user/markdrussell/psoriatic-arthritis/6c69f57e",
-      "url": "https://www.opencodelists.org/codelist/user/markdrussell/psoriatic-arthritis/6c69f57e/",
-      "downloaded_at": "2022-04-04 10:14:14.758241Z",
-      "sha": "78ddeb25b661ae4e2c9f2aff79a7d519989888ca"
+      "id": "user/markdrussell/psoriatic-arthritis/48b6c89a",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/psoriatic-arthritis/48b6c89a/",
+      "downloaded_at": "2025-07-19 15:52:46.848612Z",
+      "sha": "e3e09e9e4184efb93e54e7890eb4f5f7c06ad886"
     },
     "user-markdrussell-psoriatic-arthritis-secondary-care.csv": {
       "id": "user/markdrussell/psoriatic-arthritis-secondary-care/67a69bfb",
@@ -13,10 +13,10 @@
       "sha": "708b92bd8855c3b22c8cc4233e5620988ed9ded2"
     },
     "user-markdrussell-axial-spondyloarthritis.csv": {
-      "id": "user/markdrussell/axial-spondyloarthritis/057968b4",
-      "url": "https://www.opencodelists.org/codelist/user/markdrussell/axial-spondyloarthritis/057968b4/",
-      "downloaded_at": "2022-04-04 10:14:14.955907Z",
-      "sha": "dd31e0813e19ce9818d6fe909d2104395abaf480"
+      "id": "user/markdrussell/axial-spondyloarthritis/2fa75565",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/axial-spondyloarthritis/2fa75565/",
+      "downloaded_at": "2025-07-19 15:52:47.013717Z",
+      "sha": "58bf4f5471c962c9eb44b4d0820872d708459aaa"
     },
     "user-markdrussell-axial-spondyloarthritis-secondary-care.csv": {
       "id": "user/markdrussell/axial-spondyloarthritis-secondary-care/4e9728c6",
@@ -25,10 +25,10 @@
       "sha": "08e1789359871e311d0751fce21784e9ee73762b"
     },
     "user-markdrussell-new-rheumatoid-arthritis.csv": {
-      "id": "user/markdrussell/new-rheumatoid-arthritis/535a8249",
-      "url": "https://www.opencodelists.org/codelist/user/markdrussell/new-rheumatoid-arthritis/535a8249/",
-      "downloaded_at": "2022-04-04 10:14:15.131930Z",
-      "sha": "28044875a1f74e2d5d50be3178b6349720416e6d"
+      "id": "user/markdrussell/new-rheumatoid-arthritis/1697e230",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/new-rheumatoid-arthritis/1697e230/",
+      "downloaded_at": "2025-07-19 15:52:47.168475Z",
+      "sha": "da445728ce4a3c730dd2b5813bb5e9083a01ab0e"
     },
     "user-markdrussell-rheumatoid-arthritis-secondary-care.csv": {
       "id": "user/markdrussell/rheumatoid-arthritis-secondary-care/245780e9",
@@ -37,10 +37,82 @@
       "sha": "d074444b6ba473ff132e2b8e00ee3c9ec61dc138"
     },
     "user-markdrussell-undiff-eia.csv": {
-      "id": "user/markdrussell/undiff-eia/459a5829",
-      "url": "https://www.opencodelists.org/codelist/user/markdrussell/undiff-eia/459a5829/",
+      "id": "user/markdrussell/undiff-eia/6478fbc5",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/undiff-eia/6478fbc5/",
       "downloaded_at": "2022-04-28 19:53:21.278421Z",
       "sha": "bb2bfbfdcd1631a27ef9c1faf5ba9c95b8beaf27"
+    },
+    "user-markdrussell-giant-cell-arteritis.csv": {
+      "id": "user/markdrussell/giant-cell-arteritis/7d886efa",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/giant-cell-arteritis/7d886efa/",
+      "downloaded_at": "2025-07-19 15:52:47.391712Z",
+      "sha": "3c2e531918fd3824adde0f85a8ceade9a986a161"
+    },
+    "user-markdrussell-giant-cell-arteritis-secondary-care.csv": {
+      "id": "user/markdrussell/giant-cell-arteritis-secondary-care/5c60bbe3",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/giant-cell-arteritis-secondary-care/5c60bbe3/",
+      "downloaded_at": "2025-07-19 15:52:47.470408Z",
+      "sha": "498b81d695705e67b3c145bb6de0097546513f04"
+    },
+    "user-markdrussell-systemic-sclerosisscleroderma.csv": {
+      "id": "user/markdrussell/systemic-sclerosisscleroderma/1b18d161",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/systemic-sclerosisscleroderma/1b18d161/",
+      "downloaded_at": "2025-07-19 15:52:47.552934Z",
+      "sha": "1f6c696c7617d897dfa702ade9d5f7fc727d918e"
+    },
+    "user-markdrussell-systemic-sclerosis-secondary-care.csv": {
+      "id": "user/markdrussell/systemic-sclerosis-secondary-care/435148ae",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/systemic-sclerosis-secondary-care/435148ae/",
+      "downloaded_at": "2025-07-19 15:52:47.705009Z",
+      "sha": "29f7738a17788623e96c6b6c143b174e85ed5009"
+    },
+    "user-markdrussell-sjogrens-syndrome.csv": {
+      "id": "user/markdrussell/sjogrens-syndrome/325a155b",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/sjogrens-syndrome/325a155b/",
+      "downloaded_at": "2025-07-19 15:52:47.856553Z",
+      "sha": "92bde5e4d1bd6a9b4db2976b35a1eb181606b1c4"
+    },
+    "user-markdrussell-sjogrens-syndrome-secondary-care.csv": {
+      "id": "user/markdrussell/sjogrens-syndrome-secondary-care/2a41d579",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/sjogrens-syndrome-secondary-care/2a41d579/",
+      "downloaded_at": "2025-07-19 15:52:47.991349Z",
+      "sha": "cecc1243366197c05619143a0ef5d20a013d0d43"
+    },
+    "user-markdrussell-anca-vasculitis.csv": {
+      "id": "user/markdrussell/anca-vasculitis/194aa226",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/anca-vasculitis/194aa226/",
+      "downloaded_at": "2025-07-19 15:52:48.207329Z",
+      "sha": "b93bc64ca1a70af4b4c12d4fed2523fdce0db747"
+    },
+    "user-markdrussell-anca-vasculitis-secondary-care.csv": {
+      "id": "user/markdrussell/anca-vasculitis-secondary-care/11326244",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/anca-vasculitis-secondary-care/11326244/",
+      "downloaded_at": "2025-07-19 15:52:48.379862Z",
+      "sha": "d2bf6779264c663b0684ec6879e6669fe9fd2606"
+    },
+    "user-markdrussell-systemic-lupus-erythematosus.csv": {
+      "id": "user/markdrussell/systemic-lupus-erythematosus/5f137bd9",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/systemic-lupus-erythematosus/5f137bd9/",
+      "downloaded_at": "2025-07-19 15:52:48.522132Z",
+      "sha": "73befe04ade5ea48e83a413b348d6b530fa6d0a7"
+    },
+    "user-markdrussell-systemic-lupus-erythematosus-secondary-care.csv": {
+      "id": "user/markdrussell/systemic-lupus-erythematosus-secondary-care/460408a4",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/systemic-lupus-erythematosus-secondary-care/460408a4/",
+      "downloaded_at": "2025-07-19 15:52:48.667047Z",
+      "sha": "38297e7ee400e770d988d4899b0285d0176f07e2"
+    },
+    "user-markdrussell-inflammatory-myositis.csv": {
+      "id": "user/markdrussell/inflammatory-myositis/2cf4956f",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/inflammatory-myositis/2cf4956f/",
+      "downloaded_at": "2025-07-19 15:52:48.804797Z",
+      "sha": "dd90ec1bc1d49b6ad41fb43dda1844e6f98f42f6"
+    },
+    "user-markdrussell-inflammatory-myositis-secondary-care.csv": {
+      "id": "user/markdrussell/inflammatory-myositis-secondary-care/7ad5af04",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/inflammatory-myositis-secondary-care/7ad5af04/",
+      "downloaded_at": "2025-07-19 15:52:48.923327Z",
+      "sha": "75c333b6006bcc350dbddca7f05e11fbf6da393b"
     },
     "user-markdrussell-referral-rheumatology.csv": {
       "id": "user/markdrussell/referral-rheumatology/6bc8e5e3",

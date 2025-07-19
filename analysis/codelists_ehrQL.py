@@ -44,6 +44,54 @@ undiffia_snomed = codelist_from_csv(
     "codelists/user-markdrussell-undiff-eia.csv", column="code",
 )
 
+gca_snomed = codelist_from_csv(
+    "codelists/user-markdrussell-giant-cell-arteritis.csv", column="code",
+)
+
+gca_icd = codelist_from_csv(
+    "codelists/user-markdrussell-giant-cell-arteritis-secondary-care.csv", column="code",
+)
+
+sjogren_snomed = codelist_from_csv(
+    "codelists/user-markdrussell-sjogrens-syndrome.csv", column="code",
+)
+
+sjogren_icd = codelist_from_csv(
+    "codelists/user-markdrussell-sjogrens-syndrome-secondary-care.csv", column="code",
+)
+
+ssc_snomed = codelist_from_csv(
+    "codelists/user-markdrussell-systemic-sclerosisscleroderma.csv", column="code",
+)
+
+ssc_icd = codelist_from_csv(
+    "codelists/user-markdrussell-systemic-sclerosis-secondary-care.csv", column="code",
+)
+
+sle_snomed = codelist_from_csv(
+    "codelists/user-markdrussell-systemic-lupus-erythematosus.csv", column="code",
+)
+
+sle_icd = codelist_from_csv(
+    "codelists/user-markdrussell-systemic-lupus-erythematosus-secondary-care.csv", column="code",
+)
+
+myositis_snomed = codelist_from_csv(
+    "codelists/user-markdrussell-inflammatory-myositis.csv", column="code",
+)
+
+myositis_icd = codelist_from_csv(
+    "codelists/user-markdrussell-inflammatory-myositis-secondary-care.csv", column="code",
+)
+
+anca_snomed = codelist_from_csv(
+    "codelists/user-markdrussell-anca-vasculitis.csv", column="code",
+)
+
+anca_icd = codelist_from_csv(
+    "codelists/user-markdrussell-anca-vasculitis-secondary-care.csv", column="code",
+)
+
 eia_diagnosis_codes = (
     axialspa_snomed +
     psa_snomed +

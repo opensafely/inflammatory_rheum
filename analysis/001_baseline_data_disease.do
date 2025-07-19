@@ -33,7 +33,7 @@ log using "$logdir/incidence_disease.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "rheumatoid psa axialspa"
+global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
 
 set type double
 
@@ -268,6 +268,13 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
+	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
+	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
+	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
+	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
+	if "`dis_full'" == "Sle" local dis_full "SLE"
+	if "`dis_full'" == "Myositis" local dis_full "Myositis"
+	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -296,7 +303,14 @@ foreach disease in $diseases {
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
+	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"	
+	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
+	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
+	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
+	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
+	if "`dis_full'" == "Sle" local dis_full "SLE"
+	if "`dis_full'" == "Myositis" local dis_full "Myositis"
+	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"	
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -390,6 +404,13 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
+	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
+	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
+	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
+	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
+	if "`dis_full'" == "Sle" local dis_full "SLE"
+	if "`dis_full'" == "Myositis" local dis_full "Myositis"
+	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
 	
 	**Generate moving average
 	gen inc_rate_ma =(inc_rate[_n-1]+inc_rate[_n]+inc_rate[_n+1])/3
