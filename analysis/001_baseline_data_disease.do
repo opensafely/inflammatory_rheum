@@ -48,41 +48,18 @@ gen has_disease = 0
 foreach disease in $diseases {
 	di "`disease'"
 	
-	capture confirm variable `disease'_inc_date
-	if !_rc {	
-		rename `disease'_inc_date `disease'_inc_date_s
-		gen `disease'_inc_date = date(`disease'_inc_date_s, "YMD") 
-		format `disease'_inc_date %td
-		drop `disease'_inc_date_s
-	} 
-	else {
-		di "Skipping `disease'_inc_date - variable not found"
-	}
-	
-	capture confirm variable `disease'_prim_date
-	if !_rc {	
-		rename `disease'_prim_date `disease'_prim_date_s
-		gen `disease'_prim_date = date(`disease'_prim_date_s, "YMD") 
-		format `disease'_prim_date %td
-		drop `disease'_prim_date_s
-	} 
-	else {
-		di "Skipping `disease'_prim_date - variable not found"
-	}
+	rename `disease'_inc_date `disease'_inc_date_s
+	gen `disease'_inc_date = date(`disease'_inc_date_s, "YMD") 
+	format `disease'_inc_date %td
+	drop `disease'_inc_date_s
 
-	capture confirm variable `disease'_sec_date
-	if !_rc {		
-		rename `disease'_sec_date `disease'_sec_date_s
-		gen `disease'_sec_date = date(`disease'_sec_date_s, "YMD") 
-		format `disease'_sec_date %td
-		drop `disease'_sec_date_s
-	} 
-	else {
-		di "Skipping `disease'_sec_date - variable not found"
-	}	
+	rename `disease'_prim_date `disease'_prim_date_s
+	gen `disease'_prim_date = date(`disease'_prim_date_s, "YMD") 
+	format `disease'_prim_date %td
+	drop `disease'_prim_date_s
 	
 	*Update has_disease if any date is nonmissing
-	replace has_disease = 1 if !missing(`disease'_inc_date) | !missing(`disease'_prim_date) | !missing(`disease'_sec_date)
+	replace has_disease = 1 if !missing(`disease'_inc_date) | !missing(`disease'_prim_date)
 } 
 
 *Keep only patients with at least one disease
@@ -161,14 +138,12 @@ foreach disease in $diseases {
 	lab val `disease'_age_band `disease'_age_band
 }
 
-**Gen incident disease cohorts during full study period - Nb. secondary care only (_s) wouldn't account for a preceding primary care code, therefore not truly incident
+**Gen incident disease cohorts during full study period
 foreach disease in $diseases {
 	gen `disease' = 1 if `disease'_inc_case=="T" & (`disease'_age >=18 & `disease'_age <= 110) & `disease'_pre_reg=="T" & `disease'_alive_inc=="T"
 	recode `disease' .=0
 	gen `disease'_p = 1 if `disease'_inc_case_p=="T" & (`disease'_age_p >=18 & `disease'_age_p <= 110) & `disease'_pre_reg_p=="T" & `disease'_alive_inc_p=="T"
 	recode `disease'_p .=0
-	gen `disease'_s = 1 if `disease'_inc_case_s=="T" & (`disease'_age_s >=18 & `disease'_age_s <= 110) & `disease'_pre_reg_s=="T" & `disease'_alive_inc_s=="T"
-	recode `disease'_s .=0
 }
 
 **Format dates
@@ -189,14 +164,6 @@ foreach disease in $diseases {
 	generate str16 `disease'_moyear_pst = strofreal(`disease'_moyear_p,"%tmCCYY!mNN")
 	lab var `disease'_moyear_p "Month/Year of Diagnosis"
 	lab var `disease'_moyear_pst "Month/Year of Diagnosis"
-	gen `disease'_year_s = year(`disease'_sec_date)
-	format `disease'_year_s %ty
-	gen `disease'_mon_s = month(`disease'_sec_date)
-	gen `disease'_moyear_s = ym(`disease'_year_s, `disease'_mon_s)
-	format `disease'_moyear_s %tmMon-CCYY
-	generate str16 `disease'_moyear_sst = strofreal(`disease'_moyear_s,"%tmCCYY!mNN")
-	lab var `disease'_moyear_s "Month/Year of Diagnosis"
-	lab var `disease'_moyear_sst "Month/Year of Diagnosis"
 }
 
 save "$projectdir/output/data/incidence_data_processed.dta", replace
@@ -336,35 +303,6 @@ foreach disease in $diseases {
 	
 	twoway scatter total_diag `disease'_moyear_p, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear_p, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full' Primary", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count_p, replace) saving("$projectdir/output/figures/count_inc_p_`disease'.gph", replace)
 		graph export "$projectdir/output/figures/count_inc_p_`disease'.svg", replace
-		
-	restore
-}
-
-**Secondary care only - Nb. see point above - these are not necessarily truly incident cases
-use "$projectdir/output/data/incidence_data_processed.dta", clear
-
-*Graph of (count) diagnoses by month, by disease
-foreach disease in $diseases {
-	preserve
-	keep if `disease'_s==1 //would need to remove this if calculating incidence
-	collapse (count) total_diag_un=`disease'_s, by(`disease'_moyear_s) 
-	gen total_diag = round(total_diag_un, 5)
-	drop total_diag_un
-	
-	outsheet * using "$projectdir/output/tables/incidence_count_s_`disease'.csv" , comma replace
-	export delimited using "$projectdir/output/tables/incidence_count_s_`disease'.csv", datafmt replace
-	
-	**Label diseases
-	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
-	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
-	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
-	
-	**Generate moving average
-	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
-	
-	twoway scatter total_diag `disease'_moyear_s, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear_s, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full' Secondary", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count_s, replace) saving("$projectdir/output/figures/count_inc_s_`disease'.gph", replace)
-		graph export "$projectdir/output/figures/count_inc_s_`disease'.svg", replace
 		
 	restore
 }

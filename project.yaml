@@ -116,10 +116,8 @@ actions:
         table1: output/tables/baseline_table_rounded.csv
         table2: output/tables/incidence_count_*.csv
         table3: output/tables/incidence_count_p_*.csv
-        table4: output/tables/incidence_count_s_*.csv
         table5: output/tables/denominator_counts.csv
         table6: output/tables/incidence_rate_*.csv
         figure1: output/figures/count_inc_*.svg      
         figure2: output/figures/count_inc_p_*.svg
-        figure3: output/figures/count_inc_s_*.svg
         figure4: output/figures/inc_rate_*.svg
