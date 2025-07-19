@@ -42,6 +42,54 @@ import delimited "$projectdir/output/dataset_incidence.csv", clear
 
 set scheme plotplainblind
 
+*Keep only patients with one or more incident diagnoses ==============================*/
+gen has_disease = 0
+
+foreach disease in $diseases {
+	di "`disease'"
+	
+	capture confirm variable `disease'_inc_date
+	if !_rc {	
+		rename `disease'_inc_date `disease'_inc_date_s
+		gen `disease'_inc_date = date(`disease'_inc_date_s, "YMD") 
+		format `disease'_inc_date %td
+		drop `disease'_inc_date_s
+	} 
+	else {
+		di "Skipping `disease'_inc_date - variable not found"
+	}
+	
+	capture confirm variable `disease'_prim_date
+	if !_rc {	
+		rename `disease'_prim_date `disease'_prim_date_s
+		gen `disease'_prim_date = date(`disease'_prim_date_s, "YMD") 
+		format `disease'_prim_date %td
+		drop `disease'_prim_date_s
+	} 
+	else {
+		di "Skipping `disease'_prim_date - variable not found"
+	}
+
+	capture confirm variable `disease'_sec_date
+	if !_rc {		
+		rename `disease'_sec_date `disease'_sec_date_s
+		gen `disease'_sec_date = date(`disease'_sec_date_s, "YMD") 
+		format `disease'_sec_date %td
+		drop `disease'_sec_date_s
+	} 
+	else {
+		di "Skipping `disease'_sec_date - variable not found"
+	}	
+	
+	*Update has_disease if any date is nonmissing
+	replace has_disease = 1 if !missing(`disease'_inc_date) | !missing(`disease'_prim_date) | !missing(`disease'_sec_date)
+} 
+
+*Keep only patients with at least one disease
+keep if has_disease == 1
+
+drop has_disease
+
 *Create and label variables ===========================================================*/
 
 **Sex
@@ -89,22 +137,6 @@ label values imd imd
 lab var imd "Index of multiple deprivation"
 tab imd, missing
 drop imd_quintile
-
-foreach disease in $diseases {
-	di "`disease'"
-	rename `disease'_inc_date `disease'_inc_date_s
-	gen `disease'_inc_date = date(`disease'_inc_date_s, "YMD") 
-	format `disease'_inc_date %td
-	drop `disease'_inc_date_s
-	rename `disease'_prim_date `disease'_prim_date_s
-	gen `disease'_prim_date = date(`disease'_prim_date_s, "YMD") 
-	format `disease'_prim_date %td
-	drop `disease'_prim_date_s
-	rename `disease'_sec_date `disease'_sec_date_s
-	gen `disease'_sec_date = date(`disease'_sec_date_s, "YMD") 
-	format `disease'_sec_date %td
-	drop `disease'_sec_date_s
-}
 
 **Age at diagnosis
 foreach disease in $diseases {
@@ -268,7 +300,7 @@ foreach disease in $diseases {
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axspa" local dis_full "Axial spondyloarthritis"
+	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -297,7 +329,7 @@ foreach disease in $diseases {
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axspa" local dis_full "Axial spondyloarthritis"
+	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -326,7 +358,7 @@ foreach disease in $diseases {
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axspa" local dis_full "Axial spondyloarthritis"
+	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
