@@ -247,7 +247,7 @@ foreach disease in $diseases {
 use "$projectdir/output/data/baseline_table_rounded.dta", clear
 export delimited using "$projectdir/output/tables/baseline_table_rounded.csv", datafmt replace
 
-*Graphs of raw incidence counts================================================================*/
+*Graphs of raw diagnosis counts================================================================*/
 
 **Combined primary and secondary care
 use "$projectdir/output/data/incidence_data_processed.dta", clear
@@ -260,7 +260,6 @@ foreach disease in $diseases {
 	gen total_diag = round(total_diag_un, 5)
 	drop total_diag_un
 	
-	outsheet * using "$projectdir/output/tables/incidence_count_`disease'.csv" , comma replace
 	export delimited using "$projectdir/output/tables/incidence_count_`disease'.csv", datafmt replace
 	
 	**Label diseases
@@ -296,7 +295,6 @@ foreach disease in $diseases {
 	gen total_diag = round(total_diag_un, 5)
 	drop total_diag_un
 	
-	outsheet * using "$projectdir/output/tables/incidence_count_p_`disease'.csv" , comma replace
 	export delimited using "$projectdir/output/tables/incidence_count_p_`disease'.csv", datafmt replace
 	
 	**Label diseases
@@ -347,13 +345,13 @@ gen interval_start = date(interval_start_s, "YMD")
 format interval_start %td
 drop interval_start_s
 
-gen interval_year = year(interval_start)
-format interval_year %ty
-gen interval_mon = month(interval_start)
-gen interval_moyear = ym(interval_year, interval_mon)
-format interval_moyear %tmMon-CCYY
-lab var interval_moyear "Month/Year of Diagnosis"
-drop interval_start interval_mon
+gen year = year(interval_start)
+format year %ty
+gen month = month(interval_start)
+gen mo_year_diagn = ym(year, month)
+format mo_year_diagn %tmMon-CCYY
+lab var mo_year_diagn "Month/Year of Diagnosis"
+drop interval_start month
 
 *For now, keep only monthly overall data - not broken down by age and sex
 keep if measure == "population_overall"
@@ -367,12 +365,14 @@ gen numerator = round(numerator_un, 5)
 gen denominator = round(denominator_un, 5)
 gen ratio = numerator/denominator
 
-outsheet * using "$projectdir/output/tables/denominator_counts.csv" , comma replace
 export delimited using "$projectdir/output/tables/denominator_counts.csv", datafmt replace
 
 save "$projectdir/output/data/measures_appended.dta", replace 
 
-*Graphs of incidence rates =====================================================================*/
+*Graphs of incidence rates and output rounded table for SARIMA =====================================================================*/
+
+clear *
+save "$projectdir/output/data/incidence_rates_rounded.dta", replace emptyok
 
 use "$projectdir/output/data/incidence_data_processed.dta", clear
 
@@ -383,21 +383,32 @@ foreach disease in $diseases {
 	collapse (count) total_diag_un=`disease', by(`disease'_moyear) 
 	gen total_diag = round(total_diag_un, 5)
 	drop total_diag_un
-	gen interval_moyear = `disease'_moyear
-	format interval_moyear %tmMon-CCYY
+	gen disease = strproper(subinstr("`disease'", "_", " ",.))
+	gen mo_year_diagn = `disease'_moyear
+	drop `disease'_moyear
+	format mo_year_diagn %tmMon-CCYY
+	order total_diag, after(mo_year_diagn)
 
 	**Import rounded denominators
-	merge 1:1 interval_moyear using "$projectdir/output/data/measures_appended.dta", keep(match) nogen
+	merge 1:1 mo_year_diagn using "$projectdir/output/data/measures_appended.dta", keep(match) nogen
 	
 	**Drop unnecessary variables
-	drop interval_moyear measure ratio_un numerator_un denominator_un interval_year denominator ratio
-	rename numerator population_count
+	drop measure ratio_un numerator_un denominator_un denominator ratio
+	rename numerator denominator
+	rename total_diag numerator
+	order year, after(mo_year_diagn)
 		
 	**Gen incidence rate per 100,000 adult population	
-	gen inc_rate = (total_diag/population_count)*100000
+	gen incidence = (numerator/denominator)*100000
 
-	outsheet * using "$projectdir/output/tables/incidence_rate_`disease'.csv" , comma replace
+	save "$projectdir/output/data/incidence_rate_`disease'.dta" , replace
 	export delimited using "$projectdir/output/tables/incidence_rate_`disease'.csv", datafmt replace
+	
+	**Output to appended dta
+	append using "$projectdir/output/data/incidence_rates_rounded.dta"
+	save "$projectdir/output/data/incidence_rates_rounded.dta", replace  
+	
+	use "$projectdir/output/data/incidence_rate_`disease'.dta", replace
 	
 	**Label diseases
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
@@ -413,12 +424,15 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
 	
 	**Generate moving average
-	gen inc_rate_ma =(inc_rate[_n-1]+inc_rate[_n]+inc_rate[_n+1])/3
+	gen incidence_ma =(incidence[_n-1]+incidence[_n]+incidence[_n+1])/3
 	
-	twoway scatter inc_rate `disease'_moyear, ytitle("Monthly incidence rate per 100,000 population", size(med)) color(emerald%20) msymbol(circle) || line inc_rate_ma `disease'_moyear, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full'", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_inc, replace) saving("$projectdir/output/figures/inc_rate_`disease'.gph", replace)
+	twoway scatter incidence mo_year_diagn, ytitle("Monthly incidence rate per 100,000 population", size(med)) color(emerald%20) msymbol(circle) || line incidence_ma mo_year_diagn, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full'", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_inc, replace) saving("$projectdir/output/figures/inc_rate_`disease'.gph", replace)
 		graph export "$projectdir/output/figures/inc_rate_`disease'.svg", replace
 		
 	restore
 }
+
+use "$projectdir/output/data/incidence_rates_rounded.dta", clear
+export delimited using "$projectdir/output/tables/incidence_rates_rounded.csv", datafmt replace
 
 log close	
