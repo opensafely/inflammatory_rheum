@@ -6,7 +6,14 @@ actions:
     run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence.py --output output/dataset_incidence.csv
     outputs:
       highly_sensitive:
-        cohort: output/dataset_incidence.csv      
+        cohort: output/dataset_incidence.csv 
+
+  generate_dataset_eia:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition_eia.py --output output/dataset_eia.csv
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        cohort: output/dataset_eia.csv       
 
   generate_measures_2016:
     run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py

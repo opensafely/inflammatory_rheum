@@ -1,7 +1,8 @@
 from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, apcs, addresses
+from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, opa 
 from ehrql.codes import ICD10Code
 from datetime import date, datetime
+from functools import reduce
 import codelists_ehrQL as codelists
 
 # # Arguments (from project.yaml)
@@ -12,12 +13,12 @@ import codelists_ehrQL as codelists
 # args = parser.parse_args()
 # diseases = args.diseases.split(", ")
 
-# diseases = ["rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
-diseases = ["ctd"]
+diseases = ["eia", "ctd", "vasc", "ctdvasc", "rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
+# diseases = ["ctd"]
 codelist_types = ["snomed", "icd"]
 
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=10000)
+dataset.configure_dummy_data(population_size=1000)
 
 index_date = "2016-04-01"
 end_date = "2025-03-31"
@@ -42,13 +43,37 @@ def first_code_in_period_icd(dx_codelist):
         apcs.admission_date
     ).first_for_patient()
 
+# Count of diagnostic codes in primary care record - could be used for sensitivity of those with 2+ codes
+def count_code_in_period_snomed(dx_codelist):
+    return clinical_events.where(
+        clinical_events.snomedct_code.is_in(dx_codelist)
+    ).where(
+        clinical_events.date.is_on_or_before(end_date)
+    ).except_where(
+        clinical_events.date.is_before(index_date)
+    ).count_for_patient()
+
+# Count of diagnostic codes in secondary care record - could be used for sensitivity of those with 2+ codes
+def count_code_in_period_icd(dx_codelist):
+    return apcs.where(
+        apcs.primary_diagnosis.is_in(dx_codelist)
+    ).where(
+        apcs.admission_date.is_on_or_before(end_date)
+    ).except_where(
+        apcs.admission_date.is_before(index_date)
+    ).count_for_patient()
+
 # Registration for 12 months prior to incident diagnosis date
 def preceding_registration(dx_date):
     return practice_registrations.where(
         practice_registrations.start_date.is_on_or_before(dx_date - months(12))
     ).except_where(
         practice_registrations.end_date.is_on_or_before(dx_date)
-    )
+    ).sort_by(
+        practice_registrations.start_date,
+        practice_registrations.end_date,
+        practice_registrations.practice_pseudo_id,
+    ).last_for_patient()
 
 # Define sex
 dataset.sex = patients.sex
@@ -92,12 +117,6 @@ dataset.imd_quintile = case(
     otherwise="Unknown",
 )
 
-# Define population as any patient registered after index date - then apply further restrictions later (age, death and preceding registration)
-dataset.define_population(
-    any_registration 
-    & dataset.sex.is_in(["male", "female"])
-)  
-
 for disease in diseases:
 
     for codelist_type in codelist_types:
@@ -106,14 +125,19 @@ for disease in diseases:
             if hasattr(codelists, f"{disease}_snomed"):
                 disease_codelist = getattr(codelists, f"{disease}_snomed")
                 dataset.add_column(f"{disease}_prim_date", first_code_in_period_snomed(disease_codelist).date)
+                dataset.add_column(f"{disease}_prim_count", count_code_in_period_snomed(disease_codelist))
+
             else:
                 dataset.add_column(f"{disease}_prim_date", first_code_in_period_snomed([]).date)
+                dataset.add_column(f"{disease}_prim_count", count_code_in_period_snomed([]))
         elif (f"{codelist_type}" == "icd"):
             if hasattr(codelists, f"{disease}_icd"):
                 disease_codelist = getattr(codelists, f"{disease}_icd")    
                 dataset.add_column(f"{disease}_sec_date", first_code_in_period_icd(disease_codelist).admission_date)
+                dataset.add_column(f"{disease}_sec_count", count_code_in_period_icd(disease_codelist))
             else:
                 dataset.add_column(f"{disease}_sec_date", first_code_in_period_icd([]).admission_date)
+                dataset.add_column(f"{disease}_sec_count", count_code_in_period_icd([]))
         else:
             dataset.add_column(f"{disease}_{codelist_type}_inc_date", None)
 
@@ -150,6 +174,8 @@ for disease in diseases:
             dataset.date_of_death.is_null()
         ).when_null_then(False)
     )
+
+    # Number of primary care codes in period
 
     # Incident date within window - primary care only
     dataset.add_column(f"{disease}_inc_case_p",
@@ -202,3 +228,15 @@ for disease in diseases:
             dataset.date_of_death.is_null()
         ).when_null_then(False)
     )
+
+# Create variable for anyone with at least one diagnostic code
+any_inc_case = reduce(lambda x, y: x | y, [
+    getattr(dataset, f"{d}_inc_case") for d in diseases
+])
+
+# Define population as any patient, with at least one diagnostic code, registered after index date - then apply further restrictions later (age, death and preceding registration)
+dataset.define_population(
+    any_inc_case
+    & any_registration 
+    & dataset.sex.is_in(["male", "female"])
+)  

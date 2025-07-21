@@ -92,14 +92,44 @@ anca_icd = codelist_from_csv(
     "codelists/user-markdrussell-anca-vasculitis-secondary-care.csv", column="code",
 )
 
-eia_diagnosis_codes = (
+eia_snomed = (
     axialspa_snomed +
     psa_snomed +
     rheumatoid_snomed +
     undiffia_snomed
 )
 
+eia_icd = (
+    axialspa_icd +
+    psa_icd +
+    rheumatoid_icd
+)
+
 ctd_snomed = (
+    sjogren_snomed +
+    ssc_snomed +
+    sle_snomed +
+    myositis_snomed
+)
+
+ctd_icd = (
+    sjogren_icd +
+    ssc_icd +
+    sle_icd +
+    myositis_icd
+)
+
+vasc_snomed = (
+    anca_snomed +
+    gca_snomed
+)
+
+vasc_icd = (
+    anca_icd +
+    gca_icd
+)
+
+ctdvasc_snomed = (
     sjogren_snomed +
     ssc_snomed +
     sle_snomed +
@@ -108,7 +138,7 @@ ctd_snomed = (
     gca_snomed
 )
 
-ctd_icd = (
+ctdvasc_icd = (
     sjogren_icd +
     ssc_icd +
     sle_icd +

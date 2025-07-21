@@ -33,8 +33,8 @@ log using "$logdir/incidence_disease.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-*global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
-global diseases "ctd"
+global diseases "eia ctd vasc ctdvasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+*global diseases "ctd"
 
 set type double
 
@@ -43,7 +43,7 @@ import delimited "$projectdir/output/dataset_incidence.csv", clear
 
 set scheme plotplainblind
 
-*Keep only patients with one or more incident diagnoses ==============================*/
+/*Can remove this once python confirmed - Keep only patients with one or more incident diagnoses ==============================
 gen has_disease = 0
 
 foreach disease in $diseases {
@@ -265,6 +265,7 @@ foreach disease in $diseases {
 	
 	**Label diseases
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
+	if "`dis_full'" == "Eia" local dis_full "Early inflammatory arthritis"
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
@@ -275,7 +276,9 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
 	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
-	if "`dis_full'" == "Ctd" local dis_full "CTD/vasculitis"
+	if "`dis_full'" == "Ctd" local dis_full "Connective tissue disease"
+	if "`dis_full'" == "Vasc" local dis_full "Vasculitis"
+	if "`dis_full'" == "Ctdvasc" local dis_full "CTD/vasculitis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -301,17 +304,20 @@ foreach disease in $diseases {
 	
 	**Label diseases
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
+	if "`dis_full'" == "Eia" local dis_full "Early inflammatory arthritis"
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"	
+	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
 	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
 	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
 	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
-	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"	
-	if "`dis_full'" == "Ctd" local dis_full "CTD/vasculitis"
+	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
+	if "`dis_full'" == "Ctd" local dis_full "Connective tissue disease"
+	if "`dis_full'" == "Vasc" local dis_full "Vasculitis"
+	if "`dis_full'" == "Ctdvasc" local dis_full "CTD/vasculitis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -415,6 +421,7 @@ foreach disease in $diseases {
 	
 	**Label diseases
 	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
+	if "`dis_full'" == "Eia" local dis_full "Early inflammatory arthritis"
 	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
 	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
@@ -425,7 +432,9 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
 	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
-	if "`dis_full'" == "Ctd" local dis_full "CTD/vasculitis"
+	if "`dis_full'" == "Ctd" local dis_full "Connective tissue disease"
+	if "`dis_full'" == "Vasc" local dis_full "Vasculitis"
+	if "`dis_full'" == "Ctdvasc" local dis_full "CTD/vasculitis"
 		
 	**Generate moving average
 	gen incidence_ma =(incidence[_n-1]+incidence[_n]+incidence[_n+1])/3
