@@ -18,7 +18,7 @@ diseases = ["eia", "ctd", "vasc", "ctdvasc", "rheumatoid", "psa", "axialspa", "u
 codelist_types = ["snomed", "icd"]
 
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data(population_size=10000)
 
 index_date = "2016-04-01"
 end_date = "2025-03-31"
