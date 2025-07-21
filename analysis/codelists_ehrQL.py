@@ -99,6 +99,24 @@ eia_diagnosis_codes = (
     undiffia_snomed
 )
 
+ctd_snomed = (
+    sjogren_snomed +
+    ssc_snomed +
+    sle_snomed +
+    myositis_snomed +
+    anca_snomed +
+    gca_snomed
+)
+
+ctd_icd = (
+    sjogren_icd +
+    ssc_icd +
+    sle_icd +
+    myositis_icd +
+    anca_icd +
+    gca_icd
+)
+
 # Relevant comorbidities
 chd_codes = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-chd_cod.csv", column="code",

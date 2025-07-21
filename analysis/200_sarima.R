@@ -42,7 +42,7 @@ sink("logs/sarima_log.txt")
 # Incidence data
 df <-read.csv("output/tables/incidence_rates_rounded.csv")
 
-#Rename variables in the datafile 
+#Rename variables in the datafile (hashed line only needed if running locally)
 names(df)[names(df) == "numerator"] <- "count"
 df<- df %>% select(disease, year, mo_year_diagn, incidence, count) 
 df$month <- substr(df$mo_year_diagn, 1, 3)
@@ -75,7 +75,7 @@ for (j in 1:length(disease_list)) {
   } else if (dis == "Psa") {
     dis_title <- "Psoriatic arthritis"
   } else if (dis == "Axialspa") {
-    dis_title <- "Axial spondyloarthritise"
+    dis_title <- "Axial spondyloarthritis"
   } else if (dis == "Undiffia") {
     dis_title <- "Undifferentiated IA"
   } else if (dis == "Gca") {
@@ -88,6 +88,8 @@ for (j in 1:length(disease_list)) {
     dis_title <- "SLE"
   } else if (dis == "Anca") {
     dis_title <- "ANCA vasculitis"
+  } else if (dis == "Ctd") {
+    dis_title <- "CTD/vasculitis"
   } else {
     dis_title <- str_to_title(str_replace_all(dis, "_", " "))
   }

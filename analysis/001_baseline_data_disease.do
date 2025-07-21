@@ -33,7 +33,8 @@ log using "$logdir/incidence_disease.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+*global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+global diseases "ctd"
 
 set type double
 
@@ -274,6 +275,7 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
 	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
+	if "`dis_full'" == "Ctd" local dis_full "CTD/vasculitis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -309,6 +311,7 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
 	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"	
+	if "`dis_full'" == "Ctd" local dis_full "CTD/vasculitis"
 	
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
@@ -422,7 +425,8 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
 	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
-	
+	if "`dis_full'" == "Ctd" local dis_full "CTD/vasculitis"
+		
 	**Generate moving average
 	gen incidence_ma =(incidence[_n-1]+incidence[_n]+incidence[_n+1])/3
 	
