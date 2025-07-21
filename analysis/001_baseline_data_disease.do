@@ -43,7 +43,7 @@ import delimited "$projectdir/output/dataset_incidence.csv", clear
 
 set scheme plotplainblind
 
-/*Can remove this once python confirmed - Keep only patients with one or more incident diagnoses ==============================
+*Can remove this once python confirmed - Keep only patients with one or more incident diagnoses ==============================
 gen has_disease = 0
 
 foreach disease in $diseases {
@@ -271,7 +271,7 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
 	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
-	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
+	if "`dis_full'" == "Sjogren" local dis_full "Sjogren's disease"
 	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
@@ -310,7 +310,7 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
 	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
-	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
+	if "`dis_full'" == "Sjogren" local dis_full "Sjogren's disease"
 	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"
@@ -322,7 +322,7 @@ foreach disease in $diseases {
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
 	
-	twoway scatter total_diag `disease'_moyear_p, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear_p, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full' Primary", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count_p, replace) saving("$projectdir/output/figures/count_inc_p_`disease'.gph", replace)
+	twoway scatter total_diag `disease'_moyear_p, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear_p, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full' primary care only", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count_p, replace) saving("$projectdir/output/figures/count_inc_p_`disease'.gph", replace)
 		graph export "$projectdir/output/figures/count_inc_p_`disease'.svg", replace
 		
 	restore
@@ -427,7 +427,7 @@ foreach disease in $diseases {
 	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
 	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
 	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
-	if "`dis_full'" == "Sjogren" local dis_full "Sjogrens disease"
+	if "`dis_full'" == "Sjogren" local dis_full "Sjogren's disease"
 	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
 	if "`dis_full'" == "Sle" local dis_full "SLE"
 	if "`dis_full'" == "Myositis" local dis_full "Myositis"

@@ -88,8 +88,14 @@ for (j in 1:length(disease_list)) {
     dis_title <- "SLE"
   } else if (dis == "Anca") {
     dis_title <- "ANCA vasculitis"
+  } else if (dis == "Eia") {
+    dis_title <- "Early inflammatory arthritis"
   } else if (dis == "Ctd") {
-    dis_title <- "CTD/vasculitis"
+    dis_title <- "Connective tissue disease"
+  } else if (dis == "Vasc") {
+    dis_title <- "Vasculitis"
+  } else if (dis == "Ctdvasc") {
+    dis_title <- "CTD/Vasculitis"
   } else {
     dis_title <- str_to_title(str_replace_all(dis, "_", " "))
   }
