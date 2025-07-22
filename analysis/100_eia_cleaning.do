@@ -41,7 +41,8 @@ set scheme plotplainblind
 
 **Set index dates ===========================================================*/
 
-global start_date = "01/04/2016" //for outpatient analyses, data only be available from April 2019
+global index_date = "01/04/2016"
+global start_date = "01/04/2019" //for outpatient analyses, data only be available from April 2019
 global end_date = "31/03/2025"
 global base_year = year(date("$start_date", "DMY"))
 global end_year = year(date("$end_date", "DMY"))
@@ -125,7 +126,21 @@ foreach var of varlist 	 abatacept_date						///
 		
 **All patients should have diagnostic code=============================================================*/
 tab eia_inc, missing
-keep if eia_inc==1		
+keep if eia_inc==1	
+
+*Generate diagnosis date===============================================================*/
+
+**Use diagnostic code date (in GP record) as diagnosis date
+gen diagnosis_date=eia_inc_date
+format diagnosis_date %td
+
+*Refine diagnostic window=============================================================*/
+
+**Keep patients with diagnosis date after start date and before end date - should be none dropped
+keep if diagnosis_date>=date("$start_date", "DMY") & diagnosis_date!=. 
+tab eia_inc, missing
+keep if diagnosis_date<=date("$end_date", "DMY") & diagnosis_date!=. 
+tab eia_inc, missing	
 		
 **Create and label variables ===========================================================*/
 
@@ -460,15 +475,6 @@ tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (
 *drop if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date //drop if first csDMARD more than 60 days before first captured rheum appt that did not have first attendance tag
 
 /*
-**csDMARDs (including high cost MTX)
-gen csdmard_hcd=1 if hydroxychloroquine==1 | leflunomide==1 | methotrexate==1 | methotrexate_hcd==1 | sulfasalazine==1
-recode csdmard_hcd .=0 
-tab csdmard_hcd, missing
-
-**Date of first csDMARD script (including high cost MTX prescriptions)
-gen csdmard_hcd_date=min(hydroxychloroquine_date, leflunomide_date, methotrexate_date, methotrexate_hcd_date, sulfasalazine_date)
-format %td csdmard_hcd_date
-
 **Biologic use
 gen biologic=1 if abatacept==1 | adalimumab==1 | baricitinib==1 | certolizumab==1 | etanercept==1 | golimumab==1 | guselkumab==1 | infliximab==1 | ixekizumab==1 | rituximab==1 | sarilumab==1 | secukinumab==1 | tocilizumab==1 | tofacitinib==1 | upadacitinib==1 | ustekinumab==1 
 recode biologic .=0
@@ -484,20 +490,6 @@ drop if rheum_appt_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_
 tab biologic if rheum_appt_date==. & rheum_appt_any_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_any_date
 drop if rheum_appt_date==. & rheum_appt_any_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_any_date //drop if first biologic more than 60 days before first captured rheum appt that did not have first attendance tag
 */
-
-*Generate diagnosis date===============================================================*/
-
-**Use diagnostic code date (in GP record) as diagnosis date
-gen diagnosis_date=eia_inc_date
-format diagnosis_date %td
-
-*Refine diagnostic window=============================================================*/
-
-**Keep patients with diagnosis date after start date and before end date - should be none dropped
-keep if diagnosis_date>=date("$start_date", "DMY") & diagnosis_date!=. 
-tab eia_inc, missing
-keep if diagnosis_date<=date("$end_date", "DMY") & diagnosis_date!=. 
-tab eia_inc, missing
 
 *Include only most recent EIA sub-diagnosis=============================================*/
 replace rheumatoid_inc =0 if psa_inc_date > rheumatoid_inc_date & psa_inc_date !=.
