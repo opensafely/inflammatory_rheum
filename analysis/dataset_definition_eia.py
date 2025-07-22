@@ -313,7 +313,7 @@ dataset.steroid_12m_count = steroid_12m_dates_dmd(codelists.steroid_codes).count
 
 incidence_dataset_population = get_population(dataset)
 
-# # Define study population
+# Define study population
 dataset.define_population(
     incidence_dataset_population &
     (getattr(dataset, "eia_inc_case")) &

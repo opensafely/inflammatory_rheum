@@ -20,7 +20,6 @@ codelist_types = ["snomed", "icd"]
 index_date = "2016-04-01"
 end_date = "2025-03-31"
 
-
 # Any practice registration before study end date
 any_registration = practice_registrations.where(
             practice_registrations.start_date <= end_date
@@ -28,12 +27,9 @@ any_registration = practice_registrations.where(
             practice_registrations.end_date < index_date    
         ).exists_for_patient()
 
-
 def create_dataset_with_variables():
     dataset = create_dataset()
     dataset.configure_dummy_data(population_size=10000)
-
-
 
     # Incident diagnostic code in primary care record (SNOMED) (assuming before study end date)
     def first_code_in_period_snomed(dx_codelist):
@@ -180,8 +176,6 @@ def create_dataset_with_variables():
             ).when_null_then(False)
         )
 
-        # Number of primary care codes in period
-
         # Incident date within window - primary care only
         dataset.add_column(f"{disease}_inc_case_p",
             (getattr(dataset, disease + "_prim_date").is_on_or_between(index_date, end_date)
@@ -242,8 +236,8 @@ def get_population(dataset):
         getattr(dataset, f"{d}_inc_case") for d in diseases
     ])
 
-    # Define population as any patient, with at least one diagnostic code, registered after index date - then apply further restrictions later (age, death and preceding registration)
-    return     (any_inc_case
+    # Define population as any patient with at least one diagnostic code, registered after index date - then apply further restrictions later (age, death and preceding registration)
+    return (any_inc_case
         & any_registration 
         & dataset.sex.is_in(["male", "female"]))
 
