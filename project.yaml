@@ -115,7 +115,7 @@ actions:
         measure_csv: output/measures/measures_incidence_2024.csv
 
   incidence_disease:
-    run: stata-mp:latest analysis/001_baseline_data_disease.do
+    run: stata-mp:latest analysis/001_disease_incidence.do
     needs: [generate_dataset_incidence, generate_measures_2016, generate_measures_2017, generate_measures_2018, generate_measures_2019, generate_measures_2020, generate_measures_2021, generate_measures_2022, generate_measures_2023, generate_measures_2024]
     outputs:
       moderately_sensitive:
@@ -143,4 +143,12 @@ actions:
         figure7: output/figures/auto_residuals_*.svg
         figure8: output/figures/obs_pred_*.svg
         table1: output/tables/change_incidence_byyear.csv
-        table2: output/tables/values_*.csv  
+        table2: output/tables/values_*.csv
+
+  eia_cleaning:
+    run: stata-mp:latest analysis/100_eia_cleaning.do
+    needs: [generate_dataset_incidence, generate_dataset_eia]
+    outputs:
+      highly_sensitive:
+        log1: logs/eia_dataset.log   
+        data1: output/data/file_eia_all.dta  

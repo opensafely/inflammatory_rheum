@@ -71,14 +71,15 @@ drop has_disease
 *Create and label variables ===========================================================*/
 
 **Sex
-gen gender = 1 if sex == "female"
-replace gender = 2 if sex == "male"
-lab var gender "Gender"
-lab define gender 1 "Female" 2 "Male", modify
-lab val gender gender
-tab gender, missing
-keep if gender == 1 | gender == 2
-drop sex
+rename sex sex_s
+gen sex = 1 if sex_s == "female"
+replace sex = 2 if sex_s == "male"
+lab var sex "Sex"
+lab define sex 1 "Female" 2 "Male", modify
+lab val sex sex
+tab sex, missing
+keep if sex == 1 | sex == 2
+drop sex_s
 
 **Ethnicity
 gen ethnicity_n = 1 if ethnicity == "White"
@@ -181,7 +182,7 @@ di "`disease'"
 table1_mc, total(before) onecol nospacelowpercent missing iqrmiddle(",")  ///
 	vars(`disease'_age contn %5.1f \ ///
 		 `disease'_age_band cat %5.1f \ ///
-		 gender cat %5.1f \ ///
+		 sex cat %5.1f \ ///
 		 ethnicity cat %5.1f \ ///
 		 imd cat %5.1f \ ///
 		 )
@@ -195,7 +196,7 @@ save "$projectdir/output/data/baseline_table_rounded.dta", replace emptyok
 foreach disease in $diseases {
 	use "$projectdir/output/data/incidence_data_processed.dta", clear
 	keep if `disease'==1
-	foreach var of varlist imd ethnicity gender `disease'_age_band {
+	foreach var of varlist imd ethnicity sex `disease'_age_band {
 		preserve
 		contract `var'
 		local v : variable label `var' 
