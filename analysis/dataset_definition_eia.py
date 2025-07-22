@@ -2,7 +2,9 @@ from ehrql import create_dataset, days, months, years, case, when
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, addresses, appointments, opa, wl_clockstops, wl_openpathways
 from datetime import date
 import codelists_ehrQL as codelists
-from analysis.dataset_definition_incidence import dataset
+from analysis.dataset_definition_incidence import create_dataset_with_variables, get_population
+
+dataset = create_dataset_with_variables()
 
 # Dates for study
 index_date = "2016-04-01"
@@ -309,12 +311,13 @@ dataset.steroid_12m_first_date = steroid_12m_dates_dmd(codelists.steroid_codes).
 dataset.steroid_12m_last_date = steroid_12m_dates_dmd(codelists.steroid_codes).last_for_patient().date
 dataset.steroid_12m_count = steroid_12m_dates_dmd(codelists.steroid_codes).count_for_patient()
 
-# RTT dates removed
+incidence_dataset_population = get_population(dataset)
 
 # # Define study population
-# dataset.define_population(
-#     (getattr(dataset, "eia_inc_case")) &
-#     ((getattr(dataset, "eia_age") >= 18) & (getattr(dataset, "eia_age") <= 110)) &
-#     (getattr(dataset, "eia_pre_reg")) &
-#     (getattr(dataset, "eia_alive_inc"))
-# )
+dataset.define_population(
+    incidence_dataset_population &
+    (getattr(dataset, "eia_inc_case")) &
+    ((getattr(dataset, "eia_age") >= 18) & (getattr(dataset, "eia_age") <= 110)) &
+    (getattr(dataset, "eia_pre_reg")) &
+    (getattr(dataset, "eia_alive_inc"))
+)
