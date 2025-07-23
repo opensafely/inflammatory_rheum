@@ -18,6 +18,7 @@ user/markdrussell/systemic-lupus-erythematosus-secondary-care/460408a4
 user/markdrussell/inflammatory-myositis/2cf4956f
 user/markdrussell/inflammatory-myositis-secondary-care/7ad5af04
 user/markdrussell/referral-rheumatology/6bc8e5e3
+user/markdrussell/referral-to-rheumatology-only/0cf23b30
 opensafely/ethnicity-snomed-0removed/22911876
 nhsd-primary-care-domain-refsets/copd_cod/3a5ef7dc
 nhsd-primary-care-domain-refsets/chd_cod/0f32f87c

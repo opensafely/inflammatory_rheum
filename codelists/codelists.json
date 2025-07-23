@@ -120,6 +120,12 @@
       "downloaded_at": "2022-04-19 15:10:55.822527Z",
       "sha": "6905817b91b0fe74de27fd32f7ab13030c7a43df"
     },
+    "user-markdrussell-referral-to-rheumatology-only.csv": {
+      "id": "user/markdrussell/referral-to-rheumatology-only/0cf23b30",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/referral-to-rheumatology-only/0cf23b30/",
+      "downloaded_at": "2025-07-23 08:24:52.806010Z",
+      "sha": "435141cacd9746d82b5ce74692f53f71c238421f"
+    },
     "opensafely-ethnicity-snomed-0removed.csv": {
       "id": "opensafely/ethnicity-snomed-0removed/22911876",
       "url": "https://www.opencodelists.org/codelist/opensafely/ethnicity-snomed-0removed/22911876/",

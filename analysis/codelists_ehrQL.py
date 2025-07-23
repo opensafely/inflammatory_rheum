@@ -217,8 +217,12 @@ dementia_codes = codelist_from_csv(
 
 bmi_codes = ["60621009", "846931000000101"]
 
-referral_rheumatology = codelist_from_csv(
+referral_rheummsk = codelist_from_csv(
     "codelists/user-markdrussell-referral-rheumatology.csv", column = "code"
+)
+
+referral_rheumatology = codelist_from_csv(
+    "codelists/user-markdrussell-referral-to-rheumatology-only.csv", column = "code"
 )
 
 rf_tests = codelist_from_csv(

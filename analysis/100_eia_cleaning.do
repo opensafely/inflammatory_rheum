@@ -413,6 +413,13 @@ tab rheum_appt if rheum_appt_date>(eia_inc_date + 60) & rheum_appt_date!=. //con
 replace rheum_appt=0 if rheum_appt_date>(eia_inc_date + 60) & rheum_appt_date!=. //replace as missing if first appt >60 days after EIA code - should be none
 replace rheum_appt_date=. if rheum_appt_date>(eia_inc_date + 60) & rheum_appt_date!=. //replace as missing if first appt >60 days after EIA code - should be none
 
+tab rheum_appt_last, missing //proportion of patients with an rheum outpatient date (with first attendance option selected + last in period) in the 12 months before and 60 days after EIA code appeared in GP record; data only April 2019 onwards
+tab rheum_appt_last if rheum_appt_last_date>eia_inc_date & rheum_appt_last_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
+tab rheum_appt_last if rheum_appt_last_date>(eia_inc_date + 30) & rheum_appt_last_date!=. //confirm proportion who had first rheum appt 30 days after EIA code 
+tab rheum_appt_last if rheum_appt_last_date>(eia_inc_date + 60) & rheum_appt_last_date!=. //confirm proportion who had first rheum appt 60 days after EIA code - should be none
+replace rheum_appt_last=0 if rheum_appt_last_date>(eia_inc_date + 60) & rheum_appt_last_date!=. //replace as missing if first appt >60 days after EIA code - should be none
+replace rheum_appt_last_date=. if rheum_appt_last_date>(eia_inc_date + 60) & rheum_appt_last_date!=. //replace as missing if first appt >60 days after EIA code - should be none
+
 tab rheum_appt_any, missing //proportion of patients with a rheum outpatient date (without first attendance option selected) in the 12 months before and 60 days after EIA code appeared in GP record; data only April 2019 onwards
 tab rheum_appt_any if rheum_appt_any_date>eia_inc_date & rheum_appt_any_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
 tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 60) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 60 days after EIA code - should be none
@@ -435,8 +442,16 @@ replace rheum_appt3_date=. if rheum_appt3_date>(eia_inc_date + 60) & rheum_appt3
 tab rheum_appt4, missing //proportion of patients with a rheum outpatient date (without first attendance option selected) in the 2 years before and 1 year after EIA code appeared in GP record; data only April 2019 onwards
 tab rheum_appt4 if rheum_appt4_date>eia_inc_date & rheum_appt4_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
 tab rheum_appt4 if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //confirm proportion who had first rheum appt 60 days after EIA code
-replace rheum_appt4=0 if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
-replace rheum_appt4_date=. if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
+tab rheum_appt4 if rheum_appt4_date>(eia_inc_date + 120) & rheum_appt4_date!=. //confirm proportion who had first rheum appt 120 days after EIA code
+*replace rheum_appt4=0 if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
+*replace rheum_appt4_date=. if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
+
+tab rheum_appt5, missing //proportion of patients with a rheum outpatient date (without first attendance option selected) in the 2 years before and 1 year after EIA code appeared in GP record; data only April 2019 onwards
+tab rheum_appt5 if rheum_appt5_date>eia_inc_date & rheum_appt5_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
+tab rheum_appt5 if rheum_appt5_date>(eia_inc_date + 60) & rheum_appt5_date!=. //confirm proportion who had first rheum appt 60 days after EIA code
+tab rheum_appt5 if rheum_appt5_date>(eia_inc_date + 120) & rheum_appt5_date!=. //confirm proportion who had first rheum appt 120 days after EIA code
+*replace rheum_appt5=0 if rheum_appt5_date>(eia_inc_date + 60) & rheum_appt5_date!=. //replace as missing those appts >60 days after EIA code
+*replace rheum_appt5_date=. if rheum_appt5_date>(eia_inc_date + 60) & rheum_appt5_date!=. //replace as missing those appts >60 days after EIA code
 
 *Check if first csDMARD/biologic was after rheum appt date=====================================================*/
 **csDMARDs (not including high cost MTX; wouldn't be shared care)
@@ -648,11 +663,20 @@ tab mo_year_diagn rtt_ref if rheum_appt!=0 & rtt_ref_date<=rheum_appt_date, miss
 */
 
 ***From clinical events (Nb. low capture of coded rheumatology referrals in clinical events at present)
-tab rheum_ref_gp_preappt, missing //last rheum referral in the 2 years before rheumatology outpatient (requires rheum appt to have been present)
-tab rheum_ref_gp_preappt if rheum_appt!=0 & rheum_ref_gp_preappt_date<=rheum_appt_date, missing  //last rheum referral in the 2 years before rheumatology outpatient, assuming ref date before rheum appt date (should be accounted for by Python code)
-tab rheum_ref_gp_precode, missing //last rheum referral in the 2 years before IA code 
-gen referral_rheum_comb_date = rheum_ref_gp_preappt_date if rheum_ref_gp_preappt_date!=.
-replace referral_rheum_comb_date = rheum_ref_gp_precode_date if rheum_ref_gp_preappt_date==. & rheum_ref_gp_precode_date!=. //combination of the two above
+tab ref_12m_preappt, missing //last rheum referral in the year before rheumatology outpatient (requires rheum appt to have been present)
+tab ref_12m_preappt if rheum_appt!=0 & ref_12m_preappt_date<=rheum_appt_date, missing  //last rheum referral in the 2 years before rheumatology outpatient, assuming ref date before rheum appt date (should be accounted for by Python code)
+
+***From clinical events (using 6m cut-off)
+tab ref_6m_preappt, missing //last rheum referral in the 6 months before rheumatology outpatient (requires rheum appt to have been present)
+tab ref_6m_preappt if rheum_appt!=0 & ref_6m_preappt_date<=rheum_appt_date, missing  //last rheum referral in the 6 months before rheumatology outpatient, assuming ref date before rheum appt date (should be accounted for by Python code)
+
+***From clinical events (including MSK and GP with specialist interest referrals)
+tab refmsk_12m_appt, missing //last rheum referral in the year before rheumatology outpatient (requires rheum appt to have been present)
+tab refmsk_12m_appt if rheum_appt!=0 & refmsk_12m_appt_date<=rheum_appt_date, missing  //last rheum referral in the year before rheumatology outpatient, assuming ref date before rheum appt date (should be accounted for by Python code)
+
+tab ref_12m_precode, missing //last rheum referral in the year before IA code 
+gen referral_rheum_comb_date = ref_12m_preappt_date if ref_12m_preappt_date!=.
+replace referral_rheum_comb_date = ref_12m_precode_date if ref_12m_preappt_date==. & ref_12m_precode_date!=. //combination of the two above
 format %td referral_rheum_comb_date
 
 /*
@@ -676,7 +700,7 @@ tab last_gp_prerheum, missing //last GP appointment before rheum appt; requires 
 tab last_gp_precode, missing //last GP appointment before EIA code
 
 ****All appts in the correct order (using clinical events referrals)
-gen all_appts=1 if last_gp_refrheum==1 & rheum_ref_gp_preappt==1 & rheum_appt==1 & (last_gp_refrheum_date<=rheum_ref_gp_preappt_date) & (rheum_ref_gp_preappt_date<=rheum_appt_date)
+gen all_appts=1 if last_gp_refrheum==1 & ref_12m_preappt==1 & rheum_appt==1 & (last_gp_refrheum_date<=ref_12m_preappt_date) & (ref_12m_preappt_date<=rheum_appt_date)
 recode all_appts .=0
 tab all_appts, missing //proportion who had a last gp appt, then rheum ref, then rheum appt
 */
@@ -702,7 +726,7 @@ tab mo_year_diagn has_12m_follow_up
 *For appt and csDMARD analyses, all patients must have 1) rheum appt 2) rheum ref before rheum appt 3) 12m follow-up after rheum appt 4) 12m of registration after diagnostic code
 
 *gen has_6m_post_appt=1 if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-183) & has_6m_follow_up==1 & last_gp_prerheum==1
-gen has_6m_post_appt=1 if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-183) & has_6m_follow_up==1 & rheum_ref_gp_preappt==1
+gen has_6m_post_appt=1 if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-183) & has_6m_follow_up==1 & ref_12m_preappt==1
 recode has_6m_post_appt .=0
 lab var has_6m_post_appt "GP/rheum/registration 6m+"
 lab define has_6m_post_appt 0 "No" 1 "Yes", modify
@@ -710,7 +734,7 @@ lab val has_6m_post_appt has_6m_post_appt
 tab has_6m_post_appt
 
 *gen has_12m_post_appt=1 if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-365) & has_12m_follow_up==1 & last_gp_prerheum==1
-gen has_12m_post_appt=1 if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-365) & has_12m_follow_up==1 & rheum_ref_gp_preappt==1
+gen has_12m_post_appt=1 if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-365) & has_12m_follow_up==1 & ref_12m_preappt==1
 recode has_12m_post_appt .=0
 lab var has_12m_post_appt "GP/rheum/registration 12m+"
 lab define has_12m_post_appt 0 "No" 1 "Yes", modify
@@ -722,7 +746,7 @@ tab has_12m_post_appt
 **AMEND THE BELOW ONCE REFERRAL DATE KNOWN
 /*
 **Time from last GP appt to rheum ref before rheum appt (i.e. if appts are present and in correct time order)
-gen time_gp_rheum_ref_appt = (rheum_ref_gp_preappt_date - last_gp_refrheum_date) if rheum_ref_gp_preappt_date!=. & last_gp_refrheum_date!=. & rheum_appt_date!=. & (rheum_ref_gp_preappt_date>=last_gp_refrheum_date) & (rheum_ref_gp_preappt_date<=rheum_appt_date)
+gen time_gp_rheum_ref_appt = (ref_12m_preappt_date - last_gp_refrheum_date) if ref_12m_preappt_date!=. & last_gp_refrheum_date!=. & rheum_appt_date!=. & (ref_12m_preappt_date>=last_gp_refrheum_date) & (ref_12m_preappt_date<=rheum_appt_date)
 tabstat time_gp_rheum_ref_appt, stats (n mean p50 p25 p75) //all patients (should be same number as all_appts)
 
 gen gp_ref_cat=1 if time_gp_rheum_ref_appt<=3 & time_gp_rheum_ref_appt!=. 
@@ -741,7 +765,7 @@ lab var gp_ref_3d "Time to GP referral"
 tab gp_ref_3d, missing
 
 **Time from last GP to rheum ref before eia code (sensitivity analysis; includes those with no rheum appt)
-gen time_gp_rheum_ref_inc = (rheum_ref_gp_precode_date - last_gp_refcode_date) if rheum_ref_gp_precode_date!=. & last_gp_refcode_date!=. & rheum_ref_gp_precode_date>=last_gp_refcode_date & rheum_ref_gp_precode_date<=eia_inc_date
+gen time_gp_rheum_ref_inc = (ref_12m_precode_date - last_gp_refcode_date) if ref_12m_precode_date!=. & last_gp_refcode_date!=. & ref_12m_precode_date>=last_gp_refcode_date & ref_12m_precode_date<=eia_inc_date
 tabstat time_gp_rheum_ref_inc, stats (n mean p50 p25 p75)
 
 **Time from last GP to rheum ref (combined - sensitivity analysis; includes those with no rheum appt)
@@ -753,9 +777,21 @@ tabstat time_gp_rheum_ref_comb, stats (n mean p50 p25 p75)
 
 **AMEND THE BELOW ONCE REFERRAL DATE KNOWN
 
-**Time from rheum ref to rheum appt (i.e. if appts are present and in correct order)
-gen time_ref_rheum_appt = (rheum_appt_date - rheum_ref_gp_preappt_date) if rheum_appt_date!=. & rheum_ref_gp_preappt_date!=. & (rheum_ref_gp_preappt_date<=rheum_appt_date)
+**Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 12m referral cut-off
+gen time_ref_rheum_appt = (rheum_appt_date - ref_12m_preappt_date) if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date)
 tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 6m referral cut-off
+gen time_ref_rheum_appt_6m = (rheum_appt_date - ref_6m_preappt_date) if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date)
+tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 12m referral cut-off, including MSK referral
+gen time_ref_rheumsk_appt = (rheum_appt_date - refmsk_12m_appt_date) if rheum_appt_date!=. & refmsk_12m_appt_date!=. & (refmsk_12m_appt_date<=rheum_appt_date)
+tabstat time_ref_rheumsk_appt, stats (n mean p50 p25 p75)
+
+**Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 12m referral cut-off and last rheum appt (with first appt flag)
+gen time_ref_rheuml_appt = (rheum_appt_last_date - ref_12m_preappt_date) if rheum_appt_last_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_last_date)
+tabstat time_ref_rheuml_appt, stats (n mean p50 p25 p75)
 
 /*
 **Time from last GP pre-rheum appt to first rheum appt (proxy for referral to appt delay)
@@ -846,7 +882,7 @@ tabstat time_gp_eia_diag, stats (n mean p50 p25 p75)
 */
 
 **Time from rheum ref to EIA code (sensitivity analysis; includes those with no rheum appt)
-gen time_ref_rheum_eia = (eia_inc_date - rheum_ref_gp_precode_date) if eia_inc_date!=. & rheum_ref_gp_precode_date!=. & rheum_ref_gp_precode_date<=eia_inc_date  
+gen time_ref_rheum_eia = (eia_inc_date - ref_12m_precode_date) if eia_inc_date!=. & ref_12m_precode_date!=. & ref_12m_precode_date<=eia_inc_date  
 tabstat time_ref_rheum_eia, stats (n mean p50 p25 p75)
 
 **Time from rheum ref to EIA diagnosis (combined - sensitivity analysis; includes those with no rheum appt)
@@ -857,6 +893,8 @@ tabstat time_ref_rheum_eia_comb, stats (n mean p50 p25 p75)
 **Time from rheum appt to EIA code
 gen time_rheum_eia_inc = (eia_inc_date - rheum_appt_date) if eia_inc_date!=. & rheum_appt_date!=. 
 tabstat time_rheum_eia_inc, stats (n mean p50 p25 p75) 
+gen time_rheuml_eia_inc = (eia_inc_date - rheum_appt_last_date) if eia_inc_date!=. & rheum_appt_last_date!=. 
+tabstat time_rheuml_eia_inc, stats (n mean p50 p25 p75) 
 gen time_rheum2_eia_inc = (eia_inc_date - rheum_appt2_date) if eia_inc_date!=. & rheum_appt2_date!=. 
 tabstat time_rheum2_eia_inc, stats (n mean p50 p25 p75) 
 gen time_rheum3_eia_inc = (eia_inc_date - rheum_appt3_date) if eia_inc_date!=. & rheum_appt3_date!=. 
