@@ -446,7 +446,7 @@ tab rheum_appt4 if rheum_appt4_date>(eia_inc_date + 120) & rheum_appt4_date!=. /
 *replace rheum_appt4=0 if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
 *replace rheum_appt4_date=. if rheum_appt4_date>(eia_inc_date + 60) & rheum_appt4_date!=. //replace as missing those appts >60 days after EIA code
 
-tab rheum_appt5, missing //proportion of patients with a rheum outpatient date (without first attendance option selected) in the 2 years before and 1 year after EIA code appeared in GP record; data only April 2019 onwards
+tab rheum_appt5, missing //proportion of patients with a rheum outpatient date (with first attendance option selected) in the 2 years before and 1 year after EIA code appeared in GP record; data only April 2019 onwards
 tab rheum_appt5 if rheum_appt5_date>eia_inc_date & rheum_appt5_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
 tab rheum_appt5 if rheum_appt5_date>(eia_inc_date + 60) & rheum_appt5_date!=. //confirm proportion who had first rheum appt 60 days after EIA code
 tab rheum_appt5 if rheum_appt5_date>(eia_inc_date + 120) & rheum_appt5_date!=. //confirm proportion who had first rheum appt 120 days after EIA code
@@ -482,11 +482,11 @@ tab hydroxychloroquine if rheum_appt_date!=. & hydroxychloroquine_date!=. & (hyd
 tab sulfasalazine if rheum_appt_date!=. & sulfasalazine_date!=. & (sulfasalazine_date + 60)<rheum_appt_date 
 tab leflunomide if rheum_appt_date!=. & leflunomide_date!=. & (leflunomide_date + 60)<rheum_appt_date 
 
-**Don't drop yet...
-*drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date //drop if first csDMARD more than 60 days before first attendance at a rheum appt 
+**Dropped currently
+drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date //drop if first csDMARD more than 60 days before first attendance at a rheum appt 
 
 tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date
-**Don't drop yet...
+
 *drop if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date //drop if first csDMARD more than 60 days before first captured rheum appt that did not have first attendance tag
 
 /*
@@ -781,9 +781,15 @@ tabstat time_gp_rheum_ref_comb, stats (n mean p50 p25 p75)
 gen time_ref_rheum_appt = (rheum_appt_date - ref_12m_preappt_date) if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date)
 tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
 
+workdays ref_12m_preappt_date rheum_appt_date if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date), gen(wd_ref_rheum_appt)
+tabstat wd_ref_rheum_appt, stats (n mean p50 p25 p75)
+
 **Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 6m referral cut-off
 gen time_ref_rheum_appt_6m = (rheum_appt_date - ref_6m_preappt_date) if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date)
-tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
+tabstat time_ref_rheum_appt_6m, stats (n mean p50 p25 p75)
+
+workdays ref_6m_preappt_date rheum_appt_date if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date), gen(wd_ref_rheum_appt_6m)
+tabstat wd_ref_rheum_appt_6m, stats (n mean p50 p25 p75)
 
 **Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 12m referral cut-off, including MSK referral
 gen time_ref_rheumsk_appt = (rheum_appt_date - refmsk_12m_appt_date) if rheum_appt_date!=. & refmsk_12m_appt_date!=. & (refmsk_12m_appt_date<=rheum_appt_date)
@@ -849,16 +855,18 @@ replace ref_appt_cat=3 if time_ref_rheum_appt>42 & time_ref_rheum_appt!=. & ref_
 lab define ref_appt_cat 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
 lab val ref_appt_cat ref_appt_cat
 lab var ref_appt_cat "Time to rheumatology assessment"
-tab ref_appt_cat, missing
+tab ref_appt_cat
+bys region: tab ref_appt_cat
 
 forvalues i = 1/$max_year {
     local start = $base_year + `i' - 1
+	di "`start'"
     local end = `start' + 1
 	gen ref_appt_cat_`start'=ref_appt_cat if appt_year==`i'
     lab define ref_appt_cat_`start' 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
 	lab val ref_appt_cat_`start' ref_appt_cat_`start'
 	lab var ref_appt_cat_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
-	tab ref_appt_cat_`start', missing
+	tab ref_appt_cat_`start'
 }
 
 gen ref_appt_3w=1 if time_ref_rheum_appt<=21 & time_ref_rheum_appt!=. 
@@ -866,7 +874,20 @@ replace ref_appt_3w=2 if time_ref_rheum_appt>21 & time_ref_rheum_appt!=.
 lab define ref_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
 lab val ref_appt_3w ref_appt_3w
 lab var ref_appt_3w "Time to rheumatology assessment"
-tab ref_appt_3w, missing
+tab ref_appt_3w
+bys region: tab ref_appt_3w
+
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+	di "`start'"
+    local end = `start' + 1
+	gen ref_appt_3w_`start'=ref_appt_3w if appt_year==`i'
+    lab define ref_appt_3w_`start' 1 "Within 3 weeks" 2 "More than 3 weeks", modify
+	lab val ref_appt_3w_`start' ref_appt_3w_`start'
+	lab var ref_appt_3w_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
+	tab ref_appt_3w_`start'
+	bys region: tab ref_appt_3w_`start'
+}
 
 *Time to EIA code==================================================*/
 
