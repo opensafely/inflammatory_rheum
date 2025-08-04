@@ -673,8 +673,6 @@ tab all_appts, missing //proportion who had a last gp appt, then rheum ref, then
 
 **Define who qualifies in terms of appointments and referrals ===============================*/
 
-**AMEND THE BELOW ONCE REFERRAL DATE KNOWN - for now, leave as those with rheum referral in clincial records
-
 **Proportion of patients with at least 6 or 12 months of GP registration after diagnostic code
 rename has_6m_follow_up has_6m_follow_up_s 
 gen has_6m_follow_up=1 if has_6m_follow_up_s=="T"
@@ -709,7 +707,6 @@ tab has_12m_post_appt
 
 *Time to rheum referral =============================================*/
 
-**AMEND THE BELOW ONCE REFERRAL DATE KNOWN
 /*
 **Time from last GP appt to rheum ref before rheum appt (i.e. if appts are present and in correct time order)
 gen time_gp_rheum_ref_appt = (ref_12m_preappt_date - last_gp_refrheum_date) if ref_12m_preappt_date!=. & last_gp_refrheum_date!=. & rheum_appt_date!=. & (ref_12m_preappt_date>=last_gp_refrheum_date) & (ref_12m_preappt_date<=rheum_appt_date)
@@ -741,8 +738,6 @@ tabstat time_gp_rheum_ref_comb, stats (n mean p50 p25 p75)
 
 *Time to rheum appointment=============================================*/
 
-**AMEND THE BELOW ONCE REFERRAL DATE KNOWN
-
 **Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 12m referral cut-off
 gen time_ref_rheum_appt = (rheum_appt_date - ref_12m_preappt_date) if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date)
 tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
@@ -755,8 +750,17 @@ tabstat time_ref_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 
 tabstat time_ref_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
 tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA and csDMARD at any point
 
+**Using working days
 workdays ref_12m_preappt_date rheum_appt_date if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date), gen(wd_ref_rheum_appt)
 tabstat wd_ref_rheum_appt, stats (n mean p50 p25 p75)
+tabstat wd_ref_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat wd_ref_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2), stats (n mean p50 p25 p75) //RA or PsA
+tabstat wd_ref_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat wd_ref_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+tabstat wd_ref_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat wd_ref_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA and csDMARD at any point
 
 **Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 6m referral cut-off
 gen time_ref_rheum_appt_6m = (rheum_appt_date - ref_6m_preappt_date) if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date)
@@ -813,11 +817,9 @@ tab gp_appt_3w, missing
 
 */
 
-**AMEND THE BELOW ONCE REFERRAL DATE KNOWN
-
-gen ref_appt_cat=1 if time_ref_rheum_appt<=21 & time_ref_rheum_appt!=. 
-replace ref_appt_cat=2 if time_ref_rheum_appt>21 & time_ref_rheum_appt<=42 & time_ref_rheum_appt!=. & ref_appt_cat==.
-replace ref_appt_cat=3 if time_ref_rheum_appt>42 & time_ref_rheum_appt!=. & ref_appt_cat==.
+gen ref_appt_cat=1 if wd_ref_rheum_appt<=21 & wd_ref_rheum_appt!=. 
+replace ref_appt_cat=2 if wd_ref_rheum_appt>21 & wd_ref_rheum_appt<=42 & wd_ref_rheum_appt!=. & ref_appt_cat==.
+replace ref_appt_cat=3 if wd_ref_rheum_appt>42 & wd_ref_rheum_appt!=. & ref_appt_cat==.
 lab define ref_appt_cat 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
 lab val ref_appt_cat ref_appt_cat
 lab var ref_appt_cat "Time to rheumatology assessment"
@@ -839,8 +841,8 @@ forvalues i = 1/$max_year {
 	tab ref_appt_cat_`start'
 }
 
-gen ref_appt_3w=1 if time_ref_rheum_appt<=21 & time_ref_rheum_appt!=. 
-replace ref_appt_3w=2 if time_ref_rheum_appt>21 & time_ref_rheum_appt!=.
+gen ref_appt_3w=1 if wd_ref_rheum_appt<=21 & wd_ref_rheum_appt!=. 
+replace ref_appt_3w=2 if wd_ref_rheum_appt>21 & wd_ref_rheum_appt!=.
 lab define ref_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
 lab val ref_appt_3w ref_appt_3w
 lab var ref_appt_3w "Time to rheumatology assessment"
