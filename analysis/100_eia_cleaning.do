@@ -80,49 +80,6 @@ foreach var of local dates {
 	lab val `newvar' `newvar'
 	tab `newvar', missing
 }
-
-/*
-**Will also need to amend conversion for biologic dates ====================================================*
-***Some dates are given with month/year only, so adding day 15 to enable them to be processed as dates
-***Would do this by labelling as _date_hcd then doing similar to above/below, but adding 15 days first
-
-foreach var of varlist 	 abatacept_date						///
-						 adalimumab_date					///	
-						 baricitinib_date					///
-						 certolizumab_date					///
-						 etanercept_date					///
-						 golimumab_date						///
-						 guselkumab_date					///	
-						 infliximab_date					///
-						 ixekizumab_date					///
-						 methotrexate_hcd_date				///
-						 rituximab_date						///
-						 sarilumab_date						///
-						 secukinumab_date					///	
-						 tocilizumab_date					///
-						 tofacitinib_date					///
-						 upadacitinib_date					///
-						 ustekinumab_date					///
-						 {
-						 	
-		capture confirm string variable `var'
-		if _rc!=0 {
-			assert `var'==.
-			rename `var' `var'_date
-		}
-	
-		else {
-				replace `var' = `var' + "-15"
-				rename `var' `var'_dstr
-				replace `var'_dstr = " " if `var'_dstr == "-15"
-				gen `var'_date = date(`var'_dstr, "YMD") 
-				order `var'_date, after(`var'_dstr)
-				drop `var'_dstr
-		}
-	
-	format `var'_date %td
-}
-*/
 		
 **All patients should have diagnostic code=============================================================*/
 tab eia_inc, missing
@@ -452,29 +409,12 @@ tab hydroxychloroquine if rheum_appt_date!=. & hydroxychloroquine_date!=. & (hyd
 tab sulfasalazine if rheum_appt_date!=. & sulfasalazine_date!=. & (sulfasalazine_date + 60)<rheum_appt_date 
 tab leflunomide if rheum_appt_date!=. & leflunomide_date!=. & (leflunomide_date + 60)<rheum_appt_date 
 
-**Drop if first csDMARD more than 60 days before first attendance at a rheum appt 
-drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date
+**Drop if first csDMARD before first attendance at a rheum appt 
+drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_date)
 
-tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date
+tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_any_date)
 
 *drop if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date //drop if first csDMARD more than 60 days before first captured rheum appt that did not have first attendance tag
-
-/*
-**Biologic use
-gen biologic=1 if abatacept==1 | adalimumab==1 | baricitinib==1 | certolizumab==1 | etanercept==1 | golimumab==1 | guselkumab==1 | infliximab==1 | ixekizumab==1 | rituximab==1 | sarilumab==1 | secukinumab==1 | tocilizumab==1 | tofacitinib==1 | upadacitinib==1 | ustekinumab==1 
-recode biologic .=0
-tab biologic, missing
-
-**Date of first biologic script
-gen biologic_date=min(abatacept_date, adalimumab_date, baricitinib_date, certolizumab_date, etanercept_date, golimumab_date, guselkumab_date, infliximab_date, ixekizumab_date, rituximab_date, sarilumab_date, secukinumab_date, tocilizumab_date, tofacitinib_date, upadacitinib_date, ustekinumab_date)
-format %td biologic_date
-
-tab biologic if rheum_appt_date!=. & biologic_date!=. & biologic_date<rheum_appt_date 
-tab biologic if rheum_appt_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_date 
-drop if rheum_appt_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_date //drop if first biologic more than 60 days before first rheum_appt_date
-tab biologic if rheum_appt_date==. & rheum_appt_any_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_any_date
-drop if rheum_appt_date==. & rheum_appt_any_date!=. & biologic_date!=. & (biologic_date + 60)<rheum_appt_any_date //drop if first biologic more than 60 days before first captured rheum appt that did not have first attendance tag
-*/
 
 *Include only most recent EIA sub-diagnosis=============================================*/
 replace rheumatoid_inc =0 if psa_inc_date > rheumatoid_inc_date & psa_inc_date !=.
@@ -573,11 +513,11 @@ tab rheum_appt_medium, missing
 gen rheum_appt_medium_clean = rheum_appt_medium if rheum_appt_medium >0 & rheum_appt_medium<100
 recode rheum_appt_medium_clean 3=2 //recode telemedicine=telephone
 replace rheum_appt_medium_clean=10 if rheum_appt_medium_clean>2 & rheum_appt_medium_clean!=.
-recode rheum_appt_medium_clean .=.u
-lab define rheum_appt_medium_clean 1 "Face-to-face" 2 "Telephone" 10 "Other" .u "Missing", modify
+lab define rheum_appt_medium_clean 1 "Face-to-face" 2 "Telephone" 10 "Other", modify
 lab val rheum_appt_medium_clean rheum_appt_medium_clean
 lab var rheum_appt_medium_clean "Rheumatology consultation medium"
-tab rheum_appt_medium_clean 
+tab rheum_appt_medium_clean
+tab rheum_appt_medium_clean, missing 
 
 *Gen rheum appt variable with 6m/12m+ until study end date
 gen rheum_appt_12m=rheum_appt if rheum_appt_date<=(date("$end_date", "DMY")-365) 
@@ -679,6 +619,7 @@ gen has_6m_follow_up=1 if has_6m_follow_up_s=="T"
 recode has_6m_follow_up .=0
 drop has_6m_follow_up_s
 tab has_6m_follow_up
+
 rename has_12m_follow_up has_12m_follow_up_s 
 gen has_12m_follow_up=1 if has_12m_follow_up_s=="T"
 recode has_12m_follow_up .=0
@@ -686,6 +627,14 @@ drop has_12m_follow_up_s
 tab has_12m_follow_up 
 tab mo_year_diagn has_6m_follow_up
 tab mo_year_diagn has_12m_follow_up
+
+gen has_6m_follow_up2=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 183)) & ((rheum_appt_date + 183) <= (date("$end_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 183) <= (date("$end_date", "DMY"))))
+recode has_6m_follow_up2 .=0
+tab has_6m_follow_up2
+
+gen has_12m_follow_up2=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 365)) & ((rheum_appt_date + 365) <= (date("$end_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 365) <= (date("$end_date", "DMY"))))
+recode has_12m_follow_up2 .=0
+tab has_12m_follow_up2
 
 *For appt and csDMARD analyses, all patients must have 1) rheum appt 2) rheum ref before rheum appt 3) 12m follow-up after rheum appt 4) 12m of registration after diagnostic code
 
@@ -743,24 +692,24 @@ gen time_ref_rheum_appt = (rheum_appt_date - ref_12m_preappt_date) if rheum_appt
 tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
 tabstat time_ref_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
 tabstat time_ref_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
-tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2), stats (n mean p50 p25 p75) //RA or PsA
+tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff
 tabstat time_ref_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
 tabstat time_ref_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
 tabstat time_ref_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
 tabstat time_ref_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
-tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA and csDMARD at any point
+tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
 
 **Using working days
 workdays ref_12m_preappt_date rheum_appt_date if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date), gen(wd_ref_rheum_appt)
 tabstat wd_ref_rheum_appt, stats (n mean p50 p25 p75)
 tabstat wd_ref_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
 tabstat wd_ref_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
-tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2), stats (n mean p50 p25 p75) //RA or PsA
+tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff
 tabstat wd_ref_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
 tabstat wd_ref_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
 tabstat wd_ref_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
 tabstat wd_ref_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
-tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA and csDMARD at any point
+tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
 
 **Time from rheum ref to rheum appt (i.e. if appts are present and in correct order) using 6m referral cut-off
 gen time_ref_rheum_appt_6m = (rheum_appt_date - ref_6m_preappt_date) if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date)
@@ -824,11 +773,11 @@ lab define ref_appt_cat 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 
 lab val ref_appt_cat ref_appt_cat
 lab var ref_appt_cat "Time to rheumatology assessment"
 tab ref_appt_cat  
-tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2) //RA or PsA
-tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1 //RA or PsA and csDMARD at any point
+tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1 //RA or PsA or undiff and csDMARD at any point
 bys region: tab ref_appt_cat
-bys region: tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2) //RA or PsA
-bys region: tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1 //RA or PsA and csDMARD at any point
+bys region: tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+bys region: tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1 //RA or PsA or undiff and csDMARD at any point
 
 forvalues i = 1/$max_year {
     local start = $base_year + `i' - 1
@@ -841,8 +790,9 @@ forvalues i = 1/$max_year {
 	tab ref_appt_cat_`start'
 }
 
-gen ref_appt_3w=1 if wd_ref_rheum_appt<=21 & wd_ref_rheum_appt!=. 
-replace ref_appt_3w=2 if wd_ref_rheum_appt>21 & wd_ref_rheum_appt!=.
+**QS2 using working days
+gen ref_appt_3w=1 if wd_ref_rheum_appt<=15 & wd_ref_rheum_appt!=. 
+replace ref_appt_3w=2 if wd_ref_rheum_appt>15 & wd_ref_rheum_appt!=.
 lab define ref_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
 lab val ref_appt_3w ref_appt_3w
 lab var ref_appt_3w "Time to rheumatology assessment"
@@ -858,11 +808,11 @@ forvalues i = 1/$max_year {
 	lab val ref_appt_3w_`start' ref_appt_3w_`start'
 	lab var ref_appt_3w_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
 	tab ref_appt_3w_`start'
-	tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2) //RA or PsA
-	tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1 //RA or PsA and csDMARD at any point
+	tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+	tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1 //RA or PsA or undiff and csDMARD at any point
 	bys region: tab ref_appt_3w_`start'
-	bys region: tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2) //RA or PsA
-	bys region: tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2) & csdmard==1 //RA or PsA and csDMARD at any point
+	bys region: tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+	bys region: tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1 //RA or PsA or undiff and csDMARD at any point
 }
 
 *Time to EIA code==================================================*/

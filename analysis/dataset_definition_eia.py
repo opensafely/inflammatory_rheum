@@ -237,6 +237,8 @@ dataset.has_12m_follow_up = practice_registrations.where(
         ((preceding_registration(getattr(dataset, "eia_inc_date")).end_date.is_null()) & ((dataset.rheum_appt_date + months(12)) <= end_date))
     ).exists_for_patient()
 
+dataset.reg_end_date = preceding_registration(getattr(dataset, "eia_inc_date")).end_date
+
 # Medications
 ## Dates and counts of csDMARD prescriptions before end date (those with prescriptions of csDMARDs more than 60 days before first EIA code are excluded in data processing stages)
 def medication_dates_dmd (dx_codelist):
