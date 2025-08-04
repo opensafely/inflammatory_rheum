@@ -154,10 +154,10 @@ dataset.smoking_status=case(
 )
 
 # Rheumatology outpatient appointments
-## Date of first rheum appointment in the 1 year before rheum diagnostic code (with first attendance options selected)
+## Date of first rheum appointment in the 1 year before or after rheum diagnostic code (with first attendance options selected)
 rheum_appt = opa.where(
         (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + days(60)) &
+        (opa.appointment_date <= (getattr(dataset, "eia_inc_date") + years(1))) &
         (opa.treatment_function_code == "410") &
         ((opa.first_attendance == "1") | (opa.first_attendance == "3"))
     ).sort_by(
@@ -168,70 +168,33 @@ dataset.rheum_appt_date = rheum_appt.appointment_date
 dataset.rheum_appt_medium = rheum_appt.consultation_medium_used
 dataset.rheum_appt_ref_date = rheum_appt.referral_request_received_date
 
-## Date of last rheum appointment in the 1 year before rheum diagnostic code (with first attendance option selected)
+## Date of last rheum appointment in the 1 year or after before rheum diagnostic code (with first attendance option selected)
 dataset.rheum_appt_last_date = opa.where(
         (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + days(60)) &
+        (opa.appointment_date <= (getattr(dataset, "eia_inc_date") + years(1))) &
         (opa.treatment_function_code == "410") &
         ((opa.first_attendance == "1") | (opa.first_attendance == "3"))
     ).sort_by(
         opa.appointment_date
     ).last_for_patient().appointment_date
 
-## Date of first rheum appointment in the 1 year before rheum diagnostic code (without first attendance option selected)
+## Date of first rheum appointment in the 1 year before or after rheum diagnostic code (without first attendance option selected)
 dataset.rheum_appt_any_date = opa.where(
         (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + days(60)) &
+        (opa.appointment_date <= (getattr(dataset, "eia_inc_date") + years(1))) &
         (opa.treatment_function_code == "410")
     ).sort_by(
         opa.appointment_date
     ).first_for_patient().appointment_date
 
-## Rheum appointment count in the 1 year before rheum diagnostic code (without first attendance option selected)
+## Rheum appointment count in the 1 year after first rheum appt (without first attendance option selected)
 dataset.rheum_appt_count = opa.where(
-        (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date")) &
+        (opa.appointment_date >= dataset.rheum_appt_date) &
+        (opa.appointment_date <= (dataset.rheum_appt_date + years(1))) &
         (opa.treatment_function_code == "410")
     ).sort_by(
         opa.appointment_date
     ).count_for_patient()
-
-## Date of first rheum appointment in the 6 months before rheum diagnostic code (without first attendance option selected)
-dataset.rheum_appt2_date = opa.where(
-        (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - months(6))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + days(60)) &
-        (opa.treatment_function_code == "410")
-    ).sort_by(
-        opa.appointment_date
-    ).first_for_patient().appointment_date
-
-## Date of first rheum appointment in the 2 years before rheum diagnostic code (without first attendance option selected)
-dataset.rheum_appt3_date = opa.where(
-        (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(2))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + days(60)) &
-        (opa.treatment_function_code == "410")
-    ).sort_by(
-        opa.appointment_date
-    ).first_for_patient().appointment_date
-
-## Date of first rheum appointment in the 2 years before rheum diagnostic code and up to 1 year after (without first attendance option selected)
-dataset.rheum_appt4_date = opa.where(
-        (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(2))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + years(1)) &
-        (opa.treatment_function_code == "410")
-    ).sort_by(
-        opa.appointment_date
-    ).first_for_patient().appointment_date
-
-## Date of first rheum appointment in the 2 years before rheum diagnostic code and up to 1 year after (with first attendance option selected)
-dataset.rheum_appt5_date = opa.where(
-        (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(2))) &
-        (opa.appointment_date <= getattr(dataset, "eia_inc_date") + years(1)) &
-        (opa.treatment_function_code == "410") &
-        ((opa.first_attendance == "1") | (opa.first_attendance == "3"))
-    ).sort_by(
-        opa.appointment_date
-    ).first_for_patient().appointment_date
 
 # Rheumatology referrals
 ## Last referral in the 12 months before rheumatology outpatient
@@ -248,15 +211,6 @@ dataset.ref_6m_preappt_date = clinical_events.where(
         clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
     ).where(
         (clinical_events.date >= (dataset.rheum_appt_date - months(6))) & (clinical_events.date <= dataset.rheum_appt_date)
-    ).sort_by(
-        clinical_events.date
-    ).last_for_patient().date
-
-## Last referral in the 12 months before rheumatology outpatient (including MSK and GP with specialist interest referrals)
-dataset.refmsk_12m_appt_date = clinical_events.where(
-        clinical_events.snomedct_code.is_in(codelists.referral_rheummsk)
-    ).where(
-        (clinical_events.date >= (dataset.rheum_appt_date - years(1))) & (clinical_events.date <= dataset.rheum_appt_date)
     ).sort_by(
         clinical_events.date
     ).last_for_patient().date
