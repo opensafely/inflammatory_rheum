@@ -427,15 +427,12 @@ tab rheum_appt_ref, missing
 codebook rheum_appt_ref_date
 tab mo_year_diagn rheum_appt_ref, missing
 tab mo_year_diagn rheum_appt_ref if rheum_appt==1, missing
-tab mo_year_diagn rheum_appt_ref if rheum_appt_any==1, missing
 
 ***Difference between referral ordered date (SNOMED code date) and referral request received date (HES)
 tab ref_12m_preappt rheum_appt_ref if rheum_appt==1, missing
-tab ref_12m_preappt rheum_appt_ref if rheum_appt_any==1, missing
 gen delta_referral = rheum_appt_ref_date - ref_12m_preappt_date if ref_12m_preappt_date!=. & rheum_appt_ref_date!=.
 tabstat delta_referral, stat(n mean sd p50 p25 p75)
 tabstat delta_referral if rheum_appt==1, stat(n mean sd p50 p25 p75)
-tabstat delta_referral if rheum_appt_any==1, stat(n mean sd p50 p25 p75)
 
 ***From HES OPA (referral_request_received_date) without first attendance flag
 tab rheum_any_ref, missing
@@ -443,6 +440,11 @@ codebook rheum_any_ref_date
 tab mo_year_diagn rheum_any_ref, missing
 tab mo_year_diagn rheum_any_ref if rheum_appt_any==1, missing
 tab mo_year_diagn rheum_any_ref if rheum_appt==1, missing
+
+***Difference between referral ordered date (SNOMED code date) and referral request received date (HES)
+gen delta_referral_any = rheum_appt_any_date - ref_12m_preappt_date if ref_12m_preappt_date!=. & rheum_appt_any_date!=.
+tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
+tabstat delta_referral_any if rheum_appt_any==1, stat(n mean sd p50 p25 p75)
 
 /*
 ***From RTT clock-stop data (only available for those with clock-stop date between May 2021 and May 2022)
@@ -519,26 +521,33 @@ tab eia_diagnosis, missing
 
 **Drop those without rheum appt with first attendance flag
 tab rheum_appt, missing
-drop if rheum_appt!=1
-tab rheum_appt
+*drop if rheum_appt!=1
+drop if rheum_appt_any!=1
 tab mo_year_diagn rheum_appt
+tab mo_year_diagn rheum_appt_any
 tab eia_diagnosis, missing
 
 **Drop if first csDMARD before first attendance at a rheum appt 
 tab csdmard, missing
-drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_date)
+*drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_date)
+drop if rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_any_date)
 tab csdmard
 tab eia_diagnosis
 
 **Drop if no referral (from HES data) before first rheum appt
 tab ref_12m_preappt, missing
 tab rheum_appt_ref, missing //from HES OPA
+tab rheum_any_ref, missing //without first attendance flag
 tab rheum_appt_ref ref_12m_preappt, missing //from HES OPA
-drop if rheum_appt_ref!=1
+tab rheum_any_ref ref_12m_preappt, missing //without first attendance flag
+*drop if rheum_appt_ref!=1
+drop if rheum_any_ref!=1
 tab rheum_appt_ref
+tab rheum_any_ref
 tab ref_12m_preappt, missing
 tab eia_diagnosis
 tabstat delta_referral, stat(n mean sd p50 p25 p75)
+tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
 
 **Drop if insufficient follow-up (6 months currently)
 tab has_6m_follow_up, missing
@@ -710,6 +719,33 @@ tabstat wd_hes_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p2
 tabstat wd_hes_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
 tabstat wd_hes_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
 
+**Time from referral to rheum appt using HES OPA rheum ref to rheum appt without first attendance
+gen time_hes_any_appt = (rheum_appt_any_date - rheum_any_ref_date) if rheum_appt_any_date!=. & rheum_any_ref_date!=. & (rheum_any_ref_date<=rheum_appt_any_date)
+tabstat time_hes_any_appt, stats (n mean p50 p25 p75)
+tabstat time_hes_any_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat time_hes_any_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat time_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff IA
+tabstat time_hes_any_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat time_hes_any_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tab csdmard
+tabstat time_hes_any_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat time_hes_any_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat time_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
+**Using working days - as per audit report
+workdays rheum_any_ref_date rheum_appt_any_date if rheum_appt_any_date!=. & rheum_any_ref_date!=. & (rheum_any_ref_date<=rheum_appt_any_date), gen(wd_hes_any_appt)
+tabstat wd_hes_any_appt, stats (n mean p50 p25 p75)
+tabstat wd_hes_any_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat wd_hes_any_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat wd_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff
+tabstat wd_hes_any_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat wd_hes_any_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tabstat wd_hes_any_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat wd_hes_any_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat wd_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
 **Time from referral to rheum appt using 12m referral cut-off (using SNOMED referral code)
 gen time_ref_rheum_appt = (rheum_appt_date - ref_12m_preappt_date) if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date)
 tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
@@ -747,6 +783,8 @@ tabstat wd_ref_rheum_appt_6m, stats (n mean p50 p25 p75)
 **Delay from referral order to receipt of referral
 tabstat delta_referral, stat(n mean sd p50 p25 p75)
 tabstat delta_referral if eia_diagnosis==1, stat(n mean sd p50 p25 p75) //for RA
+tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
+tabstat delta_referral_any if eia_diagnosis==1, stat(n mean sd p50 p25 p75) //for RA
 
 /*
 **Time from last GP pre-rheum appt to first rheum appt (proxy for referral to appt delay)
@@ -837,6 +875,15 @@ forvalues i = 1/$max_year {
 	lab var ref_appt_cat_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
 	tab ref_appt_cat_`start'
 }
+
+**QS2 using HES OPA ref received date, with working days as per audit report, without first flag
+gen ref_appt_any_3w=1 if wd_hes_any_appt<=15 & wd_hes_any_appt!=. 
+replace ref_appt_any_3w=2 if wd_hes_any_appt>15 & wd_hes_any_appt!=.
+lab define ref_appt_any_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
+lab val ref_appt_any_3w ref_appt_any_3w
+lab var ref_appt_any_3w "Time to rheumatology assessment"
+tab ref_appt_any_3w
+bys region: tab ref_appt_any_3w
 
 *Time to EIA code==================================================*/
 
