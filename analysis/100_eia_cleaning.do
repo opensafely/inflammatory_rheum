@@ -369,8 +369,8 @@ tab rheum_appt_any if rheum_appt_any_date>eia_inc_date & rheum_appt_any_date!=. 
 tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 60) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 60 days after EIA code
 tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 120) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 120 days after EIA code
 tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 180) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 180 days after EIA code
-replace rheum_appt_any=0 if rheum_appt_any_date>(eia_inc_date + 60) & rheum_appt_any_date!=. //replace as missing those appts >365 days after EIA code
-replace rheum_appt_any_date=. if rheum_appt_any_date>(eia_inc_date + 60) & rheum_appt_any_date!=. //replace as missing those appts >365 days after EIA code
+replace rheum_appt_any=0 if rheum_appt_any_date>(eia_inc_date + 365) & rheum_appt_any_date!=. //replace as missing those appts >365 days after EIA code
+replace rheum_appt_any_date=. if rheum_appt_any_date>(eia_inc_date + 365) & rheum_appt_any_date!=. //replace as missing those appts >365 days after EIA code
 
 **Month/year of first rheum appt
 gen year_appt=year(rheum_appt_date) if rheum_appt_date!=.
@@ -522,6 +522,7 @@ tab eia_diagnosis, missing
 **Drop those without rheum appt with first attendance flag
 tab rheum_appt, missing
 *drop if rheum_appt!=1
+tab rheum_appt_any, missing
 drop if rheum_appt_any!=1
 tab mo_year_diagn rheum_appt
 tab mo_year_diagn rheum_appt_any
