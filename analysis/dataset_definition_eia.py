@@ -9,22 +9,40 @@ dataset = create_dataset_with_variables()
 # Dates for study
 index_date = "2016-04-01"
 end_date = "2025-03-31"
+fup_date = "2025-07-31"
 
-# First diagnostic code in primary care record
-def first_code_in_period(dx_codelist):
+# Seropositive/erosive diagnostic code (last match before study end date)
+def last_code_in_period(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
+    ).where(
+        clinical_events.date.is_on_or_before(fup_date)
     ).sort_by(
         clinical_events.date
-    ).first_for_patient()
+    ).last_for_patient()
 
-# RF, CCP and/or seropositive, and erose RA codes
-dataset.rf_code_date = first_code_in_period(codelists.rf_codes).date
-dataset.ccp_code_date = first_code_in_period(codelists.ccp_codes).date
-dataset.seropositive_code_date = first_code_in_period(codelists.seropositive_codes).date
-dataset.erosive_ra_code_date = first_code_in_period(codelists.erosive_codes).date
+dataset.rf_code_date = last_code_in_period(codelists.rf_codes).date
+dataset.ccp_code_date = last_code_in_period(codelists.ccp_codes).date
+dataset.seropositive_code_date = last_code_in_period(codelists.seropositive_codes).date
+dataset.erosive_ra_code_date = last_code_in_period(codelists.erosive_codes).date
 
-# Baseline comorbidities (first match before rheum diagnostic code); uses NHSE Ref Sets
+# Relevant blood tests for rheumatoid factor or CCP (last recorded value in study period)
+def any_test_in_period(dx_codelist):
+    return clinical_events.where(
+        clinical_events.snomedct_code.is_in(dx_codelist)
+    ).where(
+        clinical_events.date.is_on_or_before(fup_date)        
+    ).sort_by(
+        clinical_events.date
+    ).last_for_patient()
+
+dataset.rf_test_value=any_test_in_period(codelists.rf_tests).numeric_value
+dataset.rf_test_date=any_test_in_period(codelists.rf_tests).date
+
+dataset.ccp_test_value=any_test_in_period(codelists.ccp_tests).numeric_value
+dataset.ccp_test_date=any_test_in_period(codelists.ccp_tests).date
+
+# Baseline comorbidities (first match before rheum diagnostic code; uses NHSE Ref Sets)
 def baseline_comorbidity_in_period(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
@@ -48,12 +66,12 @@ dataset.osteop_before_date=baseline_comorbidity_in_period(codelists.osteoporosis
 dataset.frac_before_date=baseline_comorbidity_in_period(codelists.fracture_codes).date
 dataset.dem_before_date=baseline_comorbidity_in_period(codelists.dementia_codes).date
 
-# New comorbidities (first match after rheum diagnostic code); uses NHSE Ref Sets
+# New comorbidities (first match after rheum diagnostic code and before study end date; uses NHSE Ref Sets)
 def new_comorbidity_in_period(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
     ).where(
-        clinical_events.date > getattr(dataset, "eia_inc_date")
+        (clinical_events.date > getattr(dataset, "eia_inc_date")) & (clinical_events.date.is_on_or_before(fup_date))
     ).sort_by(
         clinical_events.date
     ).first_for_patient()
@@ -72,7 +90,7 @@ dataset.osteop_after_date=new_comorbidity_in_period(codelists.osteoporosis_codes
 dataset.frac_after_date=new_comorbidity_in_period(codelists.fracture_codes).date
 dataset.dem_after_date=new_comorbidity_in_period(codelists.dementia_codes).date
 
-# Relevant blood tests (last match before rheum diagnostic code)
+# Relevant blood tests at baseline (last match before rheum diagnostic code)
 def last_test_in_period(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
@@ -84,20 +102,6 @@ def last_test_in_period(dx_codelist):
 
 dataset.creatinine_value=last_test_in_period(codelists.creatinine_codes).numeric_value
 dataset.creatinine_date=last_test_in_period(codelists.creatinine_codes).date
-
-# Relevant blood tests for rheumatoid factor or CCP (no time restriction; takes last recorded value in study period)
-def any_test_in_period(dx_codelist):
-    return clinical_events.where(
-        clinical_events.snomedct_code.is_in(dx_codelist)
-    ).sort_by(
-        clinical_events.date
-    ).last_for_patient()
-
-dataset.rf_test_value=any_test_in_period(codelists.rf_tests).numeric_value
-dataset.rf_test_date=any_test_in_period(codelists.rf_tests).date
-
-dataset.ccp_test_value=any_test_in_period(codelists.ccp_tests).numeric_value
-dataset.ccp_test_date=any_test_in_period(codelists.ccp_tests).date
 
 # BMI within 10 years prior to diagnosis date
 bmi_record = clinical_events.where(
@@ -113,7 +117,7 @@ bmi_record = clinical_events.where(
 dataset.bmi_value = bmi_record.numeric_value
 dataset.bmi_date = bmi_record.date
 
-# Smoking status
+# Smoking status at or before diagnosis
 dataset.most_recent_smoking_code=clinical_events.where(
         clinical_events.ctv3_code.is_in(codelists.clear_smoking_codes)
     ).where(
@@ -139,11 +143,11 @@ dataset.smoking_status=case(
 )
 
 # Rheumatology outpatient appointments
-
 ## Date of first rheum appointment in the 1 year before or after rheum diagnostic code (with first attendance options selected)
 rheum_appt = opa.where(
         (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
         (opa.appointment_date <= (getattr(dataset, "eia_inc_date") + years(1))) &
+        (opa.appointment_date.is_on_or_before(fup_date)) &
         (opa.treatment_function_code == "410") &
         ((opa.first_attendance == "1") | (opa.first_attendance == "3"))
     ).sort_by(
@@ -153,33 +157,34 @@ rheum_appt = opa.where(
 dataset.rheum_appt_date = rheum_appt.appointment_date
 dataset.rheum_appt_medium = rheum_appt.consultation_medium_used
 
-# Rheumatology referral date using HES OP data
-dataset.rheum_appt_ref_date = rheum_appt.referral_request_received_date
-
 ## Date of first rheum appointment in the 1 year before or after rheum diagnostic code (without first attendance option selected)
 rheum_appt_any = opa.where(
         (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
         (opa.appointment_date <= (getattr(dataset, "eia_inc_date") + years(1))) &
+        (opa.appointment_date.is_on_or_before(fup_date)) &
         (opa.treatment_function_code == "410")
     ).sort_by(
         opa.appointment_date
     ).first_for_patient()
 
 dataset.rheum_appt_any_date = rheum_appt_any.appointment_date
-dataset.rheum_any_ref_date = rheum_appt_any.referral_request_received_date
 
 ## Rheum appointment count in the 1 year after first rheum appt (without first attendance option selected)
 dataset.rheum_appt_count = opa.where(
         (opa.appointment_date >= dataset.rheum_appt_date) &
         (opa.appointment_date <= (dataset.rheum_appt_date + years(1))) &
+        (opa.appointment_date.is_on_or_before(fup_date)) &
         (opa.treatment_function_code == "410")
     ).sort_by(
         opa.appointment_date
     ).count_for_patient()
 
-# Rheumatology referrals using clinical codes
+# Rheumatology referrals
+## Rheumatology referral date using HES OP data
+dataset.rheum_appt_ref_date = rheum_appt.referral_request_received_date
+dataset.rheum_any_ref_date = rheum_appt_any.referral_request_received_date
 
-## Last referral in the 12 months before rheumatology outpatient
+## Last referral in the 12 months before rheumatology outpatient appt
 dataset.ref_12m_preappt_date = clinical_events.where(
         clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
     ).where(
@@ -188,7 +193,7 @@ dataset.ref_12m_preappt_date = clinical_events.where(
         clinical_events.date
     ).last_for_patient().date
 
-## Last referral in the 6 months before rheumatology outpatient
+## Last referral in the 6 months before rheumatology outpatient appt
 dataset.ref_6m_preappt_date = clinical_events.where(
         clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
     ).where(
@@ -199,7 +204,7 @@ dataset.ref_6m_preappt_date = clinical_events.where(
 
 # GP consultations removed
 
-# Most recent practice registration that lasted more than 12 months prior to inflamm rheum diagnosis
+# Most recent practice registration that lasted more than 12 months prior to rheum diagnosis
 def preceding_registration(dx_date):
     return practice_registrations.where(
         practice_registrations.start_date.is_on_or_before(dx_date - months(12))
@@ -217,13 +222,12 @@ dataset.reg_end_date = preceding_registration(getattr(dataset, "eia_inc_date")).
 dataset.region = preceding_registration(getattr(dataset, "eia_inc_date")).practice_nuts1_region_name
 
 # Medications
-
-## Dates and counts of csDMARD prescriptions before end date (individuals with prescriptions of csDMARDs before first EIA code are excluded in data processing stages)
+## Dates and counts of csDMARD prescriptions before end date (individuals with prescriptions of csDMARDs before first rheum code are excluded in data processing stages)
 def medication_dates_dmd (dx_codelist):
     return medications.where(
             medications.dmd_code.is_in(dx_codelist)
     ).where(
-            medications.date.is_on_or_before(end_date)
+            medications.date.is_on_or_before(fup_date)
     ).sort_by(
             medications.date
     )
@@ -242,19 +246,19 @@ dataset.mtx_inj_last_date = medication_dates_dmd(codelists.methotrexate_inj_code
 dataset.ssz_last_date = medication_dates_dmd(codelists.sulfasalazine_codes).last_for_patient().date
 dataset.hcq_last_date = medication_dates_dmd(codelists.hydroxychloroquine_codes).last_for_patient().date
 
-### Count of prescriptions before end date
+### Count of prescriptions before end date - need to amend this to within a 12-month period (after diagnosis vs. first script)
 dataset.leflunomide_count = medication_dates_dmd(codelists.leflunomide_codes).count_for_patient()
 dataset.methotrexate_oral_count = medication_dates_dmd(codelists.methotrexate_codes).count_for_patient()
 dataset.methotrexate_inj_count = medication_dates_dmd(codelists.methotrexate_inj_codes).count_for_patient()
 dataset.sulfasalazine_count = medication_dates_dmd(codelists.sulfasalazine_codes).count_for_patient()
 dataset.hydroxychloroquine_count = medication_dates_dmd(codelists.hydroxychloroquine_codes).count_for_patient()
 
-## Dates and count of steroid prescriptions (oral, IM, IV) within 60 days before EIA code date and before end date
+## Dates and count of steroid prescriptions (oral, IM, IV) within 60 days before rheum code date and before end date
 def steroid_dates_dmd (dx_codelist):
     return medications.where(
             medications.dmd_code.is_in(dx_codelist)
     ).where(
-            medications.date.is_on_or_before(end_date)
+            medications.date.is_on_or_before(fup_date)
     ).except_where( 
             medications.date < (getattr(dataset, "eia_inc_date") - days(60))
     ).sort_by(
@@ -270,7 +274,7 @@ def steroid_12m_dates_dmd (dx_codelist):
     return medications.where(
             medications.dmd_code.is_in(dx_codelist)
     ).where(
-            medications.date.is_on_or_before(end_date) &  
+            medications.date.is_on_or_before(fup_date) &  
             medications.date.is_on_or_before(getattr(dataset, "eia_inc_date") + years(1))  
     ).except_where( 
             medications.date < (getattr(dataset, "eia_inc_date") - days(60))

@@ -19,6 +19,7 @@ codelist_types = ["snomed", "icd"]
 
 index_date = "2016-04-01"
 end_date = "2025-03-31"
+fup_date = "2025-07-31"
 
 # Any practice registration before study end date
 any_registration = practice_registrations.where(
@@ -56,7 +57,7 @@ def create_dataset_with_variables():
         return clinical_events.where(
             clinical_events.snomedct_code.is_in(dx_codelist)
         ).where(
-            clinical_events.date.is_on_or_before(end_date)
+            clinical_events.date.is_on_or_before(fup_date)
         ).except_where(
             clinical_events.date.is_before(index_date)
         ).count_for_patient()
@@ -66,7 +67,7 @@ def create_dataset_with_variables():
         return apcs.where(
             apcs.primary_diagnosis.is_in(dx_codelist)
         ).where(
-            apcs.admission_date.is_on_or_before(end_date)
+            apcs.admission_date.is_on_or_before(fup_date)
         ).except_where(
             apcs.admission_date.is_before(index_date)
         ).count_for_patient()
@@ -92,7 +93,7 @@ def create_dataset_with_variables():
     # Define patient ethnicity
     latest_ethnicity_code = (
         clinical_events.where(clinical_events.snomedct_code.is_in(codelists.ethnicity_codes))
-        .where(clinical_events.date.is_on_or_before(end_date))
+        .where(clinical_events.date.is_on_or_before(fup_date))
         .sort_by(clinical_events.date)
         .last_for_patient().snomedct_code.to_category(codelists.ethnicity_codes)
     )

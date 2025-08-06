@@ -44,6 +44,7 @@ set scheme plotplainblind
 global index_date = "01/04/2016"
 global start_date = "01/04/2019" //for outpatient analyses, data only be available from April 2019
 global end_date = "31/03/2025"
+global fup_date = "31/07/2025"
 global base_year = year(date("$start_date", "DMY"))
 global end_year = year(date("$end_date", "DMY"))
 global max_year = $end_year - $base_year
@@ -318,9 +319,9 @@ keep if diagnosis_date<=date("$end_date", "DMY") & diagnosis_date!=.
 tab eia_inc, missing
 
 **Month/Year of diagnostic code
-gen year_diag=year(eia_inc_date)
+gen year_diag=year(diagnosis_date)
 format year_diag %ty
-gen month_diag=month(eia_inc_date)
+gen month_diag=month(diagnosis_date)
 gen mo_year_diagn=ym(year_diag, month_diag)
 format mo_year_diagn %tmMon-CCYY
 generate str16 mo_year_diagn_s = strofreal(mo_year_diagn,"%tmCCYY!mNN")
@@ -502,12 +503,12 @@ tab all_appts, missing //proportion who had a last gp appt, then rheum ref, then
 *Check duration of follow-up after first rheumatology appointment===============================*/
 
 **Proportion of patients with at least 6 or 12 months of GP registration after first rheum appt
-gen has_6m_follow_up=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 183)) & ((rheum_appt_date + 183) <= (date("$end_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 183) <= (date("$end_date", "DMY"))))
+gen has_6m_follow_up=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 183)) & ((rheum_appt_date + 183) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 183) <= (date("$fup_date", "DMY"))))
 recode has_6m_follow_up .=0
 tab has_6m_follow_up
 tab mo_year_diagn has_6m_follow_up
 
-gen has_12m_follow_up=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 365)) & ((rheum_appt_date + 365) <= (date("$end_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 365) <= (date("$end_date", "DMY"))))
+gen has_12m_follow_up=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 365)) & ((rheum_appt_date + 365) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 365) <= (date("$fup_date", "DMY"))))
 recode has_12m_follow_up .=0
 tab has_12m_follow_up
 tab mo_year_diagn has_12m_follow_up
@@ -549,7 +550,7 @@ tab mo_year_diagn has_12m_follow_up
 tab eia_diagnosis
 
 **Drop if region missing
-drop if region==.
+drop if region=="Not known"
 tab eia_diagnosis
 
 *Split into time windows=========================================*/
