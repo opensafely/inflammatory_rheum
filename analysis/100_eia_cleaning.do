@@ -431,7 +431,16 @@ format %td referral_rheum_comb_date
 tab rheum_appt_ref, missing
 codebook rheum_appt_ref_date
 tab mo_year_diagn rheum_appt_ref, missing
-tab mo_year_diagn rheum_appt_ref if rheum_appt!=., missing
+tab mo_year_diagn rheum_appt_ref if rheum_appt==1, missing
+tab mo_year_diagn rheum_appt_ref if rheum_appt_any==1, missing
+
+***Compare difference between clinical referral (code date) and HES referral_request_received_date
+tab ref_12m_preappt rheum_appt_ref if rheum_appt==1, missing
+tab ref_12m_preappt rheum_appt_ref if rheum_appt_any==1, missing
+gen delta_referral = ref_12m_preappt_date - rheum_appt_ref_date if ref_12m_preappt_date!=. & rheum_appt_ref_date!=.
+tabstat delta_referral, stat(n mean sd p50 p25 p75)
+tabstat delta_referral if rheum_appt==1, stat(n mean sd p50 p25 p75)
+tabstat delta_referral if rheum_appt_any==1, stat(n mean sd p50 p25 p75)
 
 /*
 ***From RTT clock-stop data (only available for those with clock-stop date between May 2021 and May 2022)
@@ -508,20 +517,21 @@ tab eia_diagnosis, missing
 
 **Drop those without rheum appt with first attendance flag
 tab rheum_appt, missing
-drop if rheum_appt==.
+drop if rheum_appt!=1
 tab rheum_appt
 tab mo_year_diagn rheum_appt
 tab eia_diagnosis, missing
 
 **Drop if first csDMARD before first attendance at a rheum appt 
 tab csdmard, missing
-drop if csdmard_date!=. & (csdmard_date<rheum_appt_date)
+drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_date)
 tab csdmard
 tab eia_diagnosis
 
 **Drop if no referral before first rheum appt
 tab ref_12m_preappt, missing
 tab rheum_appt_ref_date, missing //from HES OPA
+tab rheum_appt_ref_date ref_12m_preappt, missing //from HES OPA
 drop if ref_12m_preappt==.
 tab ref_12m_preappt
 tab eia_diagnosis

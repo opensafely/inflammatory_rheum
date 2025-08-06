@@ -130,7 +130,7 @@ foreach disease in $diseases {
 	replace `disease'_age_band = 7 if ((`disease'_age >= 80) & (`disease'_age !=.))
 	lab var `disease'_age_band "Age band, years"
 
-	label define `disease'_age_band		1 "18 to 30" ///
+	label define `disease'_age_band		1 "18 to 29" ///
 										2 "30 to 39" ///
 										3 "40 to 49" ///
 										4 "50 to 59" ///
@@ -170,7 +170,7 @@ foreach disease in $diseases {
 
 save "$projectdir/output/data/incidence_data_processed.dta", replace
 
-/*Tables================================================================*/
+*Tables================================================================*/
 
 use "$projectdir/output/data/incidence_data_processed.dta", clear
 
