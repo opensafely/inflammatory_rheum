@@ -147,6 +147,31 @@ ctdvasc_icd = (
     gca_icd
 )
 
+all_snomed = (
+    axialspa_snomed +
+    psa_snomed +
+    rheumatoid_snomed +
+    undiffia_snomed +
+    sjogren_snomed +
+    ssc_snomed +
+    sle_snomed +
+    myositis_snomed +
+    anca_snomed +
+    gca_snomed
+)
+
+all_icd = (
+    axialspa_icd +
+    psa_icd +
+    rheumatoid_icd +
+    sjogren_icd +
+    ssc_icd +
+    sle_icd +
+    myositis_icd +
+    anca_icd +
+    gca_icd
+)
+
 # Relevant comorbidities
 chd_codes = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-chd_cod.csv", column="code",

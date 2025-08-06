@@ -100,7 +100,7 @@ recode age 18/29.9999 = 1 ///
 		   70/79.9999 = 6 ///
 		   80/max = 7, gen(agegroup) 
 
-label define agegroup 	1 "18 to 30" ///
+label define agegroup 	1 "18 to 29" ///
 						2 "30 to 39" ///
 						3 "40 to 49" ///
 						4 "50 to 59" ///
@@ -421,12 +421,6 @@ tab ref_12m_preappt, missing //last rheum referral in the year before rheumatolo
 ***From clinical events using 6m cut-off
 tab ref_6m_preappt, missing //last rheum referral in the 6 months before rheumatology outpatient (requires rheum appt to have been present)
 
-***Using pre-code period (i.e. including those without rheum appt)
-tab ref_12m_precode, missing //last rheum referral in the year before IA code 
-gen referral_rheum_comb_date = ref_12m_preappt_date if ref_12m_preappt_date!=.
-replace referral_rheum_comb_date = ref_12m_precode_date if ref_12m_preappt_date==. & ref_12m_precode_date!=. //combination of the two above
-format %td referral_rheum_comb_date
-
 ***From HES OPA (referral_request_received_date)
 tab rheum_appt_ref, missing
 codebook rheum_appt_ref_date
@@ -441,6 +435,13 @@ gen delta_referral = rheum_appt_ref_date - ref_12m_preappt_date if ref_12m_preap
 tabstat delta_referral, stat(n mean sd p50 p25 p75)
 tabstat delta_referral if rheum_appt==1, stat(n mean sd p50 p25 p75)
 tabstat delta_referral if rheum_appt_any==1, stat(n mean sd p50 p25 p75)
+
+***From HES OPA (referral_request_received_date) without first attendance flag
+tab rheum_any_ref, missing
+codebook rheum_any_ref_date
+tab mo_year_diagn rheum_any_ref, missing
+tab mo_year_diagn rheum_any_ref if rheum_appt_any==1, missing
+tab mo_year_diagn rheum_any_ref if rheum_appt==1, missing
 
 /*
 ***From RTT clock-stop data (only available for those with clock-stop date between May 2021 and May 2022)
@@ -545,6 +546,10 @@ drop if has_6m_follow_up!=1
 tab has_6m_follow_up
 tab mo_year_diagn has_6m_follow_up
 tab mo_year_diagn has_12m_follow_up
+tab eia_diagnosis
+
+**Drop if region missing
+drop if region==.
 tab eia_diagnosis
 
 *Split into time windows=========================================*/

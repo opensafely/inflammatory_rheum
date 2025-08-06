@@ -152,16 +152,21 @@ rheum_appt = opa.where(
 
 dataset.rheum_appt_date = rheum_appt.appointment_date
 dataset.rheum_appt_medium = rheum_appt.consultation_medium_used
+
+# Rheumatology referral date using HES OP data
 dataset.rheum_appt_ref_date = rheum_appt.referral_request_received_date
 
 ## Date of first rheum appointment in the 1 year before or after rheum diagnostic code (without first attendance option selected)
-dataset.rheum_appt_any_date = opa.where(
+rheum_appt_any = opa.where(
         (opa.appointment_date >= (getattr(dataset, "eia_inc_date") - years(1))) &
         (opa.appointment_date <= (getattr(dataset, "eia_inc_date") + years(1))) &
         (opa.treatment_function_code == "410")
     ).sort_by(
         opa.appointment_date
-    ).first_for_patient().appointment_date
+    ).first_for_patient()
+
+dataset.rheum_appt_any_date = rheum_appt_any.appointment_date
+dataset.rheum_any_ref_date = rheum_appt_any.referral_request_received_date
 
 ## Rheum appointment count in the 1 year after first rheum appt (without first attendance option selected)
 dataset.rheum_appt_count = opa.where(
@@ -172,7 +177,7 @@ dataset.rheum_appt_count = opa.where(
         opa.appointment_date
     ).count_for_patient()
 
-# Rheumatology referrals
+# Rheumatology referrals using clinical codes
 
 ## Last referral in the 12 months before rheumatology outpatient
 dataset.ref_12m_preappt_date = clinical_events.where(
@@ -188,15 +193,6 @@ dataset.ref_6m_preappt_date = clinical_events.where(
         clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
     ).where(
         (clinical_events.date >= (dataset.rheum_appt_date - months(6))) & (clinical_events.date <= dataset.rheum_appt_date)
-    ).sort_by(
-        clinical_events.date
-    ).last_for_patient().date
-
-## Last referral in the 12 months before rheum diagnostic code
-dataset.ref_12m_precode_date = clinical_events.where(
-        clinical_events.snomedct_code.is_in(codelists.referral_rheumatology)
-    ).where(
-        (clinical_events.date >= (getattr(dataset, "eia_inc_date") - years(1))) & (clinical_events.date <= getattr(dataset, "eia_inc_date"))
     ).sort_by(
         clinical_events.date
     ).last_for_patient().date
