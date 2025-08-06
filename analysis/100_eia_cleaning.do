@@ -515,6 +515,17 @@ recode has_12m_follow_up .=0
 tab has_12m_follow_up
 tab mo_year_diagn has_12m_follow_up
 
+**Proportion of patients with at least 6 or 12 months of GP registration after first rheum appt (without first appt flag)
+gen has_6m_follow_up_any=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_any_date + 183)) & ((rheum_appt_any_date + 183) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_any_date + 183) <= (date("$fup_date", "DMY"))))
+recode has_6m_follow_up_any .=0
+tab has_6m_follow_up_any
+tab mo_year_diagn has_6m_follow_up_any
+
+gen has_12m_follow_up_any=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_any_date + 365)) & ((rheum_appt_any_date + 365) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_any_date + 365) <= (date("$fup_date", "DMY"))))
+recode has_12m_follow_up_any .=0
+tab has_12m_follow_up_any
+tab mo_year_diagn has_12m_follow_up_any
+
 *Define who qualifies in terms of appointments, referrals and follow-up ===============================*/
 
 tab eia_diagnosis, missing
@@ -553,10 +564,16 @@ tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
 **Drop if insufficient follow-up (6 months currently)
 tab has_6m_follow_up, missing
 tab mo_year_diagn has_6m_follow_up
-drop if has_6m_follow_up!=1
+tab has_6m_follow_up_any, missing //without first attendance flag
+tab mo_year_diagn has_6m_follow_up_any //without first attendance flag
+*drop if has_6m_follow_up!=1
+drop if has_6m_follow_up_any!=1
 tab has_6m_follow_up
 tab mo_year_diagn has_6m_follow_up
 tab mo_year_diagn has_12m_follow_up
+tab has_6m_follow_up_any
+tab mo_year_diagn has_6m_follow_up_any
+tab mo_year_diagn has_12m_follow_up_any
 tab eia_diagnosis
 
 **Drop if region missing
