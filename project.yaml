@@ -152,3 +152,12 @@ actions:
       highly_sensitive:
         log1: logs/eia_dataset.log   
         data1: output/data/file_eia_all.dta  
+
+  run_box_plots:
+    run: stata-mp:latest analysis/300_box_plots.do
+    needs: [eia_cleaning]
+    outputs:
+      moderately_sensitive:
+        log1: logs/box_plots.log   
+        figure 1: output/figures/regional_qs2_bar_*.svg 
+        figure 2: output/figures/regional_csdmard_bar_*.svg  
