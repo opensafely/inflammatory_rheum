@@ -42,7 +42,7 @@ sink("logs/sarima_log.txt")
 # Incidence data
 df <-read.csv("output/tables/incidence_rates_rounded.csv")
 
-#Rename variables in the datafile (hashed line only needed if running locally)
+# Rename variables in the datafile (hashed line only needed if running locally)
 names(df)[names(df) == "numerator"] <- "count"
 df<- df %>% select(disease, year, mo_year_diagn, incidence, count) 
 df$month <- substr(df$mo_year_diagn, 1, 3)
@@ -52,15 +52,22 @@ df$mon_year <- df$mo_year_diagn
 df$mo_year_diagn <- as.Date(paste0("01 ", df$mo_year_diagn), format = "%d %b %Y")
 month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 
-disease_list <- unique(df$disease)
+## All diseases - automated
+#disease_list <- unique(df$disease)
+
+## Manually specified diseases of interest
+disease_list <- c("Rheumatoid", "Psa", "Axialspa", "Ctd", "Vasc")
+
+# Initialize index for axis labelling
+index_axis <- 1
 
 # Define the variables to loop over
 #variables <- c("incidence", "count")
 #y_labels <- c("Incidence per 100,000 population", "Number of diagnoses per month")
 variables <- c("incidence")
 
-# Initialize index for axis labelling
-index_axis <- 1
+# For writing output tables
+first_write <- TRUE
 
 # Loop through diseases
 for (j in 1:length(disease_list)) {
@@ -91,7 +98,7 @@ for (j in 1:length(disease_list)) {
   } else if (dis == "Eia") {
     dis_title <- "Early inflammatory arthritis"
   } else if (dis == "Ctd") {
-    dis_title <- "Connective tissue disease"
+    dis_title <- "Connective tissue diseases"
   } else if (dis == "Vasc") {
     dis_title <- "Vasculitis"
   } else if (dis == "Ctdvasc") {
@@ -102,23 +109,21 @@ for (j in 1:length(disease_list)) {
 
   print(index_axis)
   
-  y_label <- "Monthly incidence"
-  
   # Label y-axis
-  if (index_axis %in% c(1, 6, 11, 16)) {
-    y_label <- "Monthly incidence"
+  if (index_axis %in% c(1, 4)) {
+    y_label <- "Monthly incidence rate"
   } else {
     y_label <- ""
   }
   
-  x_label <- "Year"
+  #x_label <- "Year"
   
   # Label x-axis
-  if (index_axis %in% c(16, 17, 18, 19)) {
-    x_label <- "Year"
-  } else {
-    x_label <- ""
-  }
+  #if (index_axis %in% c(16, 17, 18, 19)) {
+  #  x_label <- "Year"
+  #} else {
+  #  x_label <- ""
+  #}
 
   max_index <- max(df_dis$index)
   
@@ -161,14 +166,10 @@ for (j in 1:length(disease_list)) {
     dev.off()
     
     # Use auto.arima to fit SARIMA model (identifying terms that optimise BIC/AIC); Nb. for models with poor fit on visual inspection/diagnostics, have explored different models
-    if (dis == "pmr") {
-      suggested.rate<- arima(df_obs_rate, order=c(0,1,1),  seasonal=list(order=c(2,1,0), period=12)) 
-    #} else if (dis == "asthma") {
-    #  suggested.rate<- arima(df_obs_rate, order=c(0,0,0),  seasonal=list(order=c(0,1,1), period=12))
-    #} else if (dis == "ulcerative_colitis") {      
-    # suggested.rate<- arima(df_obs_rate, order=c(0,0,0),  seasonal=list(order=c(0,1,1), period=12))
-    #} else if (dis == "crohns_disease") {
-    #    suggested.rate<- arima(df_obs_rate, order=c(0,1,2), seasonal=list(order=c(1,1,0), period=12))
+    if (dis == "Axialspa") {
+      suggested.rate<- arima(df_obs_rate, order=c(0,1,2),  seasonal=list(order=c(0,1,0), period=12)) 
+    } else if (dis == "Vasc") {
+      suggested.rate<- arima(df_obs_rate, order=c(0,0,0),  seasonal=list(order=c(0,1,1), period=12))
     } else {
       suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
     }
@@ -220,14 +221,14 @@ for (j in 1:length(disease_list)) {
     
     # Save a table of values
     write.csv(df_new, file = paste0("output/tables/values_", var, "_", dis, ".csv"), row.names = FALSE)
-  
+    
     # Plot observed and expected graphs
     c1<- 
       ggplot(data = df_new,aes(x = mo_year_diagn))+
-      geom_point(aes(y = .data[[var]]), color="#5E716A", alpha = 0.25, size=1.5)+
-      geom_line(aes(y = moving_average), color = "#5E716A", linetype = "solid", size=0.70)+
-      geom_point(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean), color="orange", alpha = 0.25, size=1.5)+
-      geom_line(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.65)+
+      geom_point(aes(y = .data[[var]]), color="#5E716A", alpha = 0.25, size=2)+
+      geom_line(aes(y = moving_average), color = "#5E716A", linetype = "solid", size=0.80)+
+      geom_point(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean), color="orange", alpha = 0.25, size=2)+
+      geom_line(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.70)+
       #geom_ribbon(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(ymin = lower, ymax = upper), alpha = 0.3, fill = "grey")+
       geom_segment(x = as.Date("2020-03-01"), 
                        xend = as.Date("2020-03-01"), 
@@ -235,14 +236,15 @@ for (j in 1:length(disease_list)) {
                        yend = max(df_new[[var]], na.rm = TRUE) * 1.15,
                        linetype = "dashed", 
                        color = "grey")+
-      scale_x_date(breaks = seq(as.Date("2016-01-01"), as.Date("2026-01-01"), by = "2 years"),
+      scale_x_date(limits = as.Date(c("2016-01-01", "2026-01-01")), breaks = seq(as.Date("2016-01-01"), as.Date("2026-01-31"), by = "2 years"),
       date_labels = "%Y")+
       scale_y_continuous(limits = c(min(df_new[[var]], na.rm = TRUE) * 0.85, 
-                                    max(df_new[[var]], na.rm = TRUE) * 1.15),
+                                    max(df_new[[var]], na.rm = TRUE) * 1.05),
                          breaks = pretty(df_new[[var]], n = 4),
-                         expand = expansion(mult = c(0.05, 0.05)))+
+                         labels = function(x) sprintf("%.2f", x),  # forces 2 decimal places
+                         expand = expansion(mult = c(0, 0)))+
       theme_minimal()+
-      xlab(x_label)+
+      xlab("")+
       ylab(y_label)+
       theme(
         legend.title = element_blank(),
@@ -250,16 +252,16 @@ for (j in 1:length(disease_list)) {
         panel.grid.minor = element_blank(),
         axis.line = element_line(color = "grey"),
         axis.ticks = element_line(color = "grey"),
-        axis.text = element_text(size = 10, color = "black"),
-        axis.title.x = element_text(size = 12, margin = margin(t = 5)),
-        axis.title.y = element_text(size = 12, margin = margin(r = 5)), 
-        plot.title = element_text(size = 14, hjust = 0.5, face = "plain") 
+        axis.text = element_text(size = 14, color = "black"),
+        axis.title.x = element_text(size = 16, margin = margin(t = 5)),
+        axis.title.y = element_text(size = 16, margin = margin(r = 10)), 
+        plot.title = element_text(size = 18, hjust = 0.5, face = "plain") 
       ) +
       ggtitle(dis_title)
     
     saveRDS(c1, file = paste0("output/figures/obs_pred_", var, "_", dis, ".rds"))
-    ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
-    #ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".png"), plot = c1, width = 8, height = 6, device = "png")
+    #ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
+    ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".png"), plot = c1, width = 8, height = 6, device = "png")
     
     print(c1)
     
@@ -366,27 +368,28 @@ for (j in 1:length(disease_list)) {
     new_row <- rates.summary
     file_name <- "output/tables/change_incidence_byyear.csv"
     
-    # Check if the file exists
-    if (file.exists(file_name)) {
+    if (first_write) {
+      # Overwrite (first iteration)
+      write.csv(new_row, file_name, row.names = FALSE)
+      first_write <- FALSE
+    } else {
+      # Append (later iterations)
       existing_data <- read.csv(file_name)
       updated_data <- rbind(existing_data, new_row)
       write.csv(updated_data, file_name, row.names = FALSE)
-    } else {
-      write.csv(new_row, file_name, row.names = FALSE)
     }
-  }
   
   # Increment index (for labelling)
   index_axis <- index_axis + 1
-}    
+  }
+}
 
-# List and read all RDS files that match the pattern
-rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence.*_.*\\.rds$", full.names = TRUE)
+# List and read all RDS files that match the pattern, then combine plots
+#rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence.*_.*\\.rds$", full.names = TRUE)
+rds_files <- file.path("output/figures", paste0("obs_pred_incidence_", disease_list, ".rds"))
 plot_list <- lapply(rds_files, readRDS)
-
-# Combine all plots
 png("output/figures/sarima_combined.png", width = 12830, height = 8680, res = 720)
-do.call(grid.arrange, c(plot_list, ncol=5))
+do.call(grid.arrange, c(plot_list, ncol=3))
 
 dev.off()
 graphics.off()
@@ -394,168 +397,155 @@ sink()
 
   ###### OUTPUT FILE
   write.csv(df,"output/tables/df_output.csv",row.names = FALSE)
-  
-# # Manual checks for diseases with poor fitting on visual inspection####################
-#   
-#   # Incidence data - use age and sex-standardised rates for incidence rates and unadjusted for counts
-#   df <-read.csv("output/tables/arima_standardised.csv")
-#   
-#   #Rename variables in the datafile 
-#   names(df)[names(df) == "numerator"] <- "count"
-#   df<- df %>% select(disease, year, mo_year_diagn, incidence, count) 
-#   df$month <- substr(df$mo_year_diagn, 1, 3)
-#   df$mo_year_diagn <- gsub("-", " ", df$mo_year_diagn)
-#   df$mon_year <- df$mo_year_diagn
-#   df$mo_year_diagn <- as.Date(paste0("01 ", df$mo_year_diagn), format = "%d %b %Y")
-#   month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-#   
-#   disease_list <- unique(df$disease[df$disease == "crohns_disease"])
-#   
-#   # Define the variables to loop over
-#   variables <- c("incidence")
-#   y_labels <- c("Incidence per 100,000 population")
-#   
-#   # Loop through diseases
-#   for (j in 1:length(disease_list)) {
-#     
-#     dis <- disease_list[j]
-#     df_dis <- df[df$disease == dis, ]
-#     df_dis <- df_dis %>%  mutate(index=1:n()) #create an index variable 1,2,3...
-#     
-#     # Manually set titles based on the disease
-#     if (dis == "rheumatoid") {
-#       dis_title <- "Rheumatoid Arthritis"
-#     } else if (dis == "copd") {
-#       dis_title <- "COPD"
-#     } else if (dis == "crohns_disease") {
-#       dis_title <- "Crohn's Disease"
-#     } else if (dis == "dm_type2") {
-#       dis_title <- "Diabetes Mellitus Type 2"
-#     } else if (dis == "chd") {
-#       dis_title <- "Coronary Heart Disease"
-#     } else if (dis == "ckd") {
-#       dis_title <- "Chronic Kidney Disease"
-#     } else if (dis == "coeliac") {
-#       dis_title <- "Coeliac Disease"
-#     } else if (dis == "pmr") {
-#       dis_title <- "Polymyalgia Rheumatica"
-#     } else {
-#       dis_title <- str_to_title(str_replace_all(dis, "_", " "))
-#     }
-#     
-#     max_index <- max(df_dis$index)
-#     
-#     #Keep only data from before March 2020 and save to separate df
-#     df_obs <- df_dis[which(df_dis$index<48),]
-#     
-#     # Loop through incidence and count
-#     for (i in 1:length(variables)) {
-#       var <- variables[i]
-#       y_label <- y_labels[i]
-#       
-#       #Convert to time series object 
-#       df_obs_rate <- ts(df_obs[[var]], frequency=12, start=c(2016,4))
-#       assign(paste0("ts_", var), df_obs_rate)
-#       
-#       #Use auto.arima to fit SARIMA model - will identify p/q parameters that optimise AIC - for models with poor fit on visual inspection, explore different models
-#       if (dis == "crohns_disease") {
-#         #suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE) 
-#         #suggested.rate<- auto.arima(df_obs_rate, d=1, D=1, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE) 
-#         suggested.rate<- arima(df_obs_rate, order=c(0,1,2), seasonal=list(order=c(1,1,0),period=12))
-#         } else {
-#         suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
-#       }
-#       print(suggested.rate)
-#       aic_value <- AIC(suggested.rate)
-#       print(paste("AIC:", aic_value))
-#       bic_value <- BIC(suggested.rate)
-#       print(paste("BIC:", bic_value))
-#       m1.rate <-suggested.rate
-#       m1.rate
-#       
-#       #Monthly prediction intervals from the model
-#       confint(m1.rate)
-#       
-#       #check residuals
-#       svg(filename = paste0("output/figures/auto_residuals_", var, "_", dis, ".svg"), width = 8, height = 6)
-#       checkresiduals(suggested.rate)
-#       dev.off()
-#       Box.test(suggested.rate$residuals, lag = 58, type = "Ljung-Box")
-# 
-#       #Forecast from March 2020 and convert to time series object - could change h to max_index - pre-March 2020
-#       fc.rate  <- forecast(m1.rate, h=57)
-#       
-#       #Forecasted rates 
-#       fc.ratemean <- ts(as.numeric(fc.rate$mean), start=c(2020,3), frequency=12)
-#       fc.ratelower <- ts(as.numeric(fc.rate$lower[,2]), start=c(2020,3), frequency=12) #lower 95% CI
-#       fc.rateupper <- ts(as.numeric(fc.rate$upper[,2]), start=c(2020,3), frequency=12) #upper 95% CI
-#       
-#       fc_rate<- data.frame(
-#         YearMonth = as.character(as.yearmon(time(fc.rate$mean))), # Year and month
-#         mean = as.numeric(as.matrix(fc.rate$mean)),
-#         lower = as.numeric(as.matrix(fc.rate$lower[, 2])),
-#         upper = as.numeric(as.matrix(fc.rate$upper[, 2]))
-#         # Flatten the matrix into a vector
-#       )
-#       
-#       df_new <- df_dis %>% left_join(fc_rate, by = c("mon_year" = "YearMonth"))
-#       df_new$mean <- ifelse(is.na(df_new$mean), df_new[[var]], df_new$mean) #If NA (i.e. pre-forecast), replace as = observed incidence
-#       df_new$lower <- ifelse(is.na(df_new$lower), df_new[[var]], df_new$lower) #If NA (i.e. pre-forecast), replace as = observed incidence
-#       df_new$upper <- ifelse(is.na(df_new$upper), df_new[[var]], df_new$upper) #If NA (i.e. pre-forecast), replace as = observed incidence
-#       
-#       df_new <- df_new %>%
-#         arrange(index) %>%
-#         mutate(moving_average = rollmean(get(var), k = 3, fill = NA, align = "center"))
-#       
-#       df_new <- df_new %>%
-#         arrange(index) %>%
-#         mutate(mean_ma = rollmean(mean, k = 3, fill = NA, align = "center"))
-#       
-#       #observed and predicted graphs to check model predictions against observed values
-#       c1<- 
-#         ggplot(data = df_new,aes(x = mo_year_diagn))+
-#         geom_point(aes(y = .data[[var]]), color="#5E716A", alpha = 0.25, size=1.5)+
-#         geom_line(aes(y = moving_average), color = "#5E716A", linetype = "solid", size=0.70)+
-#         geom_point(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean), color="orange", alpha = 0.25, size=1.5)+
-#         geom_line(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.65)+
-#         #geom_ribbon(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(ymin = lower, ymax = upper), alpha = 0.3, fill = "grey")+
-#         geom_segment(x = as.Date("2020-03-01"), 
-#                      xend = as.Date("2020-03-01"), 
-#                      y = min(df_new[[var]], na.rm = TRUE) * 0.85, 
-#                      yend = max(df_new[[var]], na.rm = TRUE) * 1.15,
-#                      linetype = "dashed", 
-#                      color = "grey")+
-#         scale_x_date(breaks = seq(as.Date("2016-01-01"), as.Date("2026-01-01"), by = "2 years"),
-#                      date_labels = "%Y")+
-#         scale_y_continuous(limits = c(min(df_new[[var]], na.rm = TRUE) * 0.85, 
-#                                       max(df_new[[var]], na.rm = TRUE) * 1.15),
-#                            breaks = pretty(df_new[[var]], n = 4),
-#                            expand = expansion(mult = c(0.05, 0.05)))+
-#         theme_minimal()+
-#         #xlab("Year of diagnosis")+
-#         #ylab(y_label)+
-#         xlab("")+
-#         ylab("")+
-#         theme(
-#           legend.title = element_blank(),
-#           panel.grid.major = element_blank(), 
-#           panel.grid.minor = element_blank(),
-#           axis.line = element_line(color = "grey"),
-#           axis.ticks = element_line(color = "grey"),
-#           axis.text = element_text(size = 10, color = "black"),
-#           axis.title.x = element_text(size = 10, margin = margin(t = 10)),
-#           axis.title.y = element_text(size = 10, margin = margin(r = 10)), 
-#           plot.title = element_text(size = 14, hjust = 0.5, face = "plain") 
-#         ) +
-#         ggtitle(dis_title)
-#       
-#       saveRDS(c1, file = paste0("output/figures/test_", var, "_", dis, ".rds"))
-#       ggsave(filename = paste0("output/figures/test_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
-#       
-#       print(c1)
-#     }
-#   }
-# 
-# dev.off()
-# graphics.off()
-# sink()  
+
+# Manual checks for diseases with poor fitting on visual inspection####################
+
+  # Incidence data - use age and sex-standardised rates for incidence rates and unadjusted for counts
+  df <-read.csv("output/tables/incidence_rates_rounded.csv")
+
+  #Rename variables in the datafile
+  names(df)[names(df) == "numerator"] <- "count"
+  df<- df %>% select(disease, year, mo_year_diagn, incidence, count)
+  df$month <- substr(df$mo_year_diagn, 1, 3)
+  df$mo_year_diagn <- gsub("-", " ", df$mo_year_diagn)
+  df$mon_year <- df$mo_year_diagn
+  df$mo_year_diagn <- as.Date(paste0("01 ", df$mo_year_diagn), format = "%d %b %Y")
+  month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+
+  disease_list <- unique(df$disease[df$disease == "Vasc"])
+
+  # Define the variables to loop over
+  variables <- c("incidence")
+  y_labels <- c("Incidence per 100,000 population")
+
+  # Loop through diseases
+  for (j in 1:length(disease_list)) {
+
+    dis <- disease_list[j]
+    df_dis <- df[df$disease == dis, ]
+    df_dis <- df_dis %>%  mutate(index=1:n()) #create an index variable 1,2,3...
+
+    # Manually set titles based on the disease
+    if (dis == "rheumatoid") {
+      dis_title <- "Rheumatoid Arthritis"
+    } else {
+      dis_title <- str_to_title(str_replace_all(dis, "_", " "))
+    }
+
+    max_index <- max(df_dis$index)
+
+    #Keep only data from before March 2020 and save to separate df
+    df_obs <- df_dis[which(df_dis$index<48),]
+
+    # Loop through incidence and count
+    for (i in 1:length(variables)) {
+      var <- variables[i]
+      y_label <- y_labels[i]
+
+      #Convert to time series object
+      df_obs_rate <- ts(df_obs[[var]], frequency=12, start=c(2016,4))
+      assign(paste0("ts_", var), df_obs_rate)
+
+      #Use auto.arima to fit SARIMA model - will identify p/q parameters that optimise AIC - for models with poor fit on visual inspection, explore different models
+      if (dis == "Vasc") {
+        #suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
+        suggested.rate<- auto.arima(df_obs_rate, D=1, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
+        #suggested.rate<- arima(df_obs_rate, order=c(1,1,3), seasonal=list(order=c(1,1,0),period=12))
+        #suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
+        } else {
+        suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
+      }
+      print(suggested.rate)
+      aic_value <- AIC(suggested.rate)
+      print(paste("AIC:", aic_value))
+      bic_value <- BIC(suggested.rate)
+      print(paste("BIC:", bic_value))
+      m1.rate <-suggested.rate
+      m1.rate
+
+      #Monthly prediction intervals from the model
+      confint(m1.rate)
+
+      #check residuals
+      svg(filename = paste0("output/figures/auto_residuals_", var, "_", dis, ".svg"), width = 8, height = 6)
+      checkresiduals(suggested.rate)
+      dev.off()
+      Box.test(suggested.rate$residuals, lag = max_index - 48 + 1, type = "Ljung-Box")
+
+      #Forecast from March 2020
+      fc.rate  <- forecast(m1.rate, h = max_index - 48)
+
+      #Forecasted rates
+      fc.ratemean <- ts(as.numeric(fc.rate$mean), start=c(2020,3), frequency=12)
+      fc.ratelower <- ts(as.numeric(fc.rate$lower[,2]), start=c(2020,3), frequency=12) #lower 95% CI
+      fc.rateupper <- ts(as.numeric(fc.rate$upper[,2]), start=c(2020,3), frequency=12) #upper 95% CI
+
+      fc_rate<- data.frame(
+        YearMonth = as.character(as.yearmon(time(fc.rate$mean))), # Year and month
+        mean = as.numeric(as.matrix(fc.rate$mean)),
+        lower = as.numeric(as.matrix(fc.rate$lower[, 2])),
+        upper = as.numeric(as.matrix(fc.rate$upper[, 2]))
+        # Flatten the matrix into a vector
+      )
+
+      df_new <- df_dis %>% left_join(fc_rate, by = c("mon_year" = "YearMonth"))
+      df_new$mean <- ifelse(is.na(df_new$mean), df_new[[var]], df_new$mean) #If NA (i.e. pre-forecast), replace as = observed incidence
+      df_new$lower <- ifelse(is.na(df_new$lower), df_new[[var]], df_new$lower) #If NA (i.e. pre-forecast), replace as = observed incidence
+      df_new$upper <- ifelse(is.na(df_new$upper), df_new[[var]], df_new$upper) #If NA (i.e. pre-forecast), replace as = observed incidence
+
+      df_new <- df_new %>%
+        arrange(index) %>%
+        mutate(moving_average = rollmean(get(var), k = 3, fill = NA, align = "center"))
+
+      df_new <- df_new %>%
+        arrange(index) %>%
+        mutate(mean_ma = rollmean(mean, k = 3, fill = NA, align = "center"))
+
+      #observed and predicted graphs to check model predictions against observed values
+      c1<-
+        ggplot(data = df_new,aes(x = mo_year_diagn))+
+        geom_point(aes(y = .data[[var]]), color="#5E716A", alpha = 0.25, size=1.5)+
+        geom_line(aes(y = moving_average), color = "#5E716A", linetype = "solid", size=0.70)+
+        geom_point(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean), color="orange", alpha = 0.25, size=1.5)+
+        geom_line(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.65)+
+        #geom_ribbon(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(ymin = lower, ymax = upper), alpha = 0.3, fill = "grey")+
+        geom_segment(x = as.Date("2020-03-01"),
+                     xend = as.Date("2020-03-01"),
+                     y = min(df_new[[var]], na.rm = TRUE) * 0.85,
+                     yend = max(df_new[[var]], na.rm = TRUE) * 1.15,
+                     linetype = "dashed",
+                     color = "grey")+
+        scale_x_date(breaks = seq(as.Date("2016-01-01"), as.Date("2026-01-01"), by = "2 years"),
+                     date_labels = "%Y")+
+        scale_y_continuous(limits = c(min(df_new[[var]], na.rm = TRUE) * 0.85,
+                                      max(df_new[[var]], na.rm = TRUE) * 1.15),
+                           breaks = pretty(df_new[[var]], n = 4),
+                           expand = expansion(mult = c(0.05, 0.05)))+
+        theme_minimal()+
+        #xlab("Year of diagnosis")+
+        #ylab(y_label)+
+        xlab("")+
+        ylab("")+
+        theme(
+          legend.title = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(color = "grey"),
+          axis.ticks = element_line(color = "grey"),
+          axis.text = element_text(size = 10, color = "black"),
+          axis.title.x = element_text(size = 10, margin = margin(t = 10)),
+          axis.title.y = element_text(size = 10, margin = margin(r = 10)),
+          plot.title = element_text(size = 14, hjust = 0.5, face = "plain")
+        ) +
+        ggtitle(dis_title)
+
+      saveRDS(c1, file = paste0("output/figures/test_", var, "_", dis, ".rds"))
+      ggsave(filename = paste0("output/figures/test_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
+
+      print(c1)
+    }
+  }
+
+dev.off()
+graphics.off()
+sink()

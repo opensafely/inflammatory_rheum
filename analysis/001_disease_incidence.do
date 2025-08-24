@@ -284,7 +284,7 @@ foreach disease in $diseases {
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
 	
-	twoway scatter total_diag `disease'_moyear, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full'", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count, replace) saving("$projectdir/output/figures/count_inc_`disease'.gph", replace)
+	twoway scatter total_diag `disease'_moyear, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 695 "2018" 719 "2020" 743 "2022" 767 "2024" 791 "2026", nogrid labsize(small)) title("`dis_full'", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count, replace) saving("$projectdir/output/figures/count_inc_`disease'.gph", replace)
 		graph export "$projectdir/output/figures/count_inc_`disease'.svg", replace
 		
 	restore
@@ -323,7 +323,7 @@ foreach disease in $diseases {
 	**Generate moving average
 	gen total_diag_ma =(total_diag[_n-1]+total_diag[_n]+total_diag[_n+1])/3
 	
-	twoway scatter total_diag `disease'_moyear_p, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear_p, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full' primary care only", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count_p, replace) saving("$projectdir/output/figures/count_inc_p_`disease'.gph", replace)
+	twoway scatter total_diag `disease'_moyear_p, ytitle("Monthly diagnosis count", size(med)) color(emerald%20) msymbol(circle) || line total_diag_ma `disease'_moyear_p, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 695 "2018" 719 "2020" 743 "2022" 767 "2024" 791 "2026", nogrid labsize(small)) title("`dis_full' primary care only", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_count_p, replace) saving("$projectdir/output/figures/count_inc_p_`disease'.gph", replace)
 		graph export "$projectdir/output/figures/count_inc_p_`disease'.svg", replace
 		
 	restore
@@ -386,10 +386,10 @@ save "$projectdir/output/data/incidence_rates_rounded.dta", replace emptyok
 
 use "$projectdir/output/data/incidence_data_processed.dta", clear
 
-*Graph of incidence rates diagnoses by month, by disease
+*Create rounded/redacted incidence rates diagnoses by month, by disease
 foreach disease in $diseases {
 	preserve
-	keep if `disease'==1 //would need to remove this if calculating incidence
+	keep if `disease'==1
 	collapse (count) total_diag_un=`disease', by(`disease'_moyear) 
 	gen total_diag = round(total_diag_un, 5)
 	drop total_diag_un
@@ -418,35 +418,96 @@ foreach disease in $diseases {
 	append using "$projectdir/output/data/incidence_rates_rounded.dta"
 	save "$projectdir/output/data/incidence_rates_rounded.dta", replace  
 	
-	use "$projectdir/output/data/incidence_rate_`disease'.dta", replace
-	
-	**Label diseases
-	local dis_full = strproper(subinstr("`disease'", "_", " ",.)) 
-	if "`dis_full'" == "Eia" local dis_full "Early inflammatory arthritis"
-	if "`dis_full'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
-	if "`dis_full'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis_full'" == "Axialspa" local dis_full "Axial spondyloarthritis"
-	if "`dis_full'" == "Undiffia" local dis_full "Undifferentiated IA"
-	if "`dis_full'" == "Gca" local dis_full "Giant cell arteritis"
-	if "`dis_full'" == "Sjogren" local dis_full "Sjogren's disease"
-	if "`dis_full'" == "Ssc" local dis_full "Systemic sclerosis"
-	if "`dis_full'" == "Sle" local dis_full "SLE"
-	if "`dis_full'" == "Myositis" local dis_full "Myositis"
-	if "`dis_full'" == "Anca" local dis_full "ANCA vasculitis"
-	if "`dis_full'" == "Ctd" local dis_full "Connective tissue disease"
-	if "`dis_full'" == "Vasc" local dis_full "Vasculitis"
-	if "`dis_full'" == "Ctdvasc" local dis_full "CTD/vasculitis"
-		
-	**Generate moving average
-	gen incidence_ma =(incidence[_n-1]+incidence[_n]+incidence[_n+1])/3
-	
-	twoway scatter incidence mo_year_diagn, ytitle("Monthly incidence rate per 100,000 population", size(med)) color(emerald%20) msymbol(circle) || line incidence_ma mo_year_diagn, lcolor(emerald) lstyle(solid) ylabel(, nogrid labsize(small)) xtitle("Date of diagnosis", size(medium) margin(medsmall)) xlabel(671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026", nogrid labsize(small)) title("`dis_full'", size(medium) margin(b=2)) xline(722) legend(off) name(`disease'_inc, replace) saving("$projectdir/output/figures/inc_rate_`disease'.gph", replace)
-		graph export "$projectdir/output/figures/inc_rate_`disease'.svg", replace
-		
 	restore
 }
 
 use "$projectdir/output/data/incidence_rates_rounded.dta", clear
 export delimited using "$projectdir/output/tables/incidence_rates_rounded.csv", datafmt replace
+
+*Use rounded and redacted incidence data ==========================================================
+import delimited "$projectdir/output/tables/incidence_rates_rounded.csv", clear
+
+*Reformat date
+rename mo_year_diagn mo_year_diagn_s
+gen mo_year_diagn = monthly(mo_year_diagn_s, "MY")
+format mo_year_diagn %tmMon-CCYY
+drop mo_year_diagn_s
+
+levelsof disease, local(disease_list)
+
+*Create graphs of incidence rates diagnoses by month, by disease, using rounded/redacted data
+foreach dis of local disease_list {
+	preserve
+	di "`dis'"
+	keep if disease=="`dis'"
+		
+	**Label diseases
+	if "`dis'" == "Eia" local dis_full "Early inflammatory arthritis"
+	if "`dis'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
+	if "`dis'" == "Psa" local dis_full "Psoriatic arthritis"
+	if "`dis'" == "Axialspa" local dis_full "Axial spondyloarthritis"
+	if "`dis'" == "Undiffia" local dis_full "Undifferentiated IA"
+	if "`dis'" == "Gca" local dis_full "Giant cell arteritis"
+	if "`dis'" == "Sjogren" local dis_full "Sjogren's disease"
+	if "`dis'" == "Ssc" local dis_full "Systemic sclerosis"
+	if "`dis'" == "Sle" local dis_full "SLE"
+	if "`dis'" == "Myositis" local dis_full "Myositis"
+	if "`dis'" == "Anca" local dis_full "ANCA vasculitis"
+	if "`dis'" == "Ctd" local dis_full "Connective tissue diseases"
+	if "`dis'" == "Vasc" local dis_full "Vasculitis"
+	if "`dis'" == "Ctdvasc" local dis_full "CTD and vasculitis"
+	
+	***Set y-axis format
+	egen incidence_min = min(incidence)
+	if incidence_min < 1 {
+		local format = "format(%03.2f)"
+	}
+	else if incidence_min >= 1 & incidence_min < 10 {
+		local format = "format(%9.2f)"
+	}
+	else {
+		local format = "format(%9.0f)"
+	}
+	di "`format'"
+	
+	*Label y-axis
+	if "`dis'" == "Rheumatoid" | "`dis'" == "Sjogren" | "`dis'" == "Gca" {
+		local ytitle "Monthly incidence rate"
+	}
+	else {
+		local ytitle ""
+	}
+
+	/*
+	*Label x-axis
+	if "`dis'" == "Anca" | "`dis'" == "Gca" {
+		local xtitle "Year"
+	}
+	else {
+		local xtitle ""
+	}	
+*/
+		
+	**Generate moving average
+	gen incidence_ma =(incidence[_n-1]+incidence[_n]+incidence[_n+1])/3
+	
+	twoway scatter incidence mo_year_diagn, ytitle("`ytitle'", size(med)) color(emerald%20) msymbol(circle) || line incidence_ma mo_year_diagn, lcolor(emerald) lstyle(solid) ylabel(, `format' nogrid labsize(small)) xtitle("") xlabel(671 "2016" 695 "2018" 719 "2020" 743 "2022" 767 "2024" 791 "2026", nogrid labsize(small)) title("`dis_full'", size(medium) margin(b=2)) xline(722) legend(off) name(inc_rate_`dis', replace) saving("$projectdir/output/figures/inc_rate_`dis'.gph", replace)
+		graph export "$projectdir/output/figures/inc_rate_`dis'.svg", replace
+		graph export "$projectdir/output/figures/inc_rate_`dis'.png", replace
+		
+		*671 "2016" 683 "2017" 695 "2018" 707 "2019" 719 "2020" 731 "2021" 743 "2022" 755 "2023" 767 "2024" 779 "2025" 791 "2026"
+		
+	restore
+}
+
+*Combine graphs - Nb. this won't work in OpenSAFELY console
+preserve
+cd "$projectdir/output/figures"
+
+foreach stem in inc_rate {
+	graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
+graph export "`stem'_combined.png", replace
+}
+restore
 
 log close	
