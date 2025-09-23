@@ -22,7 +22,7 @@ any_registration = practice_registrations.where(
 
 def create_dataset_with_variables():
     dataset = create_dataset()
-    dataset.configure_dummy_data(population_size=50000)
+    dataset.configure_dummy_data(population_size=200000)
 
     # Incident diagnostic code in primary care record (SNOMED) (assuming before study end date)
     def first_code_in_period_snomed(dx_codelist):
