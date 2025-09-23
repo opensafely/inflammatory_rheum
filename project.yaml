@@ -135,6 +135,9 @@ actions:
         figure3: output/figures/unadj_sex_*.svg
         figure4: output/figures/adj_sex_*.svg
         figure5: output/figures/unadj_age_*.svg
+        figure6: output/figures/unadj_imd_*.svg
+        figure7: output/figures/unadj_ethn_*.svg
+
 
   run_sarima:
     run: r:latest analysis/200_sarima.R
