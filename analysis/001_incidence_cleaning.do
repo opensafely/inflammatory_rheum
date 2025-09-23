@@ -200,6 +200,85 @@ foreach disease in $diseases {
 
 save "$projectdir/output/data/incidence_data_processed.dta", replace
 
+*Baseline tables================================================================*/
+
+use "$projectdir/output/data/incidence_data_processed.dta", clear
+
+**Baseline table for each disease
+foreach disease in $diseases {
+preserve
+keep if `disease'==1
+di "`disease'"
+table1_mc, total(before) onecol nospacelowpercent missing iqrmiddle(",")  ///
+	vars(`disease'_age contn %5.1f \ ///
+		 `disease'_age_band cat %5.1f \ ///
+		 sex cat %5.1f \ ///
+		 ethnicity cat %5.1f \ ///
+		 imd cat %5.1f \ ///
+		 )
+restore
+}
+
+**Rounded and redacted baseline tables for each disease
+clear *
+save "$projectdir/output/data/baseline_table_rounded.dta", replace emptyok
+
+foreach disease in $diseases {
+	use "$projectdir/output/data/incidence_data_processed.dta", clear
+	keep if `disease'==1
+	foreach var of varlist imd ethnicity sex `disease'_age_band {
+		preserve
+		contract `var'
+		local v : variable label `var' 
+		gen variable = `"`v'"'
+		decode `var', gen(categories)
+		gen count = round(_freq, 5)
+		egen total = total(count)
+		gen percent = round((count/total)*100, 0001)
+		order total, before(percent)
+		replace percent = . if count<=7
+		replace total = . if count<=7
+		replace count = . if count<=7
+		gen cohort = "`disease'"
+		order cohort, first
+		format percent %14.4f
+		format count total %14.0f
+		list cohort variable categories count total percent
+		keep cohort variable categories count total percent
+		append using "$projectdir/output/data/baseline_table_rounded.dta"
+		save "$projectdir/output/data/baseline_table_rounded.dta", replace
+		restore
+	}
+
+	preserve
+	collapse (count) count=`disease' (mean) mean_age=`disease'_age (sd) stdev_age=`disease'_age
+	gen cohort ="`disease'"
+	rename *count freq
+	gen count = round(freq, 5)
+	gen countstr = string(count)
+	replace stdev_age = . if count<=7
+	replace mean_age = . if count<=7
+	replace count = . if count<=7
+	order cohort, first
+	gen variable = "Age"
+	order variable, after(cohort)
+	gen categories = "Not applicable"
+	order categories, after(variable)
+	order count, after(stdev_age)
+	gen total = count
+	order total, after(count)
+	format mean_age %14.4f
+	format stdev_age %14.4f
+	format count %14.0f
+	list cohort variable categories mean_age stdev_age count total
+	keep cohort variable categories mean_age stdev_age count total
+	append using "$projectdir/output/data/baseline_table_rounded.dta"
+	save "$projectdir/output/data/baseline_table_rounded.dta", replace	
+	restore
+}	
+use "$projectdir/output/data/baseline_table_rounded.dta", clear
+export delimited using "$projectdir/output/tables/baseline_table_rounded.csv", datafmt replace
+
 *Import measures data for denominators**********************************
 
 local years "2016 2017 2018 2019 2020 2021 2022 2023 2024"
@@ -428,29 +507,34 @@ foreach disease in $diseases {
 	*For age band
 	decode age_band, gen(age_band_s)
 	order age_band_s, after(age_band)
-	replace age_band_s = subinstr(age_band_s, " ", "_", .)
+	replace age_band_s = "18_29" if age_band_s == "18_to_29"
+	replace age_band_s = "30_39" if age_band_s == "30_to_39"
+	replace age_band_s = "40_49" if age_band_s == "40_to_49"
+	replace age_band_s = "50_59" if age_band_s == "50_to_59"
+	replace age_band_s = "60_69" if age_band_s == "60_to_69"
+	replace age_band_s = "70_79" if age_band_s == "70_to_79"
 	replace age_band_s = "80" if age_band_s == "80_or_above"
 	
 	foreach var in 18_29 30_39 40_49 50_59 60_69 70_79 80 {
-	bys disease year: egen numerator_`var' = sum(numerator_un) if age_band_s=="`var'"
-	bys disease year: egen denominator_`var' = sum(denominator_un) if age_band_s=="`var'"
+		bys disease year: egen numerator_`var' = sum(numerator_un) if age_band_s=="`var'"
+		bys disease year: egen denominator_`var' = sum(denominator_un) if age_band_s=="`var'"
 
-	**Redact and round
-	replace numerator_`var' =. if numerator_`var'<=7 | denominator_`var'<=7
-	replace denominator_`var' =. if numerator_`var'<=7 | numerator_`var'==. | denominator_`var'<=7
-	replace numerator_`var' = round(numerator_`var', 5)
-	replace denominator_`var' = round(denominator_`var', 5)
+		**Redact and round
+		replace numerator_`var' =. if numerator_`var'<=7 | denominator_`var'<=7
+		replace denominator_`var' =. if numerator_`var'<=7 | numerator_`var'==. | denominator_`var'<=7
+		replace numerator_`var' = round(numerator_`var', 5)
+		replace denominator_`var' = round(denominator_`var', 5)
 
-	gen rate_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & denominator_`var'!=.)
-	replace rate_`var' =. if (numerator_`var'==. | denominator_`var'==.)
-	replace rate_`var' = rate_`var'*100000
+		gen rate_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & denominator_`var'!=.)
+		replace rate_`var' =. if (numerator_`var'==. | denominator_`var'==.)
+		replace rate_`var' = rate_`var'*100000
 
-	sort disease year rate_`var' 
-	by disease year (rate_`var'): replace rate_`var' = rate_`var'[_n-1] if missing(rate_`var')
-	sort disease year numerator_`var'
-	by disease year (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
-	sort disease year denominator_`var' 
-	by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
+		sort disease year rate_`var' 
+		by disease year (rate_`var'): replace rate_`var' = rate_`var'[_n-1] if missing(rate_`var')
+		sort disease year numerator_`var'
+		by disease year (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
+		sort disease year denominator_`var' 
+		by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
 	}
 /*
 	*For ethnicity
