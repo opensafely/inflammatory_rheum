@@ -114,36 +114,40 @@ actions:
       moderately_sensitive:
         measure_csv: output/measures/measures_incidence_2024.csv
 
-  incidence_disease:
-    run: stata-mp:latest analysis/001_disease_incidence.do
+  incidence_cleaning:
+    run: stata-mp:latest analysis/001_incidence_cleaning.do
     needs: [generate_dataset_incidence, generate_measures_2016, generate_measures_2017, generate_measures_2018, generate_measures_2019, generate_measures_2020, generate_measures_2021, generate_measures_2022, generate_measures_2023, generate_measures_2024]
     outputs:
+      highly_sensitive:
+        log1: logs/incidence_cleaning.log   
+        table1: output/tables/incidence_rates_rounded.csv
+        table2: output/tables/incidence_rates_rounded_standardised.csv
+        data1: output/data/incidence_data_processed.dta
+
+  incidence_graphs:
+    run: stata-mp:latest analysis/002_incidence_graphs.do
+    needs: [incidence_cleaning]
+    outputs:
       moderately_sensitive:
-        log1: logs/incidence_disease.log   
+        log1: logs/incidence_graphs.log   
         table1: output/tables/baseline_table_rounded.csv
-        table2: output/tables/incidence_count_*.csv
-        table3: output/tables/incidence_count_p_*.csv
-        table4: output/tables/incidence_rates_rounded.csv
-        figure1: output/figures/count_inc_*.svg      
-        figure2: output/figures/count_inc_p_*.svg
-        figure3: output/figures/inc_rate_*.svg
+        figure1: output/figures/inc_rate_*.svg
+        figure2: output/figures/inc_comp_*.svg
+        figure3: output/figures/unadj_sex_*.svg
+        figure4: output/figures/adj_sex_*.svg
+        figure5: output/figures/unadj_age_*.svg
 
   run_sarima:
     run: r:latest analysis/200_sarima.R
-    needs: [incidence_disease]
+    needs: [incidence_cleaning]
     outputs:
       moderately_sensitive:
         log1: logs/sarima_log.txt   
-        figure1: output/figures/raw_pre_covid_*.svg
-        figure2: output/figures/differenced_pre_covid_*.svg
-        figure3: output/figures/seasonal_pre_covid_*.svg
-        figure4: output/figures/raw_acf_*.svg
-        figure5: output/figures/differenced_acf_*.svg
-        figure6: output/figures/seasonal_acf_*.svg
-        figure7: output/figures/auto_residuals_*.svg
-        figure8: output/figures/obs_pred_*.svg
+        figure1: output/figures/auto_residuals_*.svg
+        figure2: output/figures/obs_pred_*.svg
+        figure3: output/figures/prophet_*.svg
         table1: output/tables/change_incidence_byyear.csv
-        table2: output/tables/values_*.csv
+        table2: output/tables/change_incidence_byyear_prophet.csv
 
   eia_cleaning:
     run: stata-mp:latest analysis/100_eia_cleaning.do

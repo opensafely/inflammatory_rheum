@@ -1,17 +1,9 @@
 from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of
-from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, opa 
+from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ethnicity_from_sus 
 from ehrql.codes import ICD10Code
 from datetime import date, datetime
 from functools import reduce
 import codelists_ehrQL as codelists
-
-# # Arguments (from project.yaml)
-# from argparse import ArgumentParser
-
-# parser = ArgumentParser()
-# parser.add_argument("--diseases", type=str)
-# args = parser.parse_args()
-# diseases = args.diseases.split(", ")
 
 diseases = ["eia", "ctd", "vasc", "ctdvasc", "rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
 # diseases = ["ctd"]
@@ -83,6 +75,11 @@ def create_dataset_with_variables():
             practice_registrations.end_date,
             practice_registrations.practice_pseudo_id,
         ).last_for_patient()
+    
+    
+    # Expand 3-character ICD10 codes
+    def expand_three_char_icd10_codes(dx_codelist):
+        return dx_codelist + [f"{code}X" for code in dx_codelist if len(code) == 3]
 
     # Define sex
     dataset.sex = patients.sex
@@ -90,22 +87,25 @@ def create_dataset_with_variables():
     # Date of death
     dataset.date_of_death = patients.date_of_death
 
-    # Define patient ethnicity
+   # Define patient ethnicity
     latest_ethnicity_code = (
         clinical_events.where(clinical_events.snomedct_code.is_in(codelists.ethnicity_codes))
-        .where(clinical_events.date.is_on_or_before(fup_date))
+        .where(clinical_events.date.is_on_or_before(end_date))
         .sort_by(clinical_events.date)
         .last_for_patient().snomedct_code.to_category(codelists.ethnicity_codes)
     )
 
+    # Extract ethnicity from SUS records if it isn't present in primary care data 
+    ethnicity_sus = ethnicity_from_sus.code
+
     dataset.ethnicity = case(
-        when(latest_ethnicity_code == "1").then("White"),
-        when(latest_ethnicity_code == "2").then("Mixed"),
-        when(latest_ethnicity_code == "3").then("Asian or Asian British"),
-        when(latest_ethnicity_code == "4").then("Black or Black British"),
-        when(latest_ethnicity_code == "5").then("Chinese or Other Ethnic Groups"),
-        otherwise="Unknown",
-    )
+        when((latest_ethnicity_code == "1") | ((latest_ethnicity_code.is_null()) & (ethnicity_sus.is_in(["A", "B", "C"])))).then("White"),
+        when((latest_ethnicity_code == "2") | ((latest_ethnicity_code.is_null()) & (ethnicity_sus.is_in(["D", "E", "F", "G"])))).then("Mixed"),
+        when((latest_ethnicity_code == "3") | ((latest_ethnicity_code.is_null()) & (ethnicity_sus.is_in(["H", "J", "K", "L"])))).then("Asian or Asian British"),
+        when((latest_ethnicity_code == "4") | ((latest_ethnicity_code.is_null()) & (ethnicity_sus.is_in(["M", "N", "P"])))).then("Black or Black British"),
+        when((latest_ethnicity_code == "5") | ((latest_ethnicity_code.is_null()) & (ethnicity_sus.is_in(["R", "S"])))).then("Chinese or Other Ethnic Groups"),
+        otherwise="Unknown", 
+    ) 
 
     # Define patient IMD
     latest_address_per_patient = addresses.sort_by(addresses.start_date).last_for_patient()
@@ -134,7 +134,8 @@ def create_dataset_with_variables():
                     dataset.add_column(f"{disease}_prim_count", count_code_in_period_snomed([]))
             elif (f"{codelist_type}" == "icd"):
                 if hasattr(codelists, f"{disease}_icd"):
-                    disease_codelist = getattr(codelists, f"{disease}_icd")    
+                    disease_codelist = getattr(codelists, f"{disease}_icd")
+                    disease_codelist = expand_three_char_icd10_codes(disease_codelist)   
                     dataset.add_column(f"{disease}_sec_date", first_code_in_period_icd(disease_codelist).admission_date)
                     dataset.add_column(f"{disease}_sec_count", count_code_in_period_icd(disease_codelist))
                 else:
