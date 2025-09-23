@@ -84,3 +84,23 @@ measures.define_measure(
         "age": age_band,  
     },
 )
+
+# Population by ethnicity
+measures.define_measure(
+    name="population_ethn",
+    numerator=preceding_denominator,
+    denominator=current_denominator,
+    group_by={
+        "ethnicity": dataset.ethnicity,
+    },
+)
+
+# Population by IMD quintile
+measures.define_measure(
+    name="population_imd",
+    numerator=preceding_denominator,
+    denominator=current_denominator,
+    group_by={
+        "imd": dataset.imd_quintile,
+    },
+)

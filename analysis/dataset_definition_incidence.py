@@ -172,9 +172,7 @@ def create_dataset_with_variables():
 
         # Alive at incident diagnosis date - combined primary and secondary care
         dataset.add_column(f"{disease}_alive_inc",
-            (
-                (dataset.date_of_death.is_after(getattr(dataset, f"{disease}_inc_date"))) |
-                dataset.date_of_death.is_null()
+            ((dataset.date_of_death.is_after(getattr(dataset, f"{disease}_inc_date"))) | dataset.date_of_death.is_null()
             ).when_null_then(False)
         )
 
@@ -198,35 +196,7 @@ def create_dataset_with_variables():
 
         # Alive at incident diagnosis date - primary care only
         dataset.add_column(f"{disease}_alive_inc_p",
-            (
-                (dataset.date_of_death.is_after(getattr(dataset, f"{disease}_prim_date"))) |
-                dataset.date_of_death.is_null()
-            ).when_null_then(False)
-        )
-
-        # Incident date within window - secondary care only
-        dataset.add_column(f"{disease}_inc_case_s",
-            (getattr(dataset, disease + "_sec_date").is_on_or_between(index_date, end_date)
-            ).when_null_then(False)
-        )
-
-        # 12 months registration preceding incident diagnosis date - secondary care only
-        dataset.add_column(f"{disease}_pre_reg_s", 
-            preceding_registration(getattr(dataset, f"{disease}_sec_date")
-            ).exists_for_patient()
-        )
-
-        # Age at diagnosis - secondary care only
-        dataset.add_column(f"{disease}_age_s",
-            (patients.age_on(getattr(dataset, f"{disease}_sec_date"))
-            )               
-        )
-
-        # Alive at incident diagnosis date - secondary care only
-        dataset.add_column(f"{disease}_alive_inc_s",
-            (
-                (dataset.date_of_death.is_after(getattr(dataset, f"{disease}_sec_date"))) |
-                dataset.date_of_death.is_null()
+            ((dataset.date_of_death.is_after(getattr(dataset, f"{disease}_prim_date"))) | dataset.date_of_death.is_null()
             ).when_null_then(False)
         )
     
