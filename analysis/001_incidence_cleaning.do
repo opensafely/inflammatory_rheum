@@ -38,10 +38,10 @@ global diseases "eia ctd vasc ctdvasc rheumatoid psa axialspa undiffia gca sjogr
 
 set type double
 
+set scheme plotplainblind
+
 *Import dataset
 import delimited "$projectdir/output/dataset_incidence.csv", clear
-
-set scheme plotplainblind
 
 *Can remove this once python confirmed - Keep only patients with one or more incident diagnoses ==============================
 gen has_disease = 0
@@ -507,13 +507,13 @@ foreach disease in $diseases {
 	*For age band
 	decode age_band, gen(age_band_s)
 	order age_band_s, after(age_band)
-	replace age_band_s = "18_29" if age_band_s == "18_to_29"
-	replace age_band_s = "30_39" if age_band_s == "30_to_39"
-	replace age_band_s = "40_49" if age_band_s == "40_to_49"
-	replace age_band_s = "50_59" if age_band_s == "50_to_59"
-	replace age_band_s = "60_69" if age_band_s == "60_to_69"
-	replace age_band_s = "70_79" if age_band_s == "70_to_79"
-	replace age_band_s = "80" if age_band_s == "80_or_above"
+	replace age_band_s = "18_29" if age_band_s == "18 to 29"
+	replace age_band_s = "30_39" if age_band_s == "30 to 39"
+	replace age_band_s = "40_49" if age_band_s == "40 to 49"
+	replace age_band_s = "50_59" if age_band_s == "50 to 59"
+	replace age_band_s = "60_69" if age_band_s == "60 to 69"
+	replace age_band_s = "70_79" if age_band_s == "70 to 79"
+	replace age_band_s = "80" if age_band_s == "80 or above"
 	
 	foreach var in 18_29 30_39 40_49 50_59 60_69 70_79 80 {
 		bys disease year: egen numerator_`var' = sum(numerator_un) if age_band_s=="`var'"
