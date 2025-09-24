@@ -121,7 +121,7 @@ actions:
       moderately_sensitive:
         log1: logs/incidence_cleaning.log   
         table1: output/tables/incidence_rates_rounded.csv
-        table2: output/tables/incidence_rates_rounded_standardised.csv
+        table2: output/tables/incidence_rates_rounded_subgroups.csv
         tabke3: output/tables/baseline_table_rounded.csv
         
   incidence_graphs:
@@ -137,7 +137,6 @@ actions:
         figure5: output/figures/unadj_age_*.svg
         figure6: output/figures/unadj_imd_*.svg
         figure7: output/figures/unadj_ethn_*.svg
-
 
   run_sarima:
     run: r:latest analysis/200_sarima.R

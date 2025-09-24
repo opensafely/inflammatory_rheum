@@ -126,7 +126,7 @@ restore
 */
 
 *Create graphs of yearly incidence rates, by disease
-import delimited "$projectdir/output/tables/incidence_rates_rounded_standardised.csv", clear
+import delimited "$projectdir/output/tables/incidence_rates_rounded_subgroups.csv", clear
 
 ***Collapse age bands
 bys disease year: egen numerator_18_39 = sum(numerator_18_29 + numerator_30_39)
@@ -304,7 +304,7 @@ foreach dis of local disease_list {
 preserve
 cd "$projectdir/output/figures"
 
-foreach stem in inc_comp unadj_sex adj_sex unadj_age unadj_imd {
+foreach stem in inc_comp unadj_sex adj_sex unadj_age unadj_imd unadj_ethn {
 	graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
 graph export "`stem'_combined.png", replace
 }

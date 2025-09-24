@@ -81,13 +81,12 @@ tab sex, missing
 keep if sex == 1 | sex == 2
 
 **Ethnicity
-rename ethnicity ethnicity_str
-gen ethnicity_n = 1 if ethnicity_str == "White"
-replace ethnicity_n = 2 if ethnicity_str == "Asian or Asian British"
-replace ethnicity_n = 3 if ethnicity_str == "Black or Black British"
-replace ethnicity_n = 4 if ethnicity_str == "Mixed"
-replace ethnicity_n = 5 if ethnicity_str == "Chinese or Other Ethnic Groups"
-replace ethnicity_n = 6 if ethnicity_str == "Unknown"
+gen ethnicity_n = 1 if ethnicity == "White"
+replace ethnicity_n = 2 if ethnicity == "Asian or Asian British"
+replace ethnicity_n = 3 if ethnicity == "Black or Black British"
+replace ethnicity_n = 4 if ethnicity == "Mixed"
+replace ethnicity_n = 5 if ethnicity == "Chinese or Other Ethnic Groups"
+replace ethnicity_n = 6 if ethnicity == "Unknown"
 
 
 label define ethnicity_n	1 "White"  						///
@@ -100,21 +99,20 @@ label define ethnicity_n	1 "White"  						///
 label values ethnicity_n ethnicity_n
 lab var ethnicity_n "Ethnicity"
 tab ethnicity_n, missing
-rename ethnicity_n ethnicity
 
 **IMD
-gen imd = 1 if imd_quintile == "1 (most deprived)"
-replace imd = 2 if imd_quintile == "2"
-replace imd = 3 if imd_quintile == "3"
-replace imd = 4 if imd_quintile == "4"
-replace imd = 5 if imd_quintile == "5 (least deprived)"
-replace imd = 6 if imd_quintile == "Unknown"
+gen imd_n = 1 if imd_quintile == "1 (most deprived)"
+replace imd_n = 2 if imd_quintile == "2"
+replace imd_n = 3 if imd_quintile == "3"
+replace imd_n = 4 if imd_quintile == "4"
+replace imd_n = 5 if imd_quintile == "5 (least deprived)"
+replace imd_n = 6 if imd_quintile == "Unknown"
 
-label define imd 1 "1 (most deprived)" 2 "2" 3 "3" 4 "4" 5 "5 (least deprived)" 6 "Unknown", modify
-label values imd imd 
-lab var imd "Index of multiple deprivation"
-tab imd, missing
-drop imd_quintile
+label define imd_n 1 "1 (most deprived)" 2 "2" 3 "3" 4 "4" 5 "5 (least deprived)" 6 "Unknown", modify
+label values imd_n imd_n 
+lab var imd_n "Index of multiple deprivation"
+tab imd_n, missing
+rename imd_quintile imd
 
 **Age at diagnosis
 foreach disease in $diseases {
@@ -187,8 +185,8 @@ table1_mc, total(before) onecol nospacelowpercent missing iqrmiddle(",")  ///
 	vars(`disease'_age contn %5.1f \ ///
 		 `disease'_age_band cat %5.1f \ ///
 		 sex cat %5.1f \ ///
-		 ethnicity cat %5.1f \ ///
-		 imd cat %5.1f \ ///
+		 ethnicity_n cat %5.1f \ ///
+		 imd_n cat %5.1f \ ///
 		 )
 restore
 }
@@ -200,6 +198,9 @@ save "$projectdir/output/data/baseline_table_rounded.dta", replace emptyok
 foreach disease in $diseases {
 	use "$projectdir/output/data/incidence_data_processed.dta", clear
 	keep if `disease'==1
+	drop imd ethnicity
+	rename imd_n imd
+	rename ethnicity_n ethnicity
 	foreach var of varlist imd ethnicity sex `disease'_age_band {
 		preserve
 		contract `var'
@@ -321,6 +322,24 @@ collapse (sum) numerator denominator, by(sex age_band year)
 drop if age_band==.
 keep if sex == 1 | sex == 2
 save "$projectdir/output/data/measures_appended_age_sex.dta", replace
+restore 
+
+preserve
+keep if measure == "population_imd"
+collapse (sum) numerator denominator, by(imd year)
+gen numerator = round(numerator_un, 5)
+gen denominator = round(denominator_un, 5)
+drop numerator_un denominator_un
+save "$projectdir/output/data/measures_appended_imd.dta", replace
+restore 
+
+preserve
+keep if measure == "population_ethn"
+collapse (sum) numerator denominator, by(ethnicity year)
+gen numerator = round(numerator_un, 5)
+gen denominator = round(denominator_un, 5)
+drop numerator_un denominator_un
+save "$projectdir/output/data/measures_appended_ethn.dta", replace
 restore 
 
 **Round numbers
@@ -510,82 +529,6 @@ foreach disease in $diseases {
 		sort disease year denominator_`var' 
 		by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
 	}
-
-	*For ethnicity
-	bys disease year: egen numerator_white = sum(numerator_un) if ethnicity_str=="White"
-	bys disease year: egen denominator_white = sum(denominator_un) if ethnicity_str=="White"
-
-	bys disease year: egen numerator_mixed = sum(numerator_un) if ethnicity_str=="Mixed"
-	bys disease year: egen denominator_mixed = sum(denominator_un) if ethnicity_str=="Mixed"
-
-	bys disease year: egen numerator_black = sum(numerator_un) if ethnicity_str=="Black or Black British"
-	bys disease year: egen denominator_black = sum(denominator_un) if ethnicity_str=="Black or Black British"
-
-	bys disease year: egen numerator_asian = sum(numerator_un) if ethnicity_str=="Asian or Asian British"
-	bys disease year: egen denominator_asian = sum(denominator_un) if ethnicity_str=="Asian or Asian British"
-
-	bys disease year: egen numerator_other = sum(numerator_un) if ethnicity_str=="Chinese or Other Ethnic Groups"
-	bys disease year: egen denominator_other = sum(denominator_un) if ethnicity_str=="Chinese or Other Ethnic Groups"
-
-	bys disease year: egen numerator_ethunk = sum(numerator_un) if ethnicity_str=="Unknown"
-	bys disease year: egen denominator_ethunk = sum(denominator_un) if ethnicity_str=="Unknown"
-
-	**Redact and round
-	foreach var in white mixed black asian other ethunk {
-		replace numerator_`var' =. if numerator_`var'<=7 | denominator_`var'<=7
-		replace denominator_`var' =. if numerator_`var'<=7 | numerator_`var'==. | denominator_`var'<=7
-		replace numerator_`var' = round(numerator_`var', 5)
-		replace denominator_`var' = round(denominator_`var', 5)
-
-		gen rate_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & denominator_`var'!=.)
-		replace rate_`var' =. if (numerator_`var'==. | denominator_`var'==.)
-		gen rate_`var' = rate_`var'*100000
-
-		sort disease year rate_`var' 
-		by disease year (rate_`var'): replace rate_`var' = rate_`var'[_n-1] if missing(rate_`var')
-		sort disease year numerator_`var'
-		by disease year (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
-		sort disease year denominator_`var' 
-		by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
-	}
-
-	*For IMD
-	bys disease year: egen numerator_imd1 = sum(numerator) if imd_quintile=="1 (most deprived)"
-	bys disease year: egen denominator_imd1 = sum(denominator) if imd_quintile=="1 (most deprived)"
-
-	bys disease year: egen numerator_imd2 = sum(numerator) if imd_quintile=="2"
-	bys disease year: egen denominator_imd2 = sum(denominator) if imd_quintile=="2"
-
-	bys disease year: egen numerator_imd3 = sum(numerator) if imd_quintile=="3"
-	bys disease year: egen denominator_imd3 = sum(denominator) if imd_quintile=="3"
-
-	bys disease year: egen numerator_imd4 = sum(numerator) if imd_quintile=="4"
-	bys disease year: egen denominator_imd4 = sum(denominator) if imd_quintile=="4"
-
-	bys disease year: egen numerator_imd5 = sum(numerator) if imd_quintile=="5 (least deprived)"
-	bys disease year: egen denominator_imd5 = sum(denominator) if imd_quintile=="5 (least deprived)"
-
-	bys disease year: egen numerator_imdunk = sum(numerator) if imd_quintile=="Unknown"
-	bys disease year: egen denominator_imdunk = sum(denominator) if imd_quintile=="Unknown"
-
-	**Redact and round
-	foreach var in imd1 imd2 imd3 imd4 imd5 imdunk {
-		replace numerator_`var' =. if numerator_`var'<=7 | denominator_`var'<=7
-		replace denominator_`var' =. if numerator_`var'<=7 | numerator_`var'==. | denominator_`var'<=7
-		replace numerator_`var' = round(numerator_`var', 5)
-		replace denominator_`var' = round(denominator_`var', 5)
-
-		gen rate_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & denominator_`var'!=.)
-		replace rate_`var' =. if (numerator_`var'==. | denominator_`var'==.)
-		gen rate_`var' = rate_`var'*100000
-
-		sort disease year rate_`var'  
-		by disease year (rate_`var'): replace rate_`var' = rate_`var'[_n-1] if missing(rate_`var')
-		sort disease year numerator_`var'
-		by disease year (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
-		sort disease year denominator_`var' 
-		by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
-	}
 	
 	*Calculate  age-standardized incidence rates, based upon European Standard Population 2013 (from 18+; total weight 80,700)
 	gen prop=14200 if age_band==1 //for 18-29 age band
@@ -625,7 +568,7 @@ foreach disease in $diseases {
 		format denominator_`var' %14.0f
 	}
 
-	foreach var in 18_29 30_39 40_49 50_59 60_69 70_79 80 white mixed black asian other ethunk imd1 imd2 imd3 imd4 imd5 imdunk {
+	foreach var in 18_29 30_39 40_49 50_59 60_69 70_79 80 {
 		format rate_`var' %14.4f
 		order rate_`var', after(denominator_`var')
 		format numerator_`var' %14.0f
@@ -658,5 +601,170 @@ foreach disease in $diseases {
 
 use "$projectdir/output/data/incidence_rates_rounded_standardised.dta", clear
 export delimited using "$projectdir/output/tables/incidence_rates_rounded_standardised.csv", datafmt replace
+
+*Append incidence rates diagnoses by year, by IMD and ethnicity=================================*/
+
+clear *
+save "$projectdir/output/data/incidence_rates_rounded_imd.dta", replace emptyok
+
+use "$projectdir/output/data/incidence_data_processed.dta", clear
+
+foreach disease in $diseases {
+	preserve
+	keep if `disease'==1
+	collapse (count) total_diag_un=`disease', by(imd `disease'_year) 
+	gen disease = strproper(subinstr("`disease'", "_", " ",.))
+	rename `disease'_year year
+
+	**Import denominators
+	merge 1:1 year imd using "$projectdir/output/data/measures_appended_imd.dta", keep(match) nogen
+	
+	**Drop unnecessary variables
+	drop denominator
+	order disease, first
+	rename numerator denominator
+	rename total_diag_un numerator_un
+	order year, after(disease)
+
+	*For IMD
+	bys disease year: egen numerator_imd1 = sum(numerator_un) if imd=="1 (most deprived)"
+	bys disease year: egen denominator_imd1 = sum(denominator) if imd=="1 (most deprived)"
+
+	bys disease year: egen numerator_imd2 = sum(numerator_un) if imd=="2"
+	bys disease year: egen denominator_imd2 = sum(denominator) if imd=="2"
+
+	bys disease year: egen numerator_imd3 = sum(numerator_un) if imd=="3"
+	bys disease year: egen denominator_imd3 = sum(denominator) if imd=="3"
+
+	bys disease year: egen numerator_imd4 = sum(numerator_un) if imd=="4"
+	bys disease year: egen denominator_imd4 = sum(denominator) if imd=="4"
+
+	bys disease year: egen numerator_imd5 = sum(numerator_un) if imd=="5 (least deprived)"
+	bys disease year: egen denominator_imd5 = sum(denominator) if imd=="5 (least deprived)"
+
+	bys disease year: egen numerator_imdunk = sum(numerator_un) if imd=="Unknown"
+	bys disease year: egen denominator_imdunk = sum(denominator) if imd=="Unknown"
+
+	**Redact and round
+	foreach var in imd1 imd2 imd3 imd4 imd5 imdunk {
+		replace numerator_`var' =. if numerator_`var'<=7 | denominator_`var'<=7
+		replace denominator_`var' =. if numerator_`var'<=7 | numerator_`var'==. | denominator_`var'<=7
+		replace numerator_`var' = round(numerator_`var', 5)
+		replace denominator_`var' = round(denominator_`var', 5)
+
+		gen rate_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & denominator_`var'!=.)
+		replace rate_`var' =. if (numerator_`var'==. | denominator_`var'==.)
+		replace rate_`var' = rate_`var'*100000
+
+		sort disease year rate_`var'  
+		by disease year (rate_`var'): replace rate_`var' = rate_`var'[_n-1] if missing(rate_`var')
+		sort disease year numerator_`var'
+		by disease year (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
+		sort disease year denominator_`var' 
+		by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
+	}
+	
+	bys disease year: gen n=_n
+	keep if n==1
+	drop imd numerator_un denominator n
+
+	foreach var in imd1 imd2 imd3 imd4 imd5 imdunk {
+		format rate_`var' %14.4f
+		order rate_`var', after(denominator_`var')
+		format numerator_`var' %14.0f
+		format denominator_`var' %14.0f
+	}
+	
+	**Output to appended dta
+	append using "$projectdir/output/data/incidence_rates_rounded_imd.dta"
+	save "$projectdir/output/data/incidence_rates_rounded_imd.dta", replace  
+	
+	restore
+}
+
+clear *
+save "$projectdir/output/data/incidence_rates_rounded_ethn.dta", replace emptyok
+
+use "$projectdir/output/data/incidence_data_processed.dta", clear
+
+foreach disease in $diseases {
+	preserve
+	keep if `disease'==1
+	collapse (count) total_diag_un=`disease', by(ethnicity `disease'_year) 
+	gen disease = strproper(subinstr("`disease'", "_", " ",.))
+	rename `disease'_year year
+
+	**Import denominators
+	merge 1:1 year ethnicity using "$projectdir/output/data/measures_appended_ethn.dta", keep(match) nogen
+	
+	**Drop unnecessary variables
+	drop denominator
+	order disease, first
+	rename numerator denominator
+	rename total_diag_un numerator_un
+	order year, after(disease)
+	
+	*For ethnicity
+	bys disease year: egen numerator_white = sum(numerator_un) if ethnicity=="White"
+	bys disease year: egen denominator_white = sum(denominator) if ethnicity=="White"
+
+	bys disease year: egen numerator_mixed = sum(numerator_un) if ethnicity=="Mixed"
+	bys disease year: egen denominator_mixed = sum(denominator) if ethnicity=="Mixed"
+
+	bys disease year: egen numerator_black = sum(numerator_un) if ethnicity=="Black or Black British"
+	bys disease year: egen denominator_black = sum(denominator) if ethnicity=="Black or Black British"
+
+	bys disease year: egen numerator_asian = sum(numerator_un) if ethnicity=="Asian or Asian British"
+	bys disease year: egen denominator_asian = sum(denominator) if ethnicity=="Asian or Asian British"
+
+	bys disease year: egen numerator_other = sum(numerator_un) if ethnicity=="Chinese or Other Ethnic Groups"
+	bys disease year: egen denominator_other = sum(denominator) if ethnicity=="Chinese or Other Ethnic Groups"
+
+	bys disease year: egen numerator_ethunk = sum(numerator_un) if ethnicity=="Unknown"
+	bys disease year: egen denominator_ethunk = sum(denominator) if ethnicity=="Unknown"
+
+	**Redact and round
+	foreach var in white mixed black asian other ethunk {
+		replace numerator_`var' =. if numerator_`var'<=7 | denominator_`var'<=7
+		replace denominator_`var' =. if numerator_`var'<=7 | numerator_`var'==. | denominator_`var'<=7
+		replace numerator_`var' = round(numerator_`var', 5)
+		replace denominator_`var' = round(denominator_`var', 5)
+
+		gen rate_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & denominator_`var'!=.)
+		replace rate_`var' =. if (numerator_`var'==. | denominator_`var'==.)
+		replace rate_`var' = rate_`var'*100000
+
+		sort disease year rate_`var' 
+		by disease year (rate_`var'): replace rate_`var' = rate_`var'[_n-1] if missing(rate_`var')
+		sort disease year numerator_`var'
+		by disease year (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
+		sort disease year denominator_`var' 
+		by disease year (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
+	}
+	
+	bys disease year: gen n=_n
+	keep if n==1
+	drop ethnicity numerator_un denominator n
+
+	foreach var in white mixed black asian other ethunk {
+		format rate_`var' %14.4f
+		order rate_`var', after(denominator_`var')
+		format numerator_`var' %14.0f
+		format denominator_`var' %14.0f
+	}
+	
+	**Output to appended dta
+	append using "$projectdir/output/data/incidence_rates_rounded_ethn.dta"
+	save "$projectdir/output/data/incidence_rates_rounded_ethn.dta", replace  
+	
+	restore
+}
+
+**Merge in IMD and ethnicity to age and sex standardised data
+use "$projectdir/output/data/incidence_rates_rounded_standardised.dta", clear
+merge 1:1 year disease using "$projectdir/output/data/incidence_rates_rounded_ethn.dta", keep(match) nogen
+merge 1:1 year disease using "$projectdir/output/data/incidence_rates_rounded_imd.dta", keep(match) nogen
+sort disease year
+export delimited using "$projectdir/output/tables/incidence_rates_rounded_subgroups.csv", datafmt replace
 
 log close	
