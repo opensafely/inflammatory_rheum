@@ -310,6 +310,7 @@ label define age_band	1 "18 to 29" ///
 						6 "70 to 79" ///
 						7 "80 or above", modify
 lab val age_band age_band
+tab age_band
 
 drop sex_s age year_old
 
@@ -319,6 +320,8 @@ rename denominator denominator_un
 preserve
 keep if measure == "population_bands"
 collapse (mean) numerator denominator, by(year sex age_band)
+codebook age_band
+codebook sex
 drop if age_band==.
 keep if sex == 1 | sex == 2
 save "$projectdir/output/data/measures_appended_age_sex.dta", replace
