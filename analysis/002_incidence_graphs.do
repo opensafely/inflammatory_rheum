@@ -193,8 +193,7 @@ foreach dis of local disease_list {
 	if "`dis'" == "Vasc" local dis_full "Vasculitis"
 	if "`dis'" == "Ctdvasc" local dis_full "CTD and vasculitis"
 	
-	/*
-	***Set y-axis format
+	*Set y-axis format
 	egen incidence_min = min(rate_all)
 	if incidence_min < 1 {
 		local format = "format(%03.2f)"
@@ -203,10 +202,8 @@ foreach dis of local disease_list {
 		local format = "format(%9.1f)"
 	}
 	else {
-		local format = "format(%9.0f)"
+		local format = "format(%9.1f)"
 	}
-	di "`format'"
-	*/
 	
 	*Label y-axis (for combined graph)
 	if "`dis'" == "Rheumatoid" | "`dis'" == "Sjogren" | "`dis'" == "Gca" {
@@ -225,6 +222,7 @@ foreach dis of local disease_list {
 		local xtitle ""
 	}
 
+	/*
 	***Ranges for graphs
 	egen s_rate_all_av = mean(s_rate_all)
 	egen s_rate_male_max = max(s_rate_male)
@@ -266,34 +264,37 @@ foreach dis of local disease_list {
 	di `upper'
 	nicelabels `lower' `upper', local(ylab)
 	di "`ylab'"
-
+	
+	*ylabel("`ylab'", nogrid labsize(small))
+	*/
+	
 	*Yearly incidence comparison between adjusted and crude
-	twoway connected rate_all year, ytitle("`ytitle'", size(medsmall)) color(gold%30) msymbol(circle) lstyle(solid) lcolor(gold) || connected s_rate_all year, color(emerald%30) msymbol(circle) lstyle(solid) lcolor(emerald) ylabel("`ylab'", nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Crude" 2 "Adjusted")) name(inc_comp_`dis', replace) saving("$projectdir/output/figures/inc_comp_`dis'.gph", replace)	
+	twoway connected rate_all year, ytitle("`ytitle'", size(medsmall)) color(gold%30) msymbol(circle) lstyle(solid) lcolor(gold) || connected s_rate_all year, color(emerald%30) msymbol(circle) lstyle(solid) lcolor(emerald) ylabel(, `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Crude" 2 "Adjusted")) name(inc_comp_`dis', replace) saving("$projectdir/output/figures/inc_comp_`dis'.gph", replace)	
 		*graph export "$projectdir/output/figures/inc_comp_`dis'.png", replace
 		graph export "$projectdir/output/figures/inc_comp_`dis'.svg", replace
 	
 	*Yearly incidence comparison by sex (unadjusted)
-	twoway connected rate_male year, ytitle("`ytitle'", size(medsmall)) color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(midblue) || connected rate_female year, color(orange%20) mlcolor(orange%20) msymbol(circle) lstyle(solid) lcolor(red) ylabel("`ylab'", nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Male" 2 "Female")) name(unadj_sex_`dis', replace) saving("$projectdir/output/figures/unadj_sex_`dis'.gph", replace)	
+	twoway connected rate_male year, ytitle("`ytitle'", size(medsmall)) color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(midblue) || connected rate_female year, color(orange%20) mlcolor(orange%20) msymbol(circle) lstyle(solid) lcolor(red) ylabel(, `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Male" 2 "Female")) name(unadj_sex_`dis', replace) saving("$projectdir/output/figures/unadj_sex_`dis'.gph", replace)	
 		*graph export "$projectdir/output/figures/unadj_sex_`dis'.png", replace
 		graph export "$projectdir/output/figures/unadj_sex_`dis'.svg", replace
 		
 	*Yearly incidence comparison by sex (adjusted)
-	twoway connected s_rate_male year, ytitle("`ytitle'", size(medsmall)) color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(midblue) || connected s_rate_female year, color(orange%20) mlcolor(orange%20) msymbol(circle) lstyle(solid) lcolor(red) ylabel("`ylab'", nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Male" 2 "Female")) name(adj_sex_`dis', replace) saving("$projectdir/output/figures/adj_sex_`dis'.gph", replace)	
+	twoway connected s_rate_male year, ytitle("`ytitle'", size(medsmall)) color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(midblue) || connected s_rate_female year, color(orange%20) mlcolor(orange%20) msymbol(circle) lstyle(solid) lcolor(red) ylabel(, `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Male" 2 "Female")) name(adj_sex_`dis', replace) saving("$projectdir/output/figures/adj_sex_`dis'.gph", replace)	
 		*graph export "$projectdir/output/figures/adj_sex_`dis'.png", replace
 		graph export "$projectdir/output/figures/adj_sex_`dis'.svg", replace
 		
 	*Yearly incidence comparison by age band (unadjusted)
-	twoway connected rate_18_39 year, ytitle("`ytitle'", size(medsmall)) color(ltblue%20) mlcolor(ltblue%20) msymbol(circle) lstyle(solid) lcolor(ltblue) || connected rate_40_59 year, color(ebblue%20) mlcolor(ebblue%20) msymbol(circle) lstyle(solid) lcolor(ebblue) || connected rate_60_79 year, color(blue%20) mlcolor(blue%20) msymbol(circle) lstyle(solid) lcolor(blue) || connected rate_80 year, color(navy%20) mlcolor(navy%20) msymbol(circle) lstyle(solid) lcolor(navy) ylabel(, nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) title("Age group", size(small) margin(b=1)) order(1 "18-39" 2 "40-59" 3 "60-79" 4 "80+")) name(unadj_age_`dis', replace) saving("$projectdir/output/figures/unadj_age_`dis'.gph", replace)	
+	twoway connected rate_18_39 year, ytitle("`ytitle'", size(medsmall)) color(ltblue%20) mlcolor(ltblue%20) msymbol(circle) lstyle(solid) lcolor(ltblue) || connected rate_40_59 year, color(ebblue%20) mlcolor(ebblue%20) msymbol(circle) lstyle(solid) lcolor(ebblue) || connected rate_60_79 year, color(blue%20) mlcolor(blue%20) msymbol(circle) lstyle(solid) lcolor(blue) || connected rate_80 year, color(navy%20) mlcolor(navy%20) msymbol(circle) lstyle(solid) lcolor(navy) ylabel(, `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) title("Age group", size(small) margin(b=1)) order(1 "18-39" 2 "40-59" 3 "60-79" 4 "80+")) name(unadj_age_`dis', replace) saving("$projectdir/output/figures/unadj_age_`dis'.gph", replace)	
 		*graph export "$projectdir/output/figures/unadj_age_`dis'.png", replace
 		graph export "$projectdir/output/figures/unadj_age_`dis'.svg", replace
 		
 	*Yearly incidence comparison by ethnicity (unadjusted)
-	twoway connected rate_white year, ytitle("`ytitle'", size(medsmall)) color(ltblue%20) mlcolor(ltblue%20) msymbol(circle) lstyle(solid) lcolor(ltblue) || connected rate_mixed year, color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(eltblue) || connected rate_black year, color(ebblue%20) mlcolor(ebblue%20) msymbol(circle) lstyle(solid) lcolor(ebblue) || connected rate_asian year, color(blue%20) mlcolor(blue%20) msymbol(circle) lstyle(solid) lcolor(blue) || connected rate_other year, color(navy%20) mlcolor(navy%20) msymbol(circle) lstyle(solid) lcolor(navy) ylabel(, nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) title("Ethnicity", size(medsmall) margin(b=1)) order(1 "White" 2 "Mixed" 3 "Black" 4 "Asian" 5 "Chinese/Other")) name(unadj_ethn_`dis', replace) saving("$projectdir/output/figures/unadj_ethn_`dis'.gph", replace)
+	twoway connected rate_white year, ytitle("`ytitle'", size(medsmall)) color(ltblue%20) mlcolor(ltblue%20) msymbol(circle) lstyle(solid) lcolor(ltblue) || connected rate_mixed year, color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(eltblue) || connected rate_black year, color(ebblue%20) mlcolor(ebblue%20) msymbol(circle) lstyle(solid) lcolor(ebblue) || connected rate_asian year, color(blue%20) mlcolor(blue%20) msymbol(circle) lstyle(solid) lcolor(blue) || connected rate_other year, color(navy%20) mlcolor(navy%20) msymbol(circle) lstyle(solid) lcolor(navy) ylabel(, `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) title("Ethnicity", size(medsmall) margin(b=1)) order(1 "White" 2 "Mixed" 3 "Black" 4 "Asian" 5 "Chinese/Other")) name(unadj_ethn_`dis', replace) saving("$projectdir/output/figures/unadj_ethn_`dis'.gph", replace)
 		*graph export "$projectdir/output/figures/unadj_ethn_`dis'.png", replace
 		graph export "$projectdir/output/figures/unadj_ethn_`dis'.svg", replace
 		
 	*Yearly incidence comparison by IMD quintile (unadjusted)
-	twoway connected rate_imd1 year, ytitle("`ytitle'", size(medsmall)) color(ltblue%20) mlcolor(ltblue%20) msymbol(circle) lstyle(solid) lcolor(ltblue) || connected rate_imd2 year, color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(eltblue) || connected rate_imd3 year, color(ebblue%20) mlcolor(ebblue%20) msymbol(circle) lstyle(solid) lcolor(ebblue) || connected rate_imd4 year, color(blue%20) mlcolor(blue%20) msymbol(circle) lstyle(solid) lcolor(blue) || connected rate_imd5 year, color(navy%20) mlcolor(navy%20) msymbol(circle) lstyle(solid) lcolor(navy) ylabel(, nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) title("IMD quintile", size(small) margin(b=1)) order(1 "1 Most deprived" 2 "2" 3 "3" 4 "4" 5 "5 Least deprived")) name(unadj_imd_`dis', replace) saving("$projectdir/output/figures/unadj_imd_`dis'.gph", replace)	
+	twoway connected rate_imd1 year, ytitle("`ytitle'", size(medsmall)) color(ltblue%20) mlcolor(ltblue%20) msymbol(circle) lstyle(solid) lcolor(ltblue) || connected rate_imd2 year, color(eltblue%20) mlcolor(eltblue%20) msymbol(circle) lstyle(solid) lcolor(eltblue) || connected rate_imd3 year, color(ebblue%20) mlcolor(ebblue%20) msymbol(circle) lstyle(solid) lcolor(ebblue) || connected rate_imd4 year, color(blue%20) mlcolor(blue%20) msymbol(circle) lstyle(solid) lcolor(blue) || connected rate_imd5 year, color(navy%20) mlcolor(navy%20) msymbol(circle) lstyle(solid) lcolor(navy) ylabel(, `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) title("IMD quintile", size(small) margin(b=1)) order(1 "1 Most deprived" 2 "2" 3 "3" 4 "4" 5 "5 Least deprived")) name(unadj_imd_`dis', replace) saving("$projectdir/output/figures/unadj_imd_`dis'.gph", replace)	
 		*graph export "$projectdir/output/figures/unadj_imd_`dis'.png", replace
 		graph export "$projectdir/output/figures/unadj_imd_`dis'.svg", replace
 					

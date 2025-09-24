@@ -318,7 +318,7 @@ rename denominator denominator_un
 
 preserve
 keep if measure == "population_bands"
-collapse (sum) numerator denominator, by(sex age_band year)
+collapse (mean) numerator denominator, by(year sex age_band)
 drop if age_band==.
 keep if sex == 1 | sex == 2
 save "$projectdir/output/data/measures_appended_age_sex.dta", replace
@@ -326,7 +326,7 @@ restore
 
 preserve
 keep if measure == "population_imd"
-collapse (sum) numerator denominator, by(imd year)
+collapse (mean) numerator denominator, by(year imd)
 gen numerator = round(numerator_un, 5)
 gen denominator = round(denominator_un, 5)
 drop numerator_un denominator_un
@@ -335,7 +335,7 @@ restore
 
 preserve
 keep if measure == "population_ethn"
-collapse (sum) numerator denominator, by(ethnicity year)
+collapse (mean) numerator denominator, by(year ethnicity)
 gen numerator = round(numerator_un, 5)
 gen denominator = round(denominator_un, 5)
 drop numerator_un denominator_un
@@ -349,7 +349,7 @@ gen rate = numerator/denominator
 
 *Overall denominator
 keep if measure == "population_overall"
-drop age* sex* measure rate numerator_un denominator_un ratio
+drop age* sex* measure rate numerator_un denominator_un ratio ethnicity imd
 export delimited using "$projectdir/output/tables/denominator_counts.csv", datafmt replace
 save "$projectdir/output/data/measures_appended.dta", replace 
 
@@ -598,9 +598,6 @@ foreach disease in $diseases {
 	
 	restore
 }
-
-use "$projectdir/output/data/incidence_rates_rounded_standardised.dta", clear
-export delimited using "$projectdir/output/tables/incidence_rates_rounded_standardised.csv", datafmt replace
 
 *Append incidence rates diagnoses by year, by IMD and ethnicity=================================*/
 
