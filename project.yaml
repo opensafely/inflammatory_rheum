@@ -150,19 +150,19 @@ actions:
         table1: output/tables/change_incidence_byyear.csv
         table2: output/tables/change_incidence_byyear_prophet.csv
 
-  eia_cleaning:
-    run: stata-mp:latest analysis/100_eia_cleaning.do
-    needs: [generate_dataset_incidence, generate_dataset_eia]
-    outputs:
-      highly_sensitive:
-        log1: logs/eia_dataset.log   
-        data1: output/data/file_eia_all.dta  
+  # eia_cleaning:
+  #   run: stata-mp:latest analysis/100_eia_cleaning.do
+  #   needs: [generate_dataset_incidence, generate_dataset_eia]
+  #   outputs:
+  #     highly_sensitive:
+  #       log1: logs/eia_dataset.log   
+  #       data1: output/data/file_eia_all.dta  
 
-  run_box_plots:
-    run: stata-mp:latest analysis/300_box_plots.do
-    needs: [eia_cleaning]
-    outputs:
-      moderately_sensitive:
-        log1: logs/box_plots.log   
-        figure 1: output/figures/regional_qs2_bar_*.svg 
-        figure 2: output/figures/regional_csdmard_bar_*.svg  
+  # run_box_plots:
+  #   run: stata-mp:latest analysis/300_box_plots.do
+  #   needs: [eia_cleaning]
+  #   outputs:
+  #     moderately_sensitive:
+  #       log1: logs/box_plots.log   
+  #       figure 1: output/figures/regional_qs2_bar_*.svg 
+  #       figure 2: output/figures/regional_csdmard_bar_*.svg  

@@ -37,12 +37,12 @@ preceding_reg_index = pre_registrations.exists_for_patient()
 age = patients.age_on(index_date)
 
 age_band = case(  
-    when((age >= 18) & (age < 30)).then("age_18_29"),
-    when((age >= 30) & (age < 39)).then("age_30_39"),
-    when((age >= 40) & (age < 49)).then("age_40_49"),
-    when((age >= 50) & (age < 59)).then("age_50_59"),
-    when((age >= 60) & (age < 69)).then("age_60_69"),
-    when((age >= 70) & (age < 79)).then("age_70_79"),
+    when((age >= 18) & (age <= 29)).then("age_18_29"),
+    when((age >= 30) & (age <= 39)).then("age_30_39"),
+    when((age >= 40) & (age <= 49)).then("age_40_49"),
+    when((age >= 50) & (age <= 59)).then("age_50_59"),
+    when((age >= 60) & (age <= 69)).then("age_60_69"),
+    when((age >= 70) & (age <= 79)).then("age_70_79"),
     when((age >= 80)).then("age_greater_equal_80"),
 )
 

@@ -13,9 +13,12 @@ USER-INSTALLED ADO:
 ==============================================================================*/
 
 *Set filepaths
-*global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
 *global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
-global projectdir `c(pwd)'
+global running_locally = 1   // Running on local machine
+*global projectdir `c(pwd)'
+*global running_locally = 0   // Running on OpenSAFELY console
+
 di "$projectdir"
 
 capture mkdir "$projectdir/output/data"
@@ -33,7 +36,7 @@ log using "$logdir/incidence_graphs.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "eia ctd vasc ctdvasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+global diseases "eia ctd vasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
 *global diseases "ctd"
 
 set type double
@@ -57,21 +60,9 @@ foreach dis of local disease_list {
 	di "`dis'"
 	keep if disease=="`dis'"
 		
-	**Label diseases - can remove this once re-run and add new line to local dis_full = dis_full
-	if "`dis'" == "Eia" local dis_full "Early inflammatory arthritis"
-	if "`dis'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
-	if "`dis'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis'" == "Axialspa" local dis_full "Axial spondyloarthritis"
-	if "`dis'" == "Undiffia" local dis_full "Undifferentiated IA"
-	if "`dis'" == "Gca" local dis_full "Giant cell arteritis"
-	if "`dis'" == "Sjogren" local dis_full "Sjogren's disease"
-	if "`dis'" == "Ssc" local dis_full "Systemic sclerosis"
-	if "`dis'" == "Sle" local dis_full "SLE"
-	if "`dis'" == "Myositis" local dis_full "Myositis"
-	if "`dis'" == "Anca" local dis_full "ANCA vasculitis"
-	if "`dis'" == "Ctd" local dis_full "Connective tissue diseases"
-	if "`dis'" == "Vasc" local dis_full "Vasculitis"
-	if "`dis'" == "Ctdvasc" local dis_full "CTD and vasculitis"
+	**Local full disease name
+	local dis_full = dis_full[1]
+	display "`dis_full'"
 	
 	***Set y-axis format
 	egen incidence_min = min(incidence)
@@ -113,17 +104,20 @@ foreach dis of local disease_list {
 	restore
 }
 
-/*
-*Combine graphs - Nb. this won't work in OpenSAFELY console
-preserve
-cd "$projectdir/output/figures"
+*Combine graphs (Nb. this doesnt work in OpenSAFELY console)
+if $running_locally {
+	preserve
+	cd "$projectdir/output/figures"
 
-foreach stem in inc_rate {
-	graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
-graph export "`stem'_combined.png", replace
-}
+	foreach stem in inc_rate {
+		graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
+	graph export "`stem'_combined.png", replace
+	}
 restore
-*/
+}
+else {
+    di "Not running locally — skipping graph combine"
+}
 
 *Create graphs of yearly incidence rates, by disease
 import delimited "$projectdir/output/tables/incidence_rates_rounded_subgroups.csv", clear
@@ -177,21 +171,9 @@ foreach dis of local disease_list {
 	di "`dis'"
 	keep if disease=="`dis'"
 		
-	**Label diseases - can remove this once re-run and add new line to local dis_full = dis_full
-	if "`dis'" == "Eia" local dis_full "Early inflammatory arthritis"
-	if "`dis'" == "Rheumatoid" local dis_full "Rheumatoid arthritis"
-	if "`dis'" == "Psa" local dis_full "Psoriatic arthritis"
-	if "`dis'" == "Axialspa" local dis_full "Axial spondyloarthritis"
-	if "`dis'" == "Undiffia" local dis_full "Undifferentiated IA"
-	if "`dis'" == "Gca" local dis_full "Giant cell arteritis"
-	if "`dis'" == "Sjogren" local dis_full "Sjogren's disease"
-	if "`dis'" == "Ssc" local dis_full "Systemic sclerosis"
-	if "`dis'" == "Sle" local dis_full "SLE"
-	if "`dis'" == "Myositis" local dis_full "Myositis"
-	if "`dis'" == "Anca" local dis_full "ANCA vasculitis"
-	if "`dis'" == "Ctd" local dis_full "Connective tissue diseases"
-	if "`dis'" == "Vasc" local dis_full "Vasculitis"
-	if "`dis'" == "Ctdvasc" local dis_full "CTD and vasculitis"
+	**Local full disease name
+	local dis_full = dis_full[1]
+	display "`dis_full'"
 	
 	*Set y-axis format
 	egen incidence_min = min(rate_all)
@@ -301,15 +283,19 @@ foreach dis of local disease_list {
 	restore
 }
 
-/*Combine graphs (Nb. this doesnt work in OpenSAFELY console)
-preserve
-cd "$projectdir/output/figures"
+*Combine graphs (Nb. this doesnt work in OpenSAFELY console)
+if $running_locally {
+	preserve
+	cd "$projectdir/output/figures"
 
-foreach stem in inc_comp unadj_sex adj_sex unadj_age unadj_imd unadj_ethn {
-	graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
-graph export "`stem'_combined.png", replace
+	foreach stem in inc_comp unadj_sex adj_sex unadj_age unadj_imd unadj_ethn {
+		graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
+	graph export "`stem'_combined.png", replace
+	}
+	restore
 }
-restore
-*/
+else {
+    di "Not running locally — skipping graph combine"
+}
 
 log close	

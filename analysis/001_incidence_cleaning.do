@@ -33,7 +33,7 @@ log using "$logdir/incidence_cleaning.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "eia ctd vasc ctdvasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+global diseases "eia ctd vasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
 *global diseases "ctd"
 
 set type double
@@ -43,7 +43,7 @@ set scheme plotplainblind
 *Import dataset
 import delimited "$projectdir/output/dataset_incidence.csv", clear
 
-*Can remove this once python confirmed - Keep only patients with one or more incident diagnoses ==============================
+*Keep only patients with one or more incident diagnoses (handled in dataset definition)=======================
 gen has_disease = 0
 
 foreach disease in $diseases {
@@ -387,7 +387,7 @@ foreach disease in $diseases {
 	order disease, first
 	
 	gen dis_full = disease
-	replace dis_full = "Rheumatoid_Arthritis" if dis_full == "Rheumatoid"
+	replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
 	replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 	replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 	replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"

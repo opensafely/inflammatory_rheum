@@ -9,7 +9,7 @@ dataset = create_dataset_with_variables()
 # Dates for study
 index_date = "2016-04-01"
 end_date = "2025-03-31"
-fup_date = "2025-07-31"
+fup_date = "2025-09-30"
 
 # Seropositive/erosive diagnostic code (last match before study end date)
 def last_code_in_period(dx_codelist):

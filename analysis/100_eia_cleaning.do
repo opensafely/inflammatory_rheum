@@ -44,7 +44,7 @@ set scheme plotplainblind
 global index_date = "01/04/2016"
 global start_date = "01/04/2019" //for outpatient analyses, data only be available from April 2019
 global end_date = "31/03/2025"
-global fup_date = "31/07/2025"
+global fup_date = "30/09/2025"
 global base_year = year(date("$start_date", "DMY"))
 global end_year = year(date("$end_date", "DMY"))
 global max_year = $end_year - $base_year

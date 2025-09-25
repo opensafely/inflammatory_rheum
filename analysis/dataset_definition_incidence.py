@@ -5,13 +5,12 @@ from datetime import date, datetime
 from functools import reduce
 import codelists_ehrQL as codelists
 
-diseases = ["eia", "ctd", "vasc", "ctdvasc", "rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
-# diseases = ["ctd"]
+diseases = ["eia", "rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca", "ctd", "vasc"]
 codelist_types = ["snomed", "icd"]
 
 index_date = "2016-04-01"
 end_date = "2025-03-31"
-fup_date = "2025-07-31"
+fup_date = "2025-09-30"
 
 # Any practice registration before study end date
 any_registration = practice_registrations.where(
