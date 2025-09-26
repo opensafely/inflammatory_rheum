@@ -13,11 +13,11 @@ USER-INSTALLED ADO:
 ==============================================================================*/
 
 *Set filepaths
-global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+*global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
 *global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
-global running_locally = 1   // Running on local machine
-*global projectdir `c(pwd)'
-*global running_locally = 0   // Running on OpenSAFELY console
+*global running_locally = 1   // Running on local machine
+global projectdir `c(pwd)'
+global running_locally = 0   // Running on OpenSAFELY console
 
 di "$projectdir"
 

@@ -31,10 +31,11 @@ library(lubridate)
 
 sessionInfo()
 
-
 #For running locally
 #setwd("C:/Users/k1754142/OneDrive/PhD Project/OpenSAFELY NEIAA/inflammatory_rheum/")
 #setwd("C:/Users/Mark/OneDrive/PhD Project/OpenSAFELY NEIAA/inflammatory_rheum/")
+#running_locally <- TRUE
+running_locally <- FALSE
 
 ## Create directories if needed
 dir_create(here::here("output/figures"), showWarnings = FALSE, recurse = TRUE)
@@ -47,7 +48,7 @@ df <-read.csv("output/tables/incidence_rates_rounded.csv")
 
 # Rename variables in the data and ensure dates in correct format
 names(df)[names(df) == "numerator"] <- "count"
-df<- df %>% select(disease, year, mo_year_diagn, incidence, count) 
+df<- df %>% select(disease, dis_full, year, mo_year_diagn, incidence, count) 
 df$month <- substr(df$mo_year_diagn, 1, 3)
 df$mo_year_diagn <- gsub("-", " ", df$mo_year_diagn)
 df$mon_year <- df$mo_year_diagn
@@ -96,41 +97,13 @@ for (j in 1:length(disease_list)) {
   dis <- disease_list[j]
   df_dis <- df[df$disease == dis, ]
   df_dis <- df_dis %>%  mutate(index=1:n()) #create an index variable
+  dis_full <- unique(df_dis$dis_full)
   
-  # Manually set titles based on the disease
-  if (dis == "Rheumatoid") {
-    dis_title <- "Rheumatoid arthritis"
-  } else if (dis == "Psa") {
-    dis_title <- "Psoriatic arthritis"
-  } else if (dis == "Axialspa") {
-    dis_title <- "Axial spondyloarthritis"
-  } else if (dis == "Undiffia") {
-    dis_title <- "Undifferentiated IA"
-  } else if (dis == "Gca") {
-    dis_title <- "Giant cell arteritis"
-  } else if (dis == "Sjogren") {
-    dis_title <- "Sjogren's disease"
-  } else if (dis == "Ssc") {
-    dis_title <- "Systemic sclerosis"
-  } else if (dis == "Sle") {
-    dis_title <- "SLE"
-  } else if (dis == "Anca") {
-    dis_title <- "ANCA vasculitis"
-  } else if (dis == "Eia") {
-    dis_title <- "Early inflammatory arthritis"
-  } else if (dis == "Ctd") {
-    dis_title <- "Connective tissue diseases"
-  } else if (dis == "Vasc") {
-    dis_title <- "Vasculitis"
-  } else {
-    dis_title <- str_to_title(str_replace_all(dis, "_", " "))
-  }
-
   print(index_axis)
   
   # Label y-axis
   if (index_axis %in% c(1, 4)) {
-    y_label <- "Monthly incidence rate"
+    y_label <- "Monthly incidence rate per 100,000"
   } else {
     y_label <- ""
   }
@@ -363,7 +336,7 @@ for (j in 1:length(disease_list)) {
         axis.title.y = element_text(size = 12, margin = margin(r = 5)), 
         plot.title = element_text(size = 14, hjust = 0.5, face = "plain") 
       ) +
-      ggtitle(dis_title)
+      ggtitle(dis_full)
     
     saveRDS(c1, file = paste0("output/figures/obs_pred_", var, "_", dis, ".rds"))
     ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
@@ -469,7 +442,7 @@ for (j in 1:length(disease_list)) {
     }
     
     rates.summary <- rates.summary %>%
-      mutate(disease = dis_title) %>% 
+      mutate(disease = dis_full) %>% 
       mutate(measure = var) %>% 
       select(measure, everything()) %>% 
       select(disease, everything()) 
@@ -559,7 +532,7 @@ for (j in 1:length(disease_list)) {
           axis.title.y = element_text(size = 10, margin = margin(r = 10)),
           plot.title   = element_text(size = 14, hjust = 0.5, face = "plain")
         ) +
-        ggtitle(paste0(dis_title))
+        ggtitle(paste0(dis_full))
       
       saveRDS(c_prophet, file = paste0("output/figures/prophet_", var, "_", dis, ".rds"))
       ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".svg"),
@@ -658,7 +631,7 @@ for (j in 1:length(disease_list)) {
       }
       
       rates.summary <- rates.summary %>%
-        mutate(disease = dis_title) %>% 
+        mutate(disease = dis_full) %>% 
         mutate(measure = var) %>% 
         select(measure, everything()) %>% 
         select(disease, everything()) 
@@ -688,47 +661,50 @@ for (j in 1:length(disease_list)) {
   index_axis <- index_axis + 1
 }    
 
-# # Generate combined graphs for each disease - Nb. the below doesn't run in the OpenSAFELY console
-# dis_vec <- as.character(disease_list)
-# 
-# # List and read all RDS files that match the pattern (for SARIMA)
-# rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence.*_.*\\.rds$", full.names = TRUE)
-# fnames <- basename(rds_files)
-# file_dis <- sub("^obs_pred_incidence_(.*)\\.rds$", "\\1", fnames)
-# keep <- file_dis %in% dis_vec
-# matching_rds <- rds_files[keep]
-# matching_dis <- file_dis[keep]
-# idx <- match(matching_dis, dis_vec)
-# ord <- order(idx, na.last = NA)
-# matching_rds <- matching_rds[ord]
-# plot_list <- lapply(matching_rds, readRDS)
-# 
-# png("output/figures/sarima_combined.png", width = 12830, height = 8680, res = 720)
-# do.call(grid.arrange, c(plot_list, ncol = 3))
-# dev.off()
-# 
-# # List and read all RDS files that match the pattern (for Prophet sensitivity)
-# rds_files_p <- list.files(path = "output/figures/", pattern = "^prophet_incidence.*_.*\\.rds$", full.names = TRUE)
-# fnames_p <- basename(rds_files_p)
-# file_dis_p <- sub("^prophet_incidence_(.*)\\.rds$", "\\1", fnames_p)
-# keep <- file_dis_p %in% dis_vec
-# matching_rds_p <- rds_files_p[keep]
-# matching_dis_p <- file_dis_p[keep]
-# idx_p <- match(matching_dis_p, dis_vec)
-# ord_p <- order(idx_p, na.last = NA)
-# matching_rds_p <- matching_rds_p[ord_p]
-# plot_list <- lapply(matching_rds_p, readRDS)
-# 
-# png("output/figures/sarima_combined_prophet.png", width = 12830, height = 8680, res = 720)
-# do.call(grid.arrange, c(plot_list, ncol=3))
-# dev.off()
+# Combine graphs (Nb. this doesnt work in OpenSAFELY console)
+if (running_locally) {
+  
+  dis_vec <- as.character(disease_list)
+  
+  # List and read all RDS files that match the pattern (for SARIMA)
+  rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence.*_.*\\.rds$", full.names = TRUE)
+  fnames <- basename(rds_files)
+  file_dis <- sub("^obs_pred_incidence_(.*)\\.rds$", "\\1", fnames)
+  keep <- file_dis %in% dis_vec
+  matching_rds <- rds_files[keep]
+  matching_dis <- file_dis[keep]
+  idx <- match(matching_dis, dis_vec)
+  ord <- order(idx, na.last = NA)
+  matching_rds <- matching_rds[ord]
+  plot_list <- lapply(matching_rds, readRDS)
+  
+  png("output/figures/sarima_combined.png", width = 12830, height = 8680, res = 720)
+  do.call(grid.arrange, c(plot_list, ncol = 3))
+  dev.off()
+  
+  # List and read all RDS files that match the pattern (for Prophet sensitivity)
+  rds_files_p <- list.files(path = "output/figures/", pattern = "^prophet_incidence.*_.*\\.rds$", full.names = TRUE)
+  fnames_p <- basename(rds_files_p)
+  file_dis_p <- sub("^prophet_incidence_(.*)\\.rds$", "\\1", fnames_p)
+  keep <- file_dis_p %in% dis_vec
+  matching_rds_p <- rds_files_p[keep]
+  matching_dis_p <- file_dis_p[keep]
+  idx_p <- match(matching_dis_p, dis_vec)
+  ord_p <- order(idx_p, na.last = NA)
+  matching_rds_p <- matching_rds_p[ord_p]
+  plot_list <- lapply(matching_rds_p, readRDS)
+  
+  png("output/figures/sarima_combined_prophet.png", width = 12830, height = 8680, res = 720)
+  do.call(grid.arrange, c(plot_list, ncol=3))
+  dev.off()
+  
+} else {
+  message("Not running locally — skipping graph combine")
+}  
 
 dev.off()
 graphics.off()
 sink()
-
-  ###### OUTPUT FILE
-  write.csv(df,"output/tables/df_output.csv",row.names = FALSE)
 
 # # Manual checks for diseases with poor fitting on visual inspection####################
 # 
@@ -757,13 +733,7 @@ sink()
 #     df_dis <- df[df$disease == dis, ]
 #     df_dis <- df_dis %>%  mutate(index=1:n()) #create an index variable 1,2,3...
 # 
-#     # Manually set titles based on the disease
-#     if (dis == "rheumatoid") {
-#       dis_title <- "Rheumatoid Arthritis"
-#     } else {
-#       dis_title <- str_to_title(str_replace_all(dis, "_", " "))
-#     }
-# 
+#     # Manually set titles based on the disease 
 #     max_index <- max(df_dis$index)
 # 
 #     #Keep only data from before March 2020 and save to separate df
@@ -869,7 +839,7 @@ sink()
 #           axis.title.y = element_text(size = 10, margin = margin(r = 10)),
 #           plot.title = element_text(size = 14, hjust = 0.5, face = "plain")
 #         ) +
-#         ggtitle(dis_title)
+#         ggtitle(dis_full)
 # 
 #       saveRDS(c1, file = paste0("output/figures/test_", var, "_", dis, ".rds"))
 #       ggsave(filename = paste0("output/figures/test_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")

@@ -579,7 +579,7 @@ foreach disease in $diseases {
 	}
 	
 	gen dis_full = disease
-	replace dis_full = "Rheumatoid_Arthritis" if dis_full == "Rheumatoid"
+	replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
 	replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 	replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 	replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"
