@@ -48,6 +48,7 @@ df <-read.csv("output/tables/incidence_rates_rounded.csv")
 
 # Rename variables in the data and ensure dates in correct format
 names(df)[names(df) == "numerator"] <- "count"
+#df<- df %>% select(disease, year, mo_year_diagn, incidence, count) 
 df<- df %>% select(disease, dis_full, year, mo_year_diagn, incidence, count) 
 df$month <- substr(df$mo_year_diagn, 1, 3)
 df$mo_year_diagn <- gsub("-", " ", df$mo_year_diagn)
@@ -59,7 +60,7 @@ month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov"
 # disease_list <- unique(df$disease)
 
 ## Manually specified diseases of interest
-disease_list <- c("Rheumatoid", "Psa", "Axialspa", "Ctd", "Gca")
+disease_list <- c("Rheumatoid", "Psa", "Axialspa")
 
 # Initialize index for axis labelling
 index_axis <- 1
@@ -98,7 +99,8 @@ for (j in 1:length(disease_list)) {
   df_dis <- df[df$disease == dis, ]
   df_dis <- df_dis %>%  mutate(index=1:n()) #create an index variable
   dis_full <- unique(df_dis$dis_full)
-  
+  #dis_full <- unique(df_dis$disease)
+
   print(index_axis)
   
   # Label y-axis
