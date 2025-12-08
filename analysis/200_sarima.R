@@ -56,11 +56,8 @@ df$mon_year <- df$mo_year_diagn
 df$mo_year_diagn <- as.Date(paste0("01 ", df$mo_year_diagn), format = "%d %b %Y")
 month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 
-# # Extract list of diseases from data
-# disease_list <- unique(df$disease)
-
-## Manually specified diseases of interest
-disease_list <- c("Rheumatoid", "Psa", "Axialspa")
+# Extract list of diseases from data
+disease_list <- unique(df$disease)
 
 # Initialize index for axis labelling
 index_axis <- 1
@@ -103,12 +100,12 @@ for (j in 1:length(disease_list)) {
 
   print(index_axis)
   
-  # Label y-axis
-  if (index_axis %in% c(1, 4)) {
-    y_label <- "Monthly incidence rate per 100,000"
-  } else {
+  # Label x and y-axis
+  #if (index_axis %in% c(1, 4)) {
+  #  y_label <- "Monthly incidence rate per 100,000"
+  #} else {
     y_label <- ""
-  }
+  #}
   
   x_label <- ""
   
@@ -135,10 +132,24 @@ for (j in 1:length(disease_list)) {
     dev.off()
     
     # Use auto.arima to fit SARIMA model (identifying terms that optimise BIC/AIC); Nb. for models with poor fit on visual inspection/diagnostics, have explored different models
-    if (dis == "Axialspa") {
-      suggested.rate<- arima(df_obs_rate, order=c(0,1,2),  seasonal=list(order=c(0,1,0), period=12)) 
-    } else if (dis == "Vasc") {
-      suggested.rate<- arima(df_obs_rate, order=c(0,0,0),  seasonal=list(order=c(0,1,1), period=12))
+    if (dis == "Rheumatoid") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(0,0,0), seasonal = c(0,1,1))
+    } else if (dis == "Axialspa") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(0,0,1), seasonal = c(0,1,1), include.drift = TRUE)
+    } else if (dis == "Psa") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(0,0,2), seasonal = c(0,1,1), include.drift = TRUE)
+    } else if (dis == "Undiffia") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(0,0,1), seasonal = c(1,1,0), include.drift = TRUE)
+    } else if (dis == "Sjogren") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(1,0,1), seasonal = c(0,1,1), include.drift = TRUE)
+    } else if (dis == "Sle") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(3,0,0), seasonal = c(1,1,0), include.drift = TRUE)
+    } else if (dis == "Ssc") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(1,0,0), seasonal = c(0,1,1))
+    } else if (dis == "Gca") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(3,0,0), seasonal = c(1,1,0))
+    } else if (dis == "Anca") {
+      suggested.rate <- forecast::Arima(df_obs_rate, order = c(1,0,0), seasonal = c(0,1,1))
     } else {
       suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
     }
@@ -321,7 +332,7 @@ for (j in 1:length(disease_list)) {
       geom_line(aes(y = moving_average), color = "#5E716A", linetype = "solid", size=0.70)+
       geom_point(data = df_new %>% filter(mo_year_diagn >= intervention_date), aes(y = mean), color="orange", alpha = 0.25, size=1.5)+
       geom_line(data = df_new %>% filter(mo_year_diagn >= intervention_date), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.65)+
-      geom_ribbon(data = df_new %>% filter(mo_year_diagn >= intervention_date), aes(ymin = lower, ymax = upper), alpha = 0.3, fill = "grey")+
+      geom_ribbon(data = df_new %>% filter(mo_year_diagn >= intervention_date), aes(ymin = pmax(lower, 1e-9), ymax = upper), alpha = 0.3, fill = "grey")+
       geom_vline(xintercept = as.numeric(intervention_date), linetype = "dashed", color = "grey")+
       scale_x_date(breaks = seq(as.Date(paste0(start[1], "-01-01")), as.Date(paste0(end[1] + 1, "-01-01")), by = "2 years"), date_labels = "%Y")+
       theme_minimal()+
@@ -539,6 +550,8 @@ for (j in 1:length(disease_list)) {
       saveRDS(c_prophet, file = paste0("output/figures/prophet_", var, "_", dis, ".rds"))
       ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".svg"),
              plot = c_prophet, width = 8, height = 6, device = "svg")
+      #ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, "png"),
+      #       plot = c_prophet, width = 8, height = 6, device = "png")
       
       print(c_prophet)
       
@@ -666,6 +679,7 @@ for (j in 1:length(disease_list)) {
 # Combine graphs (Nb. this doesnt work in OpenSAFELY console)
 if (running_locally) {
   
+  disease_list <- c("Rheumatoid", "Psa", "Axialspa", "Undiffia", "Sjogren", "Sle", "Ssc", "Gca", "Anca")
   dis_vec <- as.character(disease_list)
   
   # List and read all RDS files that match the pattern (for SARIMA)
@@ -681,7 +695,7 @@ if (running_locally) {
   plot_list <- lapply(matching_rds, readRDS)
   
   png("output/figures/sarima_combined.png", width = 12830, height = 8680, res = 720)
-  do.call(grid.arrange, c(plot_list, ncol = 3))
+  do.call(grid.arrange, c(plot_list, ncol=3))
   dev.off()
   
   # List and read all RDS files that match the pattern (for Prophet sensitivity)
@@ -708,7 +722,7 @@ dev.off()
 graphics.off()
 sink()
 
-# # Manual checks for diseases with poor fitting on visual inspection####################
+# Manual checks for diseases with poor fitting on visual inspection####################
 # 
 #   # Incidence data - use age and sex-standardised rates for incidence rates and unadjusted for counts
 #   df <-read.csv("output/tables/incidence_rates_rounded.csv")
@@ -722,7 +736,8 @@ sink()
 #   df$mo_year_diagn <- as.Date(paste0("01 ", df$mo_year_diagn), format = "%d %b %Y")
 #   month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 # 
-#   disease_list <- unique(df$disease[df$disease == "Vasc"])
+#   disease_list <- unique(df$disease[df$disease == "Psa"])
+#   dis_full <- unique(df_dis$dis_full)
 # 
 #   # Define the variables to loop over
 #   variables <- c("incidence")
@@ -735,7 +750,7 @@ sink()
 #     df_dis <- df[df$disease == dis, ]
 #     df_dis <- df_dis %>%  mutate(index=1:n()) #create an index variable 1,2,3...
 # 
-#     # Manually set titles based on the disease 
+#     # Manually set titles based on the disease
 #     max_index <- max(df_dis$index)
 # 
 #     #Keep only data from before March 2020 and save to separate df
@@ -750,12 +765,10 @@ sink()
 #       df_obs_rate <- ts(df_obs[[var]], frequency=12, start=c(2016,4))
 #       assign(paste0("ts_", var), df_obs_rate)
 # 
-#       #Use auto.arima to fit SARIMA model - will identify p/q parameters that optimise AIC - for models with poor fit on visual inspection, explore different models
-#       if (dis == "Vasc") {
-#         #suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
-#         suggested.rate<- auto.arima(df_obs_rate, D=1, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
-#         #suggested.rate<- arima(df_obs_rate, order=c(1,1,3), seasonal=list(order=c(1,1,0),period=12))
-#         #suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
+#       #Use auto.arima Sjogren fit SARIMA model - will identify p/q parameters that optimise AIC - for models with poor fit on visual inspection, explore different models
+#       if (dis == "Psa") {
+#         #suggested.rate<- auto.arima(df_obs_rate, max.p = 5, D=1, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
+#         suggested.rate <- forecast::Arima(df_obs_rate, order = c(0,0,2), seasonal = c(0,1,1), include.drift = TRUE)
 #         } else {
 #         suggested.rate<- auto.arima(df_obs_rate, max.p = 5, max.q = 5,  max.P = 2,  max.Q = 2, stepwise=FALSE, trace=TRUE)
 #       }
@@ -810,21 +823,23 @@ sink()
 #         ggplot(data = df_new,aes(x = mo_year_diagn))+
 #         geom_point(aes(y = .data[[var]]), color="#5E716A", alpha = 0.25, size=1.5)+
 #         geom_line(aes(y = moving_average), color = "#5E716A", linetype = "solid", size=0.70)+
+#         geom_ribbon(data = df_new %>% dplyr::filter(mo_year_diagn >= intervention_date), aes(ymin = pmax(lower, 1e-9), ymax = upper), alpha = 0.18, fill = "#2c7fb8")+
 #         geom_point(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean), color="orange", alpha = 0.25, size=1.5)+
 #         geom_line(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.65)+
 #         #geom_ribbon(data = df_new %>% filter(mo_year_diagn > as.Date("2020-02-01")), aes(ymin = lower, ymax = upper), alpha = 0.3, fill = "grey")+
 #         geom_segment(x = as.Date("2020-03-01"),
 #                      xend = as.Date("2020-03-01"),
-#                      y = min(df_new[[var]], na.rm = TRUE) * 0.85,
-#                      yend = max(df_new[[var]], na.rm = TRUE) * 1.15,
+#                      #y = min(df_new[[var]], na.rm = TRUE) * 0.85,
+#                      #yend = max(df_new[[var]], na.rm = TRUE) * 1.15,
+#                      y = -Inf, yend = Inf,
 #                      linetype = "dashed",
 #                      color = "grey")+
 #         scale_x_date(breaks = seq(as.Date("2016-01-01"), as.Date("2026-01-01"), by = "2 years"),
 #                      date_labels = "%Y")+
-#         scale_y_continuous(limits = c(min(df_new[[var]], na.rm = TRUE) * 0.85,
-#                                       max(df_new[[var]], na.rm = TRUE) * 1.15),
-#                            breaks = pretty(df_new[[var]], n = 4),
-#                            expand = expansion(mult = c(0.05, 0.05)))+
+#         #scale_y_continuous(limits = c(min(df_new[[var]], na.rm = TRUE) * 0.85,
+#         #                              max(df_new[[var]], na.rm = TRUE) * 1.15),
+#         #                   breaks = pretty(df_new[[var]], n = 4),
+#         #                   expand = expansion(mult = c(0.05, 0.05)))+
 #         theme_minimal()+
 #         #xlab("Year of diagnosis")+
 #         #ylab(y_label)+

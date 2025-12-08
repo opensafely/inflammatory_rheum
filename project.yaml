@@ -6,7 +6,13 @@ actions:
     run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence.py --output output/dataset_incidence.csv
     outputs:
       highly_sensitive:
-        cohort: output/dataset_incidence.csv 
+        cohort: output/dataset_incidence.csv
+  
+  generate_dataset_incidence_ref:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence_ref.py --output output/dataset_incidence_ref.csv
+    outputs:
+      highly_sensitive:
+        cohort: output/dataset_incidence_ref.csv 
 
   generate_dataset_eia:
     run: ehrql:v1 generate-dataset analysis/dataset_definition_eia.py --output output/dataset_eia.csv
@@ -138,6 +144,14 @@ actions:
         figure6: output/figures/unadj_imd_*.svg
         figure7: output/figures/unadj_ethn_*.svg
 
+  reference_cleaning:
+    run: stata-mp:latest analysis/003_reference_cleaning.do
+    needs: [generate_dataset_incidence_ref]
+    outputs:
+      moderately_sensitive:
+        log1: logs/reference_cleaning.log   
+        table1: output/tables/reference_table_rounded.csv
+
   run_sarima:
     run: r:latest analysis/200_sarima.R
     needs: [incidence_cleaning]
@@ -146,9 +160,7 @@ actions:
         log1: logs/sarima_log.txt   
         figure1: output/figures/auto_residuals_*.svg
         figure2: output/figures/obs_pred_*.svg
-        figure3: output/figures/prophet_*.svg
         table1: output/tables/change_incidence_byyear.csv
-        table2: output/tables/change_incidence_byyear_prophet.csv
 
   # eia_cleaning:
   #   run: stata-mp:latest analysis/100_eia_cleaning.do
