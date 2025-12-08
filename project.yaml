@@ -138,11 +138,10 @@ actions:
         log1: logs/incidence_graphs.log   
         figure1: output/figures/inc_rate_*.svg
         figure2: output/figures/inc_comp_*.svg
-        figure3: output/figures/unadj_sex_*.svg
-        figure4: output/figures/adj_sex_*.svg
-        figure5: output/figures/unadj_age_*.svg
-        figure6: output/figures/unadj_imd_*.svg
-        figure7: output/figures/unadj_ethn_*.svg
+        figure3: output/figures/adj_sex_*.svg
+        figure4: output/figures/unadj_age_*.svg
+        figure5: output/figures/unadj_imd_*.svg
+        figure6: output/figures/unadj_ethn_*.svg
 
   reference_cleaning:
     run: stata-mp:latest analysis/003_reference_cleaning.do

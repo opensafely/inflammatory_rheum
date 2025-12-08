@@ -9,7 +9,7 @@ index_date = date(2016, 4, 1)
 end_date = date(2025, 3, 31)
 
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data(population_size=10000)
 
 # Any practice registration before study end date
 registration_in_window = (
