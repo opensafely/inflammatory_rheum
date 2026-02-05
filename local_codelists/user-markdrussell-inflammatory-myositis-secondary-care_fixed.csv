@@ -1,0 +1,62 @@
+code,term
+M33,Dermatopolymyositis
+M331,Other dermatomyositis
+M332,Polymyositis
+M339,"Dermatopolymyositis, unspecified"
+M360,Dermato(poly)myositis in neoplastic disease C00-D48
+M60,Myositis
+M600,Infective myositis
+M6000,Infective myositis - Multiple sites
+M6001,Infective myositis - Shoulder region
+M6002,Infective myositis - Upper arm
+M6003,Infective myositis - Forearm
+M6004,Infective myositis - Hand
+M6005,Infective myositis - Pelvic region and thigh
+M6006,Infective myositis - Lower leg
+M6007,Infective myositis - Ankle and foot
+M6008,Infective myositis - Other
+M6009,Infective myositis - Site unspecified
+M601,Interstitial myositis
+M6010,Interstitial myositis - Multiple sites
+M6011,Interstitial myositis - Shoulder region
+M6012,Interstitial myositis - Upper arm
+M6013,Interstitial myositis - Forearm
+M6014,Interstitial myositis - Hand
+M6015,Interstitial myositis - Pelvic region and thigh
+M6016,Interstitial myositis - Lower leg
+M6017,Interstitial myositis - Ankle and foot
+M6018,Interstitial myositis - Other
+M6019,Interstitial myositis - Site unspecified
+M602,"Foreign body granuloma of soft tissue, not elsewhere classified"
+M6020,"Foreign body granuloma of soft tissue, not elsewhere classified - Multiple sites"
+M6021,"Foreign body granuloma of soft tissue, not elsewhere classified - Shoulder region"
+M6022,"Foreign body granuloma of soft tissue, not elsewhere classified - Upper arm"
+M6023,"Foreign body granuloma of soft tissue, not elsewhere classified - Forearm"
+M6024,"Foreign body granuloma of soft tissue, not elsewhere classified - Hand"
+M6025,"Foreign body granuloma of soft tissue, not elsewhere classified - Pelvic region and thigh"
+M6026,"Foreign body granuloma of soft tissue, not elsewhere classified - Lower leg"
+M6027,"Foreign body granuloma of soft tissue, not elsewhere classified - Ankle and foot"
+M6028,"Foreign body granuloma of soft tissue, not elsewhere classified - Other"
+M6029,"Foreign body granuloma of soft tissue, not elsewhere classified - Site unspecified"
+M608,Other myositis
+M6080,Other myositis - Multiple sites
+M6081,Other myositis - Shoulder region
+M6082,Other myositis - Upper arm
+M6083,Other myositis - Forearm
+M6084,Other myositis - Hand
+M6085,Other myositis - Pelvic region and thigh
+M6086,Other myositis - Lower leg
+M6087,Other myositis - Ankle and foot
+M6088,Other myositis - Other
+M6089,Other myositis - Site unspecified
+M609,"Myositis, unspecified"
+M6090,"Myositis, unspecified - Multiple sites"
+M6091,"Myositis, unspecified - Shoulder region"
+M6092,"Myositis, unspecified - Upper arm"
+M6093,"Myositis, unspecified - Forearm"
+M6094,"Myositis, unspecified - Hand"
+M6095,"Myositis, unspecified - Pelvic region and thigh"
+M6096,"Myositis, unspecified - Lower leg"
+M6097,"Myositis, unspecified - Ankle and foot"
+M6098,"Myositis, unspecified - Other"
+M6099,"Myositis, unspecified - Site unspecified"
