@@ -21,7 +21,7 @@ axialspa_snomed = codelist_from_csv(
 )
 
 axialspa_icd = codelist_from_csv(
-    "codelists/user-markdrussell-axial-spondyloarthritis-secondary-care.csv", column="code",
+    "local_codelists/user-markdrussell-axial-spondyloarthritis-secondary-care_fixed.csv", column="code",
 )
 
 psa_snomed = codelist_from_csv(
@@ -29,7 +29,7 @@ psa_snomed = codelist_from_csv(
 )
 
 psa_icd = codelist_from_csv(
-    "codelists/user-markdrussell-psoriatic-arthritis-secondary-care.csv", column="code",
+    "local_codelists/user-markdrussell-psoriatic-arthritis-secondary-care_fixed.csv", column="code",
 )
 
 rheumatoid_snomed = codelist_from_csv(
@@ -37,7 +37,7 @@ rheumatoid_snomed = codelist_from_csv(
 )
 
 rheumatoid_icd = codelist_from_csv(
-    "codelists/user-markdrussell-rheumatoid-arthritis-secondary-care.csv", column="code",
+    "local_codelists/user-markdrussell-rheumatoid-arthritis-secondary-care_fixed.csv", column="code",
 )
 
 undiffia_snomed = codelist_from_csv(
@@ -81,7 +81,7 @@ myositis_snomed = codelist_from_csv(
 )
 
 myositis_icd = codelist_from_csv(
-    "codelists/user-markdrussell-inflammatory-myositis-secondary-care.csv", column="code",
+    "local_codelists/user-markdrussell-inflammatory-myositis-secondary-care_fixed.csv", column="code",
 )
 
 anca_snomed = codelist_from_csv(
