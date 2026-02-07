@@ -1,0 +1,18 @@
+code,term
+M33,Dermatopolymyositis
+M331,Other dermatomyositis
+M332,Polymyositis
+M339,"Dermatopolymyositis, unspecified"
+M360,Dermato(poly)myositis in neoplastic disease C00-D48
+M60,Myositis
+M609,"Myositis, unspecified"
+M6090,"Myositis, unspecified - Multiple sites"
+M6091,"Myositis, unspecified - Shoulder region"
+M6092,"Myositis, unspecified - Upper arm"
+M6093,"Myositis, unspecified - Forearm"
+M6094,"Myositis, unspecified - Hand"
+M6095,"Myositis, unspecified - Pelvic region and thigh"
+M6096,"Myositis, unspecified - Lower leg"
+M6097,"Myositis, unspecified - Ankle and foot"
+M6098,"Myositis, unspecified - Other"
+M6099,"Myositis, unspecified - Site unspecified"
