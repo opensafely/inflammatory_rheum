@@ -59,6 +59,9 @@ month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov"
 # Extract list of diseases from data
 disease_list <- unique(df$disease)
 
+# Rename ANCA vasculitis
+df$dis_full[df$dis_full == "ANCA vasculitis"] <- "Small vessel vasculitis"
+
 # Initialize index for axis labelling
 index_axis <- 1
 
@@ -550,7 +553,7 @@ for (j in 1:length(disease_list)) {
       saveRDS(c_prophet, file = paste0("output/figures/prophet_", var, "_", dis, ".rds"))
       ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".svg"),
              plot = c_prophet, width = 8, height = 6, device = "svg")
-      #ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, "png"),
+      #ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".png"),
       #       plot = c_prophet, width = 8, height = 6, device = "png")
       
       print(c_prophet)

@@ -36,14 +36,14 @@ log using "$logdir/incidence_graphs.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "eia ctd vasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
 *global diseases "eia ctd vasc"
 
 set type double
 
 set scheme plotplainblind
 
-*Incidence graphs using rounded and redacted data ==========================================================
+*Incidence graphs using rounded and redacted data ==========================================================*/
 import delimited "$projectdir/output/tables/incidence_rates_rounded.csv", clear
 
 *Reformat date
@@ -51,6 +51,9 @@ rename mo_year_diagn mo_year_diagn_s
 gen mo_year_diagn = monthly(mo_year_diagn_s, "MY")
 format mo_year_diagn %tmMon-CCYY
 drop mo_year_diagn_s
+
+*Rename ANCA vasculitis
+replace dis_full = "Small vessel vasculitis" if dis_full == "ANCA vasculitis"
 
 levelsof disease, local(disease_list)
 
@@ -66,35 +69,37 @@ foreach dis of local disease_list {
 	
 	**Set y-axis format
 	egen incidence_max = max(incidence)
-	egen incidence_min = min(incidence)	
+	egen incidence_min = min(incidence)
 	
 	**Set y-axis ranges for overall/age/sex graphs
-	if incidence_min < 1 {
+	if incidence_max < 1 {
 		gen rate_low = round(incidence_min, 0.01)
 		gen rate_up = round(incidence_max, 0.01)
 		local format = "format(%03.1f)"
 	}
-	else if incidence_min >1 & incidence_min < 10 {
+	else if incidence_max >= 1 & incidence_max < 10 {
 		gen rate_low = round(incidence_min, 0.1)
 		gen rate_up = round(incidence_max, 0.1)
 		local format = "format(%9.1f)"
 	}
-	else if incidence_min >10 & incidence_min < 100 {
+	else if incidence_max >= 10 & incidence_max < 100 {
 		gen rate_low = round(incidence_min, 1)
 		gen rate_up = round(incidence_max, 1)
-		local format = "format(%9.1f)"
+		local format = "format(%9.0f)"
 	}
 		
 	local lower = rate_low
+	if `lower' < 0.2 local lower = 0
 	di `lower'
-	local upper = rate_up
+	local upper = rate_up*1.05
 	di `upper'
-	nicelabels `lower' `upper', local(ylab)
+	nicelabels `lower' `upper', local(ylab) 
 	di "`ylab'"
 	
 	**Label y-axis (for combined graph)
 	if "`dis'" == "Rheumatoid" | "`dis'" == "Sjogren" | "`dis'" == "Gca" {
-		local ytitle "Monthly incidence rate per 100,000"
+		*local ytitle "Monthly incidence rate per 100,000"
+		local ytitle ""
 	}
 	else {
 		local ytitle ""
@@ -137,6 +142,9 @@ else {
 
 *Create graphs of yearly incidence rates, by disease and subgroups ===================================*/
 import delimited "$projectdir/output/tables/incidence_rates_rounded_subgroups.csv", clear
+
+*Rename ANCA vasculitis
+replace dis_full = "Small vessel vasculitis" if dis_full == "ANCA vasculitis"
 
 **Collapse age bands
 bys disease year: egen numerator_18_39 = sum(numerator_18_29 + numerator_30_39)
@@ -193,7 +201,8 @@ foreach dis of local disease_list {
 		
 	**Label y-axis (for combined graphs)
 	if "`dis'" == "Rheumatoid" | "`dis'" == "Sjogren" | "`dis'" == "Gca" {
-		local ytitle "Yearly incidence rate per 100,000"
+		*local ytitle "Yearly incidence rate per 100,000"
+		local ytitle ""
 	}
 	else {
 		local ytitle ""
@@ -201,7 +210,8 @@ foreach dis of local disease_list {
 	
 	**Label y-axis (for ethnicity graphs)
 	if "`dis'" == "Rheumatoid" | "`dis'" == "Sjogren" {
-		local ytitle_ethn "Yearly incidence rate per 100,000"
+		*local ytitle_ethn "Yearly incidence rate per 100,000"
+		local ytitle ""
 	}
 	else {
 		local ytitle_ethn ""
@@ -253,7 +263,7 @@ foreach dis of local disease_list {
 		nicelabels `lower_`stem'' `upper_`stem'', local(ylab_`stem')
 		di "`ylab_`stem''"
 		
-		if rate_max_`stem' < 10 {
+		if rate_max_`stem' < 5 {
 			local format_`stem' = "format(%03.1f)"
 		}
 		else {
