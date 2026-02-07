@@ -16,7 +16,7 @@ user/markdrussell/anca-vasculitis-secondary-care/11326244
 user/markdrussell/systemic-lupus-erythematosus/5f137bd9
 user/markdrussell/systemic-lupus-erythematosus-secondary-care/460408a4
 user/markdrussell/inflammatory-myositis/2cf4956f
-user/markdrussell/inflammatory-myositis-secondary-care/7ad5af04
+user/markdrussell/inflammatory-myositis-secondary-care/61aa8c3f
 user/markdrussell/referral-rheumatology/6bc8e5e3
 user/markdrussell/referral-to-rheumatology-only/0cf23b30
 opensafely/ethnicity-snomed-0removed/22911876
