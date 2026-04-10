@@ -2,7 +2,7 @@ from ehrql import create_dataset, days, months, years, case, when, create_measur
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ons_deaths, appointments
 from datetime import date, datetime
 import codelists_ehrQL as codelists
-from analysis.dataset_definition_incidence import dataset
+from analysis.dataset_definition_incidence_sens import dataset
 import sys
 
 # Arguments (from project.yaml)
@@ -23,10 +23,10 @@ end_date = INTERVAL.end_date
 # Currently registered
 curr_registered = practice_registrations.for_patient_on(index_date).exists_for_patient()
 
-# Registration for at least 12 months before index date
+# Registration for at least 24 months before index date (sensitivity analysis)
 pre_registrations = (
     practice_registrations.where(
-        practice_registrations.start_date.is_on_or_before(index_date - months(12))
+        practice_registrations.start_date.is_on_or_before(index_date - months(24))
     ).except_where(
         practice_registrations.end_date.is_on_or_before(index_date)
     )

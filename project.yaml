@@ -161,6 +161,144 @@ actions:
         figure2: output/figures/obs_pred_*.svg
         table1: output/tables/change_incidence_byyear.csv
 
+  generate_dataset_incidence_sens:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence_sens.py --output output/dataset_incidence_sens.csv
+    outputs:
+      highly_sensitive:
+        cohort: output/dataset_incidence_sens.csv
+
+  generate_measures_sens_2016:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2016.csv
+      --
+      --start-date "2016-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2016.csv
+
+  generate_measures_sens_2017:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2017.csv
+      --
+      --start-date "2017-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2017.csv             
+
+  generate_measures_sens_2018:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2018.csv
+      --
+      --start-date "2018-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2018.csv
+
+  generate_measures_sens_2019:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2019.csv
+      --
+      --start-date "2019-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2019.csv
+
+  generate_measures_sens_2020:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2020.csv
+      --
+      --start-date "2020-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2020.csv
+
+  generate_measures_sens_2021:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2021.csv
+      --
+      --start-date "2021-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2021.csv
+
+  generate_measures_sens_2022:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2022.csv
+      --
+      --start-date "2022-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2022.csv
+
+  generate_measures_sens_2023:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2023.csv
+      --
+      --start-date "2023-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2023.csv
+
+  generate_measures_sens_2024:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures_sens.py
+      --output output/measures/measures_incidence_sens_2024.csv
+      --
+      --start-date "2024-04-01"
+      --intervals 12
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      moderately_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2024.csv
+
+  incidence_cleaning_sens:
+    run: stata-mp:latest analysis/001_incidence_cleaning_sens.do
+    needs: [generate_dataset_incidence_sens, generate_measures_sens_2016, generate_measures_sens_2017, generate_measures_sens_2018, generate_measures_sens_2019, generate_measures_sens_2020, generate_measures_sens_2021, generate_measures_sens_2022, generate_measures_sens_2023, generate_measures_sens_2024]
+    outputs:
+      moderately_sensitive:
+        log1: logs/incidence_cleaning_sens.log   
+        table1: output/tables/incidence_rates_rounded_sens.csv
+        table2: output/tables/incidence_rates_rounded_subgroups_sens.csv
+        tabke3: output/tables/baseline_table_rounded_sens.csv
+        
+  incidence_graphs_sens:
+    run: stata-mp:latest analysis/002_incidence_graphs_sens.do
+    needs: [incidence_cleaning_sens]
+    outputs:
+      moderately_sensitive:
+        log1: logs/incidence_graphs_sens.log   
+        figure1: output/figures/inc_rate_sens_*.svg
+        figure2: output/figures/inc_comp_sens_*.svg
+        figure3: output/figures/adj_sex_sens_*.svg
+        figure4: output/figures/unadj_age_sens_*.svg
+        figure5: output/figures/unadj_imd_sens_*.svg
+        figure6: output/figures/unadj_ethn_sens_*.svg
+
+  run_sarima_sens:
+    run: r:latest analysis/200_sarima_sens.R
+    needs: [incidence_cleaning_sens]
+    outputs:
+      moderately_sensitive:
+        log1: logs/sarima_log_sens.txt   
+        figure1: output/figures/auto_residuals_sens_*.svg
+        figure2: output/figures/obs_pred_sens_*.svg
+        table1: output/tables/change_incidence_byyear_sens.csv     
+
   # eia_cleaning:
   #   run: stata-mp:latest analysis/100_eia_cleaning.do
   #   needs: [generate_dataset_incidence, generate_dataset_eia]

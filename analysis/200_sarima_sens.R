@@ -40,10 +40,10 @@ running_locally <- FALSE
 dir_create(here::here("output/figures"), showWarnings = FALSE, recurse = TRUE)
 dir_create(here::here("output/tables"), showWarnings = FALSE, recurse = TRUE)
 
-sink("logs/sarima_log.txt")
+sink("logs/sarima_log_sens.txt")
 
 # Incidence data
-df <-read.csv("output/tables/incidence_rates_rounded.csv")
+df <-read.csv("output/tables/incidence_rates_rounded_sens.csv")
 
 # Rename variables in the data and ensure dates in correct format
 names(df)[names(df) == "numerator"] <- "count"
@@ -123,13 +123,13 @@ for (j in 1:length(disease_list)) {
     assign(paste0("ts_", var), df_obs_rate)
     
     # Plot time series for raw data; 1st order difference; 1st order seasonal difference
-    svg(filename = paste0("output/figures/raw_pre_covid_", var, "_", dis, ".svg"), width = 8, height = 6)
+    svg(filename = paste0("output/figures/raw_pre_covid_sens_", var, "_", dis, ".svg"), width = 8, height = 6)
     plot(df_obs_rate, ylim=c(), type='l', col="blue", xlab="Year", ylab=y_label)
     dev.off()
-    svg(filename = paste0("output/figures/differenced_pre_covid_", var, "_", dis, ".svg"), width = 8, height = 6)
+    svg(filename = paste0("output/figures/differenced_pre_covid_sens_", var, "_", dis, ".svg"), width = 8, height = 6)
     plot(diff(df_obs_rate),type = "l");abline(h=0,col = "red")
     dev.off()
-    svg(filename = paste0("output/figures/seasonal_pre_covid_", var, "_", dis, ".svg"), width = 8, height = 6)
+    svg(filename = paste0("output/figures/seasonal_pre_covid_sens_", var, "_", dis, ".svg"), width = 8, height = 6)
     plot(diff(diff(df_obs_rate),12),type = "l");abline(h=0,col = "red")
     dev.off()
     
@@ -292,8 +292,8 @@ for (j in 1:length(disease_list)) {
       bottom = caption_grob
     )
     
-    ggsave(sprintf("output/figures/auto_residuals_%s_%s.svg", var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "svg")
-    #ggsave(sprintf("output/figures/auto_residuals_%s_%s.png", var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "png")
+    ggsave(sprintf("output/figures/auto_residuals_sens_%s_%s.svg", var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "svg")
+    #ggsave(sprintf("output/figures/auto_residuals_sens_%s_%s.png", var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "png")
     
     # Forecast from March 2020 and convert to time series object
     fc.rate  <- forecast(m1.rate, h = (max_index - n_preintervention), level = 95, bootstrap=TRUE, npaths=10000)
@@ -325,7 +325,7 @@ for (j in 1:length(disease_list)) {
       mutate(mean_ma = rollmean(mean, k = 3, fill = NA, align = "center"))
     
     # Save a table of values
-    write.csv(df_new, file = paste0("output/tables/values_", var, "_", dis, ".csv"), row.names = FALSE)
+    write.csv(df_new, file = paste0("output/tables/values_sens_", var, "_", dis, ".csv"), row.names = FALSE)
     
     # Plot observed and expected graphs
     c1<- 
@@ -353,9 +353,9 @@ for (j in 1:length(disease_list)) {
       ) +
       ggtitle(dis_full)
     
-    saveRDS(c1, file = paste0("output/figures/obs_pred_", var, "_", dis, ".rds"))
-    ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
-    #ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".png"), plot = c1, width = 8, height = 6, device = "png")
+    saveRDS(c1, file = paste0("output/figures/obs_pred_sens_", var, "_", dis, ".rds"))
+    ggsave(filename = paste0("output/figures/obs_pred_sens_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
+    #ggsave(filename = paste0("output/figures/obs_pred_sens_", var, "_", dis, ".png"), plot = c1, width = 8, height = 6, device = "png")
     
     print(c1)
     
@@ -467,7 +467,7 @@ for (j in 1:length(disease_list)) {
     
     # Output to csv
     new_row <- rates.summary
-    file_name <- "output/tables/change_incidence_byyear.csv"
+    file_name <- "output/tables/change_incidence_byyear_sens.csv"
     
     # Check if the file exists
     if (file.exists(file_name)) {
@@ -549,10 +549,10 @@ for (j in 1:length(disease_list)) {
         ) +
         ggtitle(paste0(dis_full))
       
-      saveRDS(c_prophet, file = paste0("output/figures/prophet_", var, "_", dis, ".rds"))
-      ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".svg"),
+      saveRDS(c_prophet, file = paste0("output/figures/prophet_sens_", var, "_", dis, ".rds"))
+      ggsave(filename = paste0("output/figures/prophet_sens_", var, "_", dis, ".svg"),
              plot = c_prophet, width = 8, height = 6, device = "svg")
-      #ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".png"),
+      #ggsave(filename = paste0("output/figures/prophet_sens_", var, "_", dis, ".png"),
       #       plot = c_prophet, width = 8, height = 6, device = "png")
       
       print(c_prophet)
@@ -658,7 +658,7 @@ for (j in 1:length(disease_list)) {
       
       # Output to csv
       new_row <- rates.summary
-      file_name <- "output/tables/change_incidence_byyear_prophet.csv"
+      file_name <- "output/tables/change_incidence_byyear_prophet_sens.csv"
       
       # Check if the file exists
       if (file.exists(file_name)) {
@@ -685,9 +685,9 @@ if (running_locally) {
   dis_vec <- as.character(disease_list)
   
   # List and read all RDS files that match the pattern (for SARIMA)
-  rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence.*_.*\\.rds$", full.names = TRUE)
+  rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence_sens.*_.*\\.rds$", full.names = TRUE)
   fnames <- basename(rds_files)
-  file_dis <- sub("^obs_pred_incidence_(.*)\\.rds$", "\\1", fnames)
+  file_dis <- sub("^obs_pred_incidence_sens_(.*)\\.rds$", "\\1", fnames)
   keep <- file_dis %in% dis_vec
   matching_rds <- rds_files[keep]
   matching_dis <- file_dis[keep]
@@ -696,14 +696,14 @@ if (running_locally) {
   matching_rds <- matching_rds[ord]
   plot_list <- lapply(matching_rds, readRDS)
   
-  png("output/figures/sarima_combined.png", width = 12830, height = 8680, res = 720)
+  png("output/figures/sarima_combined_sens.png", width = 12830, height = 8680, res = 720)
   do.call(grid.arrange, c(plot_list, ncol=3))
   dev.off()
   
   # List and read all RDS files that match the pattern (for Prophet sensitivity)
-  rds_files_p <- list.files(path = "output/figures/", pattern = "^prophet_incidence.*_.*\\.rds$", full.names = TRUE)
+  rds_files_p <- list.files(path = "output/figures/", pattern = "^prophet_incidence_sens.*_.*\\.rds$", full.names = TRUE)
   fnames_p <- basename(rds_files_p)
-  file_dis_p <- sub("^prophet_incidence_(.*)\\.rds$", "\\1", fnames_p)
+  file_dis_p <- sub("^prophet_incidence_sens_(.*)\\.rds$", "\\1", fnames_p)
   keep <- file_dis_p %in% dis_vec
   matching_rds_p <- rds_files_p[keep]
   matching_dis_p <- file_dis_p[keep]
@@ -712,7 +712,7 @@ if (running_locally) {
   matching_rds_p <- matching_rds_p[ord_p]
   plot_list <- lapply(matching_rds_p, readRDS)
   
-  png("output/figures/sarima_combined_prophet.png", width = 12830, height = 8680, res = 720)
+  png("output/figures/sarima_combined_prophet_sens.png", width = 12830, height = 8680, res = 720)
   do.call(grid.arrange, c(plot_list, ncol=3))
   dev.off()
   

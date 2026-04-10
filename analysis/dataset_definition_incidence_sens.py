@@ -62,11 +62,11 @@ def create_dataset_with_variables():
         ).except_where(
             apcs.admission_date.is_before(index_date)
         ).count_for_patient()
-
-    # Registration for 12 months prior to incident diagnosis date
+   
+    # Registration for 24 months prior to incident diagnosis date (sensitivity analysis)
     def preceding_registration(dx_date):
         return practice_registrations.where(
-            practice_registrations.start_date.is_on_or_before(dx_date - months(12))
+            practice_registrations.start_date.is_on_or_before(dx_date - months(24))
         ).except_where(
             practice_registrations.end_date.is_on_or_before(dx_date)
         ).sort_by(
@@ -74,7 +74,7 @@ def create_dataset_with_variables():
             practice_registrations.end_date,
             practice_registrations.practice_pseudo_id,
         ).last_for_patient()
-        
+    
     # Expand 3-character ICD10 codes
     def expand_three_char_icd10_codes(dx_codelist):
         return dx_codelist + [f"{code}X" for code in dx_codelist if len(code) == 3]
@@ -156,7 +156,7 @@ def create_dataset_with_variables():
             ).when_null_then(False)
         )
 
-        # 12 months registration preceding incident diagnosis date - combined primary and secondary care
+        # 24 months registration preceding incident diagnosis date - combined primary and secondary care
         dataset.add_column(f"{disease}_pre_reg", 
             preceding_registration(getattr(dataset, f"{disease}_inc_date")
             ).exists_for_patient()
@@ -180,7 +180,7 @@ def create_dataset_with_variables():
             ).when_null_then(False)
         )
 
-        # 12 months registration preceding incident diagnosis date - primary care only
+        # 24 months registration preceding incident diagnosis date - primary care only
         dataset.add_column(f"{disease}_pre_reg_p", 
             preceding_registration(getattr(dataset, f"{disease}_prim_date")
             ).exists_for_patient()
