@@ -13,7 +13,6 @@ USER-INSTALLED ADO:
 ==============================================================================*/
 
 *Set filepaths
-*global projectdir "C:\Users\Mark\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
 *global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
 global projectdir `c(pwd)'
 di "$projectdir"
@@ -253,6 +252,40 @@ foreach disease in $diseases {
 }	
 use "$projectdir/output/data/baseline_table_rounded.dta", clear
 export delimited using "$projectdir/output/tables/baseline_table_rounded.csv", datafmt replace
+
+**Mean age, by study year, for each disease
+clear *
+save "$projectdir/output/data/mean_age_rounded.dta", replace emptyok
+
+foreach disease in $diseases {
+	use "$projectdir/output/data/incidence_data_processed.dta", clear
+	keep if `disease'==1
+
+	preserve
+	collapse (count) count=`disease' (mean) mean_age=`disease'_age (sd) stdev_age=`disease'_age, by(`disease'_year)
+	gen cohort ="`disease'"
+	rename *count freq
+	gen count = round(freq, 5)
+	gen countstr = string(count)
+	replace stdev_age = . if count<=7
+	replace mean_age = . if count<=7
+	replace count = . if count<=7
+	order cohort, first
+	gen variable = "Age"
+	order variable, after(cohort)
+	order count, after(stdev_age)
+	format mean_age %14.4f
+	format stdev_age %14.4f
+	format count %14.0f
+	rename `disease'_year year
+	list cohort variable year mean_age stdev_age count
+	keep cohort variable year mean_age stdev_age count
+	append using "$projectdir/output/data/mean_age_rounded.dta"
+	save "$projectdir/output/data/mean_age_rounded.dta", replace	
+	restore
+}	
+use "$projectdir/output/data/mean_age_rounded.dta", clear
+export delimited using "$projectdir/output/tables/mean_age_rounded.csv", datafmt replace
 
 *Import measures data for denominators**********************************
 
