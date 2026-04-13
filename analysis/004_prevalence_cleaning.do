@@ -57,7 +57,7 @@ foreach disease in $diseases {
 sort measure interval_start sex age
 save "$projectdir/output/data/measures_prevalence_appended.dta", replace 
 
-*Import dataset ============================================>/
+*Clean dataset ============================================>/
 use "$projectdir/output/data/measures_prevalence_appended.dta", clear 
 
 **Format dates
@@ -75,7 +75,7 @@ gen measure_prev = 1 if substr(measure,-11,.) == "_prevalence"
 recode measure_prev .=0
 
 **Label diseases
-replace diseases_ = substr(measure, 1, strlen(measure) - 11) if measure_prev==1
+gen diseases_ = substr(measure, 1, strlen(measure) - 11) if measure_prev==1
 gen disease = strproper(subinstr(diseases_, "_", " ",.)) 
 gen dis_full = disease
 replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
@@ -89,6 +89,7 @@ replace dis_full = "SLE" if dis_full == "Sle"
 replace dis_full = "Myositis" if dis_full == "Myositis"
 replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
 order dis_full, after(disease)
+drop diseases_
 
 save "$projectdir/output/data/measures_prevalence_appended.dta", replace 
 
@@ -121,12 +122,12 @@ gen ratio_male = (numerator_male/denominator_male) if (numerator_male!=. & denom
 replace ratio_male =. if (numerator_male==. | denominator_male==.)
 gen ratio_male_100000 = ratio_male*100000
 
-sort disease year measure_prev ratio_male_100000 
-by disease year measure_prev (ratio_male_100000): replace ratio_male_100000 = ratio_male_100000[_n-1] if missing(ratio_male_100000)
-sort disease year measure_prev numerator_male 
-by disease year measure_prev (numerator_male): replace numerator_male = numerator_male[_n-1] if missing(numerator_male)
-sort disease year measure_prev denominator_male 
-by disease year measure_prev (denominator_male): replace denominator_male = denominator_male[_n-1] if missing(denominator_male)
+sort disease year measure ratio_male_100000 
+by disease year measure (ratio_male_100000): replace ratio_male_100000 = ratio_male_100000[_n-1] if missing(ratio_male_100000)
+sort disease year measure numerator_male 
+by disease year measure (numerator_male): replace numerator_male = numerator_male[_n-1] if missing(numerator_male)
+sort disease year measure denominator_male 
+by disease year measure (denominator_male): replace denominator_male = denominator_male[_n-1] if missing(denominator_male)
 
 *For females
 bys disease year measure: egen numerator_female = sum(numerator) if sex=="female"
@@ -142,13 +143,14 @@ gen ratio_female = (numerator_female/denominator_female) if (numerator_female!=.
 replace ratio_female =. if (numerator_female==. | denominator_female==.)
 gen ratio_female_100000 = ratio_female*100000
 
-sort disease year measure_prev ratio_female_100000 
-by disease year measure_prev (ratio_female_100000): replace ratio_female_100000 = ratio_female_100000[_n-1] if missing(ratio_female_100000)
-sort disease year measure_prev numerator_female 
-by disease year measure_prev (numerator_female): replace numerator_female = numerator_female[_n-1] if missing(numerator_female)
-sort disease year measure_prev denominator_female 
-by disease year measure_prev (denominator_female): replace denominator_female = denominator_female[_n-1] if missing(denominator_female)
+sort disease year measure ratio_female_100000 
+by disease year measure (ratio_female_100000): replace ratio_female_100000 = ratio_female_100000[_n-1] if missing(ratio_female_100000)
+sort disease year measure numerator_female 
+by disease year measure (numerator_female): replace numerator_female = numerator_female[_n-1] if missing(numerator_female)
+sort disease year measure denominator_female 
+by disease year measure (denominator_female): replace denominator_female = denominator_female[_n-1] if missing(denominator_female)
 
+/*
 *For age groups
 foreach var in 18_29 30_39 40_49 50_59 60_69 70_79 80 {
 bys disease year measure: egen numerator_`var' = sum(numerator) if age=="age_`var'"
@@ -164,28 +166,20 @@ gen ratio_`var' = (numerator_`var'/denominator_`var') if (numerator_`var'!=. & d
 replace ratio_`var' =. if (numerator_`var'==. | denominator_`var'==.)
 gen ratio_`var'_100000 = ratio_`var'*100000
 
-sort disease year measure_prev ratio_`var'_100000 
-by disease year measure_prev (ratio_`var'_100000): replace ratio_`var'_100000 = ratio_`var'_100000[_n-1] if missing(ratio_`var'_100000)
-sort disease year measure_prev numerator_`var'
-by disease year measure_prev (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
-sort disease year measure_prev denominator_`var' 
-by disease year measure_prev (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
+sort disease year measure ratio_`var'_100000 
+by disease year measure (ratio_`var'_100000): replace ratio_`var'_100000 = ratio_`var'_100000[_n-1] if missing(ratio_`var'_100000)
+sort disease year measure numerator_`var'
+by disease year measure (numerator_`var'): replace numerator_`var' = numerator_`var'[_n-1] if missing(numerator_`var')
+sort disease year measure denominator_`var' 
+by disease year measure (denominator_`var'): replace denominator_`var' = denominator_`var'[_n-1] if missing(denominator_`var')
 }
+*/
 
 save "$projectdir/output/data/prevalence_rates_nonstandardised.dta", replace 
 
-*Calculate  age-standardised prevalence rates==============
+*Calculate age-standardised prevalence rates==============
 
 use "$projectdir/output/data/prevalence_rates_nonstandardised.dta", clear 
-
-*Demographic label
-rename sex sex_s
-gen sex = 1 if sex_s == "female"
-replace sex = 2 if sex_s == "male"
-lab var sex "Sex"
-lab define sex 1 "Female" 2 "Male", modify
-lab val sex sex
-tab sex, missing
 
 *Calculate  age-standardised prevalence rates, based upon European Standard Population 2013 (from 18+; total weight 80,700)
 gen prop=14200 if age=="age_18-29"
@@ -196,18 +190,19 @@ replace prop=11500 if age=="age_60_69"
 replace prop=9000 if age=="age_70_79"
 replace prop=5000 if age=="age_80"
 
-gen new_value = prop*ratio_100000 //check not rounded
-bys disease year: egen sum_new_value_female=sum(new_value) if sex==1
+gen ratio_100000 = ratio*100000
+gen new_value = prop*ratio_100000
+bys disease year measure: egen sum_new_value_female=sum(new_value) if sex=="female"
 gen s_rate_female = sum_new_value_female/80700
 replace s_rate_female=. if ratio_female_100000==.
-sort disease year s_rate_female 
-by disease year (s_rate_female): replace s_rate_female = s_rate_female[_n-1] if missing(s_rate_female)
-bys disease year: egen sum_new_value_male=sum(new_value) if sex==2
+sort disease year measure s_rate_female 
+by disease year measure (s_rate_female): replace s_rate_female = s_rate_female[_n-1] if missing(s_rate_female)
+bys disease year measure: egen sum_new_value_male=sum(new_value) if sex=="male"
 gen s_rate_male = sum_new_value_male/80700
 replace s_rate_male=. if ratio_male_100000==.
-sort disease year s_rate_male 
-by disease year (s_rate_male): replace s_rate_male = s_rate_male[_n-1] if missing(s_rate_male)
-bys disease year: egen sum_new_value_all=sum(new_value)
+sort disease year measure s_rate_male 
+by disease year measure (s_rate_male): replace s_rate_male = s_rate_male[_n-1] if missing(s_rate_male)
+bys disease year measure: egen sum_new_value_all=sum(new_value)
 gen s_rate_all = sum_new_value_all/161400
 replace s_rate_all=. if ratio_all_100000==.
 
@@ -215,9 +210,13 @@ drop new_value sum_new* prop
 
 bys disease year: gen n=_n
 keep if n==1
-drop sex age_band n
+drop n ratio numerator denominator sex age measure_prev ratio_100000
+replace measure = "Prevalence"
+order disease, after(measure)
+order dis_full, after(disease)
 
 foreach var in all male female  {
+	drop ratio_`var'
 	rename ratio_`var'_100000 rate_`var' //unadjusted IR 
 	order s_rate_`var', after(rate_`var') //age and sex-standardised IR
 	format s_rate_`var' %14.4f
@@ -226,17 +225,18 @@ foreach var in all male female  {
 	format denominator_`var' %14.0f
 }
 
+/*
 foreach var in 18_29 30_39 40_49 50_59 60_69 70_79 80 {
+	drop ratio_`var'
 	rename ratio_`var'_100000 rate_`var'
 	format rate_`var' %14.4f
 	order rate_`var', after(denominator_`var')
 	format numerator_`var' %14.0f
 	format denominator_`var' %14.0f
 }
+*/
 
-save "$projectdir/output/data/prevalence_rates_standardised.dta"
-
-use "$projectdir/output/data/prevalence_rates_standardised.dta", clear
+save "$projectdir/output/data/prevalence_rates_standardised.dta", replace
 
 export delimited using "$projectdir/output/tables/prevalence_rates_rounded.csv", datafmt replace
 

@@ -55,7 +55,7 @@ prev_numerators = {}
 
 # Prevalent diagnosis (at interval start)
 prev[disease + "_prev"] = (
-    (getattr(dataset, disease + "_prev_date") < index_date)
+    (getattr(dataset, disease + "_inc_date") < index_date)
 ).when_null_then(False)
 
 # Prevalence numerator - people registered on index date who have an diagnostic code on or before index date

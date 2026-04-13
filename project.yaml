@@ -291,6 +291,23 @@ actions:
         figure2: output/figures/obs_pred_*.svg
         table1: output/tables/change_incidence_byyear.csv
 
+  prevalence_cleaning:
+    run: stata-mp:latest analysis/004_prevalence_cleaning.do
+    needs: [generate_dataset_prevalence, prevalence_measures_rheumatoid, prevalence_measures_psa, prevalence_measures_axialspa, prevalence_measures_undiffia, prevalence_measures_gca, prevalence_measures_sjogren, prevalence_measures_ssc, prevalence_measures_sle, prevalence_measures_myositis, prevalence_measures_anca]
+    outputs:
+      moderately_sensitive:
+        log1: logs/prevalence_cleaning.log   
+        table1: output/tables/prevalence_rates_rounded.csv
+
+  prevalence_graphs:
+    run: stata-mp:latest analysis/005_prevalence_graphs.do
+    needs: [prevalence_cleaning]
+    outputs:
+      moderately_sensitive:
+        log1: logs/prevalence_graphs.log   
+        figure1: output/figures/prev_adj_*.svg
+        figure2: output/figures/prev_comp_*.svg   
+
   generate_dataset_incidence_sens:
     run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence_sens.py --output output/dataset_incidence_sens.csv
     outputs:
