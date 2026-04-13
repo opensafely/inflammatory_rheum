@@ -32,8 +32,7 @@ log using "$logdir/incidence_cleaning_sens.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "eia ctd vasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
-*global diseases "ctd"
+global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
 
 set type double
 
@@ -387,7 +386,6 @@ foreach disease in $diseases {
 	
 	gen dis_full = disease
 	replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
-	replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 	replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 	replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"
 	replace dis_full = "Undifferentiated IA" if dis_full == "Undiffia"
@@ -397,9 +395,6 @@ foreach disease in $diseases {
 	replace dis_full = "SLE" if dis_full == "Sle"
 	replace dis_full = "Myositis" if dis_full == "Myositis"
 	replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
-	replace dis_full = "Connective tissue disease" if dis_full == "Ctd"
-	replace dis_full = "Vasculitis" if dis_full == "Vasc"
-	replace dis_full = "CTD/vasculitis" if dis_full == "Ctdvasc"
 	order dis_full, after(disease)
 		
 	**Gen incidence rate per 100,000 adult population	
@@ -579,7 +574,6 @@ foreach disease in $diseases {
 	
 	gen dis_full = disease
 	replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
-	replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 	replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 	replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"
 	replace dis_full = "Undifferentiated IA" if dis_full == "Undiffia"
@@ -589,9 +583,6 @@ foreach disease in $diseases {
 	replace dis_full = "SLE" if dis_full == "Sle"
 	replace dis_full = "Myositis" if dis_full == "Myositis"
 	replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
-	replace dis_full = "Connective tissue disease" if dis_full == "Ctd"
-	replace dis_full = "Vasculitis" if dis_full == "Vasc"
-	replace dis_full = "CTD/vasculitis" if dis_full == "Ctdvasc"
 	order dis_full, after(disease)
 	
 	**Output to appended dta

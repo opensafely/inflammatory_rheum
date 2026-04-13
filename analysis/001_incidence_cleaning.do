@@ -32,8 +32,7 @@ log using "$logdir/incidence_cleaning.log", replace
 adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
-global diseases "eia ctd vasc rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
-*global diseases "ctd"
+global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
 
 set type double
 
@@ -262,13 +261,16 @@ foreach disease in $diseases {
 	keep if `disease'==1
 
 	preserve
-	collapse (count) count=`disease' (mean) mean_age=`disease'_age (sd) stdev_age=`disease'_age, by(`disease'_year)
+	collapse (count) count=`disease' (mean) mean_age=`disease'_age (sd) stdev_age=`disease'_age (p50) median_age=`disease'_age (p75) upper75_age=`disease'_age (p25) lower25_age=`disease'_age, by(`disease'_year)
 	gen cohort ="`disease'"
 	rename *count freq
 	gen count = round(freq, 5)
 	gen countstr = string(count)
 	replace stdev_age = . if count<=7
 	replace mean_age = . if count<=7
+	replace median_age = . if count<=7
+	replace upper75_age = . if count<=7
+	replace lower25_age = . if count<=7
 	replace count = . if count<=7
 	order cohort, first
 	gen variable = "Age"
@@ -276,10 +278,13 @@ foreach disease in $diseases {
 	order count, after(stdev_age)
 	format mean_age %14.4f
 	format stdev_age %14.4f
+	format median_age %14.4f
+	format upper75_age %14.4f
+	format lower25_age %14.4f
 	format count %14.0f
 	rename `disease'_year year
-	list cohort variable year mean_age stdev_age count
-	keep cohort variable year mean_age stdev_age count
+	list cohort variable year mean_age stdev_age median_age upper75_age lower25_age count
+	keep cohort variable year mean_age stdev_age median_age upper75_age lower25_age count
 	append using "$projectdir/output/data/mean_age_rounded.dta"
 	save "$projectdir/output/data/mean_age_rounded.dta", replace	
 	restore
@@ -421,7 +426,6 @@ foreach disease in $diseases {
 	
 	gen dis_full = disease
 	replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
-	replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 	replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 	replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"
 	replace dis_full = "Undifferentiated IA" if dis_full == "Undiffia"
@@ -431,9 +435,6 @@ foreach disease in $diseases {
 	replace dis_full = "SLE" if dis_full == "Sle"
 	replace dis_full = "Myositis" if dis_full == "Myositis"
 	replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
-	replace dis_full = "Connective tissue disease" if dis_full == "Ctd"
-	replace dis_full = "Vasculitis" if dis_full == "Vasc"
-	replace dis_full = "CTD/vasculitis" if dis_full == "Ctdvasc"
 	order dis_full, after(disease)
 		
 	**Gen incidence rate per 100,000 adult population	
@@ -613,7 +614,6 @@ foreach disease in $diseases {
 	
 	gen dis_full = disease
 	replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
-	replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 	replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 	replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"
 	replace dis_full = "Undifferentiated IA" if dis_full == "Undiffia"
@@ -623,9 +623,6 @@ foreach disease in $diseases {
 	replace dis_full = "SLE" if dis_full == "Sle"
 	replace dis_full = "Myositis" if dis_full == "Myositis"
 	replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
-	replace dis_full = "Connective tissue disease" if dis_full == "Ctd"
-	replace dis_full = "Vasculitis" if dis_full == "Vasc"
-	replace dis_full = "CTD/vasculitis" if dis_full == "Ctdvasc"
 	order dis_full, after(disease)
 	
 	**Output to appended dta

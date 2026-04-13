@@ -36,7 +36,6 @@ adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
 global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
-*global diseases "eia ctd vasc"
 
 set type double
 

@@ -5,7 +5,7 @@ from datetime import date, datetime
 from functools import reduce
 import codelists_ehrQL as codelists
 
-diseases = ["eia", "rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca", "ctd", "vasc"]
+diseases = ["rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
 codelist_types = ["snomed", "icd"]
 
 index_date = "2016-04-01"

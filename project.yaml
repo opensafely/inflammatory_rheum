@@ -12,7 +12,13 @@ actions:
     run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence_ref.py --output output/dataset_incidence_ref.csv
     outputs:
       highly_sensitive:
-        cohort: output/dataset_incidence_ref.csv 
+        cohort: output/dataset_incidence_ref.csv
+
+  generate_dataset_prevalence:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition_prevalence.py --output output/dataset_prevalence.csv
+    outputs:
+      highly_sensitive:
+        cohort: output/dataset_prevalence.csv             
 
   generate_dataset_eia:
     run: ehrql:v1 generate-dataset analysis/dataset_definition_eia.py --output output/dataset_eia.csv
@@ -120,6 +126,126 @@ actions:
       moderately_sensitive:
         measure_csv: output/measures/measures_incidence_2024.csv
 
+  prevalence_measures_rheumatoid:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_rheumatoid.csv
+      --
+      --start-date "2016-04-01"
+      --disease "rheumatoid"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_rheumatoid.csv        
+
+  prevalence_measures_psa:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_psa.csv
+      --
+      --start-date "2016-04-01"
+      --disease "psa"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_psa.csv    
+
+  prevalence_measures_axialspa:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_axialspa.csv
+      --
+      --start-date "2016-04-01"
+      --disease "axialspa"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_axialspa.csv  
+
+  prevalence_measures_undiffia:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_undiffia.csv
+      --
+      --start-date "2016-04-01"
+      --disease "undiffia"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_undiffia.csv  
+
+  prevalence_measures_gca:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_gca.csv
+      --
+      --start-date "2016-04-01"
+      --disease "gca"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_gca.csv 
+
+  prevalence_measures_sjogren:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_sjogren.csv
+      --
+      --start-date "2016-04-01"
+      --disease "sjogren"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_sjogren.csv  
+
+  prevalence_measures_ssc:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_ssc.csv
+      --
+      --start-date "2016-04-01"
+      --disease "ssc"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_ssc.csv  
+
+  prevalence_measures_sle:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_sle.csv
+      --
+      --start-date "2016-04-01"
+      --disease "sle"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_sle.csv  
+
+  prevalence_measures_myositis:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_myositis.csv
+      --
+      --start-date "2016-04-01"
+      --disease "myositis"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_myositis.csv  
+
+  prevalence_measures_anca:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_anca.csv
+      --
+      --start-date "2016-04-01"
+      --disease "anca"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_anca.csv  
+
   incidence_cleaning:
     run: stata-mp:latest analysis/001_incidence_cleaning.do
     needs: [generate_dataset_incidence, generate_measures_2016, generate_measures_2017, generate_measures_2018, generate_measures_2019, generate_measures_2020, generate_measures_2021, generate_measures_2022, generate_measures_2023, generate_measures_2024]
@@ -143,7 +269,9 @@ actions:
         figure4: output/figures/unadj_age_*.svg
         figure5: output/figures/unadj_imd_*.svg
         figure6: output/figures/unadj_ethn_*.svg
-        figure7: output/figures/mean_age_*.svg        
+        figure7: output/figures/mean_age_*.svg  
+        figure8: output/figures/median_age_*.svg  
+        figure9: output/figures/mean_med_age_*.svg       
 
   reference_cleaning:
     run: stata-mp:latest analysis/003_reference_cleaning.do

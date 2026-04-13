@@ -36,7 +36,6 @@ adopath + "$projectdir/analysis/extra_ados"
 
 *Set disease list
 global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
-*global diseases "eia ctd vasc"
 
 set type double
 
@@ -342,7 +341,6 @@ gen disease = strproper(subinstr(cohort, "_", " ",.))
 drop cohort
 gen dis_full = disease
 replace dis_full = "Rheumatoid arthritis" if dis_full == "Rheumatoid"
-replace dis_full = "Early inflammatory arthritis" if dis_full == "Eia"
 replace dis_full = "Psoriatic arthritis" if dis_full == "Psa"
 replace dis_full = "Axial spondyloarthritis" if dis_full == "Axialspa"
 replace dis_full = "Undifferentiated IA" if dis_full == "Undiffia"
@@ -352,9 +350,6 @@ replace dis_full = "Systemic sclerosis" if dis_full == "Ssc"
 replace dis_full = "SLE" if dis_full == "Sle"
 replace dis_full = "Myositis" if dis_full == "Myositis"
 replace dis_full = "Small vessel vasculitis" if dis_full == "Anca"
-replace dis_full = "Connective tissue disease" if dis_full == "Ctd"
-replace dis_full = "Vasculitis" if dis_full == "Vasc"
-replace dis_full = "CTD/vasculitis" if dis_full == "Ctdvasc"
 order disease, first
 order dis_full, after(disease)
 
@@ -376,13 +371,13 @@ foreach dis of local disease_list {
 	gen rate_up = round(mean_age_max, 1)
 	local format = "format(%9.0f)"
 	local lower = rate_low*0.70
-	local upper = rate_up*1.30
+	local upper = rate_up*1.20
 	nicelabels `lower' `upper', local(ylab) 
 	di "`ylab'"
 
 	**Label y-axis (for combined graph)
 	if "`dis'" == "Rheumatoid" | "`dis'" == "Sjogren" | "`dis'" == "Gca" {
-		local ytitle "Mean age at diagnosis"
+		local ytitle "Age at diagnosis"
 		*local ytitle ""
 	}
 	else {
@@ -399,8 +394,16 @@ foreach dis of local disease_list {
 	}	
 		
 	twoway connected mean_age year, ytitle("`ytitle'", size(medsmall)) color(emerald%20) msymbol(circle) lstyle(solid) lcolor(emerald) ylabel(`ylab', `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(off) name(mean_age_`dis', replace) saving("$projectdir/output/figures/mean_age_`dis'.gph", replace)	
-		graph export "$projectdir/output/figures/mean_age_`dis'.png", replace
+		*graph export "$projectdir/output/figures/mean_age_`dis'.png", replace
 		graph export "$projectdir/output/figures/mean_age_`dis'.svg", replace
+	
+	twoway connected median_age year, ytitle("`ytitle'", size(medsmall)) color(orange%20) msymbol(circle) lstyle(solid) lcolor(orange) ylabel(`ylab', `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(off) name(median_age_`dis', replace) saving("$projectdir/output/figures/median_age_`dis'.gph", replace)	
+		*graph export "$projectdir/output/figures/median_age_`dis'.png", replace
+		graph export "$projectdir/output/figures/median_age_`dis'.svg", replace
+		
+	twoway connected mean_age year, ytitle("`ytitle'", size(medsmall)) color(emerald%20) msymbol(circle) lstyle(solid) lcolor(emerald) || connected median_age year, color(orange%20) msymbol(circle) lstyle(solid) lcolor(orange) ylabel(`ylab', `format' nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(2020) title("`dis_full'", size(medium) margin(b=2)) legend(off) name(mean_med_age_`dis', replace) saving("$projectdir/output/figures/mean_med_age_`dis'.gph", replace)	
+		*graph export "$projectdir/output/figures/mean_med_age_`dis'.png", replace
+		graph export "$projectdir/output/figures/mean_med_age_`dis'.svg", replace
 				
 	restore
 }
@@ -410,7 +413,7 @@ if $running_locally {
 	preserve
 	cd "$projectdir/output/figures"
 
-	foreach stem in mean_age {
+	foreach stem in mean_age mean_med_age {
 		graph combine `stem'_Rheumatoid `stem'_Psa `stem'_Axialspa `stem'_Undiffia `stem'_Sjogren `stem'_Sle `stem'_Ssc `stem'_Myositis `stem'_Gca `stem'_Anca, col(4) name(`stem'_combined, replace)
 	graph export "`stem'_combined.png", replace
 	graph export "`stem'_combined.tif", replace width(1800) height(1200)
