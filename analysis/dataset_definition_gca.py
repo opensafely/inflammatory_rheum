@@ -13,11 +13,11 @@ studyfup_date = get_parameter("studyfup_date")
 diseases_list = get_parameter("diseases_list")
 registration_months = int(get_parameter("registration_months"))
 
-# Store primary diagnosis date
+# Define primary diagnosis date
 diag_date = getattr(dataset, "gca_inc_date")
 
 # Baseline comorbidities (first match before rheum diagnostic code)
-def baseline_comorbidity_in_period(dx_codelist):
+def first_comorbidity_before_diagnosis(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
     ).where(
@@ -26,27 +26,27 @@ def baseline_comorbidity_in_period(dx_codelist):
         clinical_events.date
     ).first_for_patient()
 
-dataset.ocular_before_date=baseline_comorbidity_in_period(codelists.ocular_codes).date
-dataset.aortic_before_date=baseline_comorbidity_in_period(codelists.aortic_codes).date
-dataset.chd_before_date=baseline_comorbidity_in_period(codelists.chd_codes).date
-dataset.cva_before_date=baseline_comorbidity_in_period(codelists.cva_codes).date
-dataset.osteop_before_date=baseline_comorbidity_in_period(codelists.osteoporosis_codes).date
-dataset.frac_before_date=baseline_comorbidity_in_period(codelists.fracture_codes).date
-dataset.pmr_before_date=baseline_comorbidity_in_period(codelists.pmr_codes).date
+dataset.ocular_before_date=first_comorbidity_before_diagnosis(codelists.ocular_codes).date
+dataset.aortic_before_date=first_comorbidity_before_diagnosis(codelists.aortic_codes).date
+dataset.chd_before_date=first_comorbidity_before_diagnosis(codelists.chd_codes).date
+dataset.cva_before_date=first_comorbidity_before_diagnosis(codelists.cva_codes).date
+dataset.osteop_before_date=first_comorbidity_before_diagnosis(codelists.osteoporosis_codes).date
+dataset.frac_before_date=first_comorbidity_before_diagnosis(codelists.fracture_codes).date
+dataset.pmr_before_date=first_comorbidity_before_diagnosis(codelists.pmr_codes).date
 
-dataset.dm_before_date=baseline_comorbidity_in_period(codelists.diabetes_codes).date
-dataset.ild_before_date=baseline_comorbidity_in_period(codelists.ild_codes).date
-dataset.copd_before_date=baseline_comorbidity_in_period(codelists.copd_codes).date
-dataset.lung_ca_before_date=baseline_comorbidity_in_period(codelists.lung_cancer_codes).date
-dataset.solid_ca_before_date=baseline_comorbidity_in_period(codelists.solid_cancer_codes).date
-dataset.haem_ca_before_date=baseline_comorbidity_in_period(codelists.haem_cancer_codes).date
-dataset.ckd_before_date=baseline_comorbidity_in_period(codelists.ckd_codes).date
-dataset.depr_before_date=baseline_comorbidity_in_period(codelists.depression_codes).date
-dataset.htn_before_date=baseline_comorbidity_in_period(codelists.htn_codes).date
-dataset.ccf_before_date=baseline_comorbidity_in_period(codelists.ccf_codes).date
+dataset.dm_before_date=first_comorbidity_before_diagnosis(codelists.diabetes_codes).date
+dataset.ild_before_date=first_comorbidity_before_diagnosis(codelists.ild_codes).date
+dataset.copd_before_date=first_comorbidity_before_diagnosis(codelists.copd_codes).date
+dataset.lung_ca_before_date=first_comorbidity_before_diagnosis(codelists.lung_cancer_codes).date
+dataset.solid_ca_before_date=first_comorbidity_before_diagnosis(codelists.solid_cancer_codes).date
+dataset.haem_ca_before_date=first_comorbidity_before_diagnosis(codelists.haem_cancer_codes).date
+dataset.ckd_before_date=first_comorbidity_before_diagnosis(codelists.ckd_codes).date
+dataset.depr_before_date=first_comorbidity_before_diagnosis(codelists.depression_codes).date
+dataset.htn_before_date=first_comorbidity_before_diagnosis(codelists.htn_codes).date
+dataset.ccf_before_date=first_comorbidity_before_diagnosis(codelists.ccf_codes).date
 
 # New comorbidities (first match after rheum diagnostic code and before study end date)
-def new_comorbidity_in_period(dx_codelist):
+def first_comorbidity_after_diagnosis(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
     ).where(
@@ -55,25 +55,25 @@ def new_comorbidity_in_period(dx_codelist):
         clinical_events.date
     ).first_for_patient()
 
-dataset.ocular_after_date=baseline_comorbidity_in_period(codelists.ocular_codes).date
-dataset.aortic_after_date=baseline_comorbidity_in_period(codelists.aortic_codes).date
-dataset.chd_after_date=new_comorbidity_in_period(codelists.chd_codes).date
-dataset.cva_after_date=new_comorbidity_in_period(codelists.cva_codes).date
-dataset.osteop_after_date=new_comorbidity_in_period(codelists.osteoporosis_codes).date
-dataset.frac_after_date=new_comorbidity_in_period(codelists.fracture_codes).date
-dataset.pmr_after_date=baseline_comorbidity_in_period(codelists.pmr_codes).date
+dataset.ocular_after_date=first_comorbidity_after_diagnosis(codelists.ocular_codes).date
+dataset.aortic_after_date=first_comorbidity_after_diagnosis(codelists.aortic_codes).date
+dataset.chd_after_date=first_comorbidity_after_diagnosis(codelists.chd_codes).date
+dataset.cva_after_date=first_comorbidity_after_diagnosis(codelists.cva_codes).date
+dataset.osteop_after_date=first_comorbidity_after_diagnosis(codelists.osteoporosis_codes).date
+dataset.frac_after_date=first_comorbidity_after_diagnosis(codelists.fracture_codes).date
+dataset.pmr_after_date=first_comorbidity_after_diagnosis(codelists.pmr_codes).date
 
-dataset.dm_after_date=new_comorbidity_in_period(codelists.diabetes_codes).date
-dataset.ild_after_date=new_comorbidity_in_period(codelists.ild_codes).date
-dataset.copd_after_date=new_comorbidity_in_period(codelists.copd_codes).date
-dataset.lung_ca_after_date=new_comorbidity_in_period(codelists.lung_cancer_codes).date
-dataset.solid_ca_after_date=new_comorbidity_in_period(codelists.solid_cancer_codes).date
-dataset.haem_ca_after_date=new_comorbidity_in_period(codelists.haem_cancer_codes).date
-dataset.ckd_after_date=new_comorbidity_in_period(codelists.ckd_codes).date
-dataset.depr_after_date=new_comorbidity_in_period(codelists.depression_codes).date
-dataset.dem_after_date=new_comorbidity_in_period(codelists.dementia_codes).date
-dataset.htn_after_date=new_comorbidity_in_period(codelists.htn_codes).date
-dataset.ccf_after_date=new_comorbidity_in_period(codelists.ccf_codes).date
+dataset.dm_after_date=first_comorbidity_after_diagnosis(codelists.diabetes_codes).date
+dataset.ild_after_date=first_comorbidity_after_diagnosis(codelists.ild_codes).date
+dataset.copd_after_date=first_comorbidity_after_diagnosis(codelists.copd_codes).date
+dataset.lung_ca_after_date=first_comorbidity_after_diagnosis(codelists.lung_cancer_codes).date
+dataset.solid_ca_after_date=first_comorbidity_after_diagnosis(codelists.solid_cancer_codes).date
+dataset.haem_ca_after_date=first_comorbidity_after_diagnosis(codelists.haem_cancer_codes).date
+dataset.ckd_after_date=first_comorbidity_after_diagnosis(codelists.ckd_codes).date
+dataset.depr_after_date=first_comorbidity_after_diagnosis(codelists.depression_codes).date
+dataset.dem_after_date=first_comorbidity_after_diagnosis(codelists.dementia_codes).date
+dataset.htn_after_date=first_comorbidity_after_diagnosis(codelists.htn_codes).date
+dataset.ccf_after_date=first_comorbidity_after_diagnosis(codelists.ccf_codes).date
 
 # Relevant blood tests at baseline (last match before rheum diagnostic code as long as within 2 years before diagnosis)
 def last_test_before_diagnosis(dx_codelist):
