@@ -33,6 +33,575 @@ actions:
         log1: logs/reference_cleaning.log   
         table1: output/tables/reference_table_rounded.csv        
 
+  generate_dataset_incidence_sens:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition_incidence.py
+      --output output/dataset_incidence_sens.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --registration_months 24
+    outputs:
+      highly_sensitive:
+        cohort: output/dataset_incidence_sens.csv
+
+  generate_measures_2016:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2016.csv
+      --
+      --measure_date "2016-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2016.csv
+
+  generate_measures_2017:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2017.csv
+      --
+      --measure_date "2017-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2017.csv
+
+  generate_measures_2018:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2018.csv
+      --
+      --measure_date "2018-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2018.csv
+
+  generate_measures_2019:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2019.csv
+      --
+      --measure_date "2019-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2019.csv
+
+  generate_measures_2020:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2020.csv
+      --
+      --measure_date "2020-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2020.csv
+
+  generate_measures_2021:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2021.csv
+      --
+      --measure_date "2021-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2021.csv
+
+  generate_measures_2022:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2022.csv
+      --
+      --measure_date "2022-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2022.csv
+
+  generate_measures_2023:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2023.csv
+      --
+      --measure_date "2023-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2023.csv
+
+  generate_measures_2024:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_2024.csv
+      --
+      --measure_date "2024-04-01"
+      --intervals 12
+      --registration_months 12
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_2024.csv
+
+  incidence_cleaning:
+    run: stata-mp:latest analysis/001_incidence_cleaning.do "eia|rheumatoid|psa|axialspa|undiffia|gca|sjogren|ssc|sle|myositis|anca" "2016-04-01" "2025-03-31" ""
+    needs: [generate_dataset_incidence, generate_measures_2016, generate_measures_2017, generate_measures_2018, generate_measures_2019, generate_measures_2020, generate_measures_2021, generate_measures_2022, generate_measures_2023, generate_measures_2024]
+    outputs:
+      moderately_sensitive:
+        log1: logs/incidence_cleaning.log
+        table1: output/tables/incidence_rates_rounded.csv
+        table2: output/tables/incidence_rates_rounded_subgroups.csv
+        table3: output/tables/baseline_table_rounded.csv
+        table4: output/tables/mean_age_rounded.csv
+
+  incidence_graphs:
+    run: stata-mp:latest analysis/002_incidence_graphs.do "eia|rheumatoid|psa|axialspa|undiffia|gca|sjogren|ssc|sle|myositis|anca" "2020-03-01" ""
+    needs: [incidence_cleaning]
+    outputs:
+      moderately_sensitive:
+        log1: logs/incidence_graphs.log
+        figure1: output/figures/inc_rate_*.svg
+        figure2: output/figures/inc_comp_*.svg
+        figure3: output/figures/adj_sex_*.svg
+        figure4: output/figures/unadj_age_*.svg
+        figure5: output/figures/unadj_imd_*.svg
+        figure6: output/figures/unadj_ethn_*.svg
+        figure7: output/figures/mean_age_*.svg
+        figure8: output/figures/median_age_*.svg
+        figure9: output/figures/mean_med_age_*.svg
+
+  sarima:
+    run: r:latest analysis/200_sarima.R "2020-03-01" ""
+    needs: [incidence_cleaning]
+    outputs:
+      moderately_sensitive:
+        log1: logs/sarima_log.txt
+        figure1: output/figures/auto_residuals_*.svg
+        figure2: output/figures/obs_pred_*.svg
+        table1: output/tables/change_incidence_byyear.csv
+
+  generate_measures_sens_2016:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2016.csv
+      --
+      --measure_date "2016-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2016.csv
+
+  generate_measures_sens_2017:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2017.csv
+      --
+      --measure_date "2017-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2017.csv
+
+  generate_measures_sens_2018:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2018.csv
+      --
+      --measure_date "2018-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2018.csv
+
+  generate_measures_sens_2019:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2019.csv
+      --
+      --measure_date "2019-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2019.csv
+
+  generate_measures_sens_2020:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2020.csv
+      --
+      --measure_date "2020-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2020.csv
+
+  generate_measures_sens_2021:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2021.csv
+      --
+      --measure_date "2021-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2021.csv
+
+  generate_measures_sens_2022:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2022.csv
+      --
+      --measure_date "2022-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2022.csv
+
+  generate_measures_sens_2023:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2023.csv
+      --
+      --measure_date "2023-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2023.csv
+
+  generate_measures_sens_2024:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_incidence_measures.py
+      --output output/measures/measures_incidence_sens_2024.csv
+      --
+      --measure_date "2024-04-01"
+      --intervals 12
+      --registration_months 24
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    needs: [generate_dataset_incidence_sens]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_incidence_sens_2024.csv
+
+  incidence_cleaning_sens:
+    run: stata-mp:latest analysis/001_incidence_cleaning.do "eia|rheumatoid|psa|axialspa|undiffia|gca|sjogren|ssc|sle|myositis|anca" "2016-04-01" "2025-03-31" "_sens"
+    needs: [generate_dataset_incidence_sens, generate_measures_sens_2016, generate_measures_sens_2017, generate_measures_sens_2018, generate_measures_sens_2019, generate_measures_sens_2020, generate_measures_sens_2021, generate_measures_sens_2022, generate_measures_sens_2023, generate_measures_sens_2024]
+    outputs:
+      moderately_sensitive:
+        log1: logs/incidence_cleaning_sens.log
+        table1: output/tables/incidence_rates_rounded_sens.csv
+        table2: output/tables/incidence_rates_rounded_subgroups_sens.csv
+        table3: output/tables/baseline_table_rounded_sens.csv
+        table4: output/tables/mean_age_rounded_sens.csv
+
+  incidence_graphs_sens:
+    run: stata-mp:latest analysis/002_incidence_graphs.do "eia|rheumatoid|psa|axialspa|undiffia|gca|sjogren|ssc|sle|myositis|anca" "2020-03-01" "_sens"
+    needs: [incidence_cleaning_sens]
+    outputs:
+      moderately_sensitive:
+        log1: logs/incidence_graphs_sens.log
+        figure1: output/figures/inc_rate_sens_*.svg
+        figure2: output/figures/inc_comp_sens_*.svg
+        figure3: output/figures/adj_sex_sens_*.svg
+        figure4: output/figures/unadj_age_sens_*.svg
+        figure5: output/figures/unadj_imd_sens_*.svg
+        figure6: output/figures/unadj_ethn_sens_*.svg
+        figure7: output/figures/mean_age_sens_*.svg
+        figure8: output/figures/median_age_sens_*.svg
+        figure9: output/figures/mean_med_age_sens_*.svg
+
+  sarima_sens:
+    run: r:latest analysis/200_sarima.R "2020-03-01" "_sens"
+    needs: [incidence_cleaning_sens]
+    outputs:
+      moderately_sensitive:
+        log1: logs/sarima_log_sens.txt
+        figure1: output/figures/auto_residuals_sens_*.svg
+        figure2: output/figures/obs_pred_sens_*.svg
+        table1: output/tables/change_incidence_byyear_sens.csv
+
+  generate_dataset_prevalence:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition_prevalence.py
+      --output output/dataset_prevalence.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+    outputs:
+      highly_sensitive:
+        cohort: output/dataset_prevalence.csv
+
+  prevalence_measures_eia:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_eia.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "eia"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_eia.csv
+
+  prevalence_measures_rheumatoid:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_rheumatoid.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "rheumatoid"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_rheumatoid.csv
+
+  prevalence_measures_psa:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_psa.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "psa"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_psa.csv
+
+  prevalence_measures_axialspa:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_axialspa.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "axialspa"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_axialspa.csv
+
+  prevalence_measures_undiffia:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_undiffia.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "undiffia"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_undiffia.csv
+
+  prevalence_measures_gca:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_gca.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "gca"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_gca.csv
+
+  prevalence_measures_sjogren:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_sjogren.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "sjogren"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_sjogren.csv
+
+  prevalence_measures_ssc:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_ssc.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "ssc"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_ssc.csv
+
+  prevalence_measures_sle:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_sle.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "sle"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_sle.csv
+
+  prevalence_measures_myositis:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_myositis.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "myositis"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_myositis.csv
+
+  prevalence_measures_anca:
+    run: ehrql:v1 generate-measures analysis/dataset_definition_prevalence_measures.py
+      --output output/measures/measures_prevalence_anca.csv
+      --
+      --studystart_date "2016-04-01"
+      --studyend_date "2025-03-31"
+      --studyfup_date "2025-09-30"
+      --diseases_list eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca
+      --disease "anca"
+      --intervals 9
+    needs: [generate_dataset_prevalence]
+    outputs:
+      highly_sensitive:
+        measure_csv: output/measures/measures_prevalence_anca.csv
+
+  prevalence_cleaning:
+    run: stata-mp:latest analysis/004_prevalence_cleaning.do "eia|rheumatoid|psa|axialspa|undiffia|gca|sjogren|ssc|sle|myositis|anca"
+    needs: [generate_dataset_prevalence, prevalence_measures_eia, prevalence_measures_rheumatoid, prevalence_measures_psa, prevalence_measures_axialspa, prevalence_measures_undiffia, prevalence_measures_gca, prevalence_measures_sjogren, prevalence_measures_ssc, prevalence_measures_sle, prevalence_measures_myositis, prevalence_measures_anca]
+    outputs:
+      moderately_sensitive:
+        log1: logs/prevalence_cleaning.log   
+        table1: output/tables/prevalence_rates_rounded.csv
+
+  prevalence_graphs:
+    run: stata-mp:latest analysis/005_prevalence_graphs.do "eia|rheumatoid|psa|axialspa|undiffia|gca|sjogren|ssc|sle|myositis|anca" "2020-03-01"
+    needs: [prevalence_cleaning]
+    outputs:
+      moderately_sensitive:
+        log1: logs/prevalence_graphs.log   
+        figure1: output/figures/prev_adj_*.svg
+        figure2: output/figures/prev_comp_*.svg  
+
   generate_dataset_gca:
       run: ehrql:v1 generate-dataset analysis/dataset_definition_gca.py 
         --output output/dataset_gca.csv

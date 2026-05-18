@@ -9,11 +9,11 @@ studyend_date = "2025-03-31"
 studyfup_date = "2025-09-30"
 
 # Including incidence graphs +/- sensitivity analyses with 24 months preceding registration (yes or no)
-incidence_graphs = "no"
-incidence_sensitivity = "no"
+incidence_graphs = "yes"
+incidence_sensitivity = "yes"
 
 # Include prevalence analyses (yes or no)
-prevalence = "no"
+prevalence = "yes"
 
 # Define intervention date(s) of interest for intervention analyses
 intervention_date_covid = "2020-03-01"
