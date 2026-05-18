@@ -25,11 +25,6 @@ capture mkdir "$projectdir/output/data"
 capture mkdir "$projectdir/output/tables"
 capture mkdir "$projectdir/output/figures"
 
-*Open a log file
-global logdir "$projectdir/logs"
-cap log close
-log using "$logdir/incidence_graphs.log", replace
-
 *Set Ado file path
 adopath + "$projectdir/analysis/extra_ados"
 
@@ -54,6 +49,11 @@ if $running_locally ==1 {
 di "$diseases"
 di "$intervention_date_covid"
 di "$suffix"
+
+*Open a log file
+global logdir "$projectdir/logs"
+cap log close
+log using "$logdir/incidence_graphs${suffix}.log", replace
 
 set type double
 
@@ -474,9 +474,9 @@ foreach dis of local disease_list {
 		*graph export "$projectdir/output/figures/mean_age${suffix}_`dis'.png", replace
 		graph export "$projectdir/output/figures/mean_age${suffix}_`dis'.svg", replace
 	
-	twoway connected median_age year, ytitle("`ytitle'", size(medsmall)) color(orange%20) msymbol(circle) lstyle(solid) lcolor(orange) ylabel(20(10)80, nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(`intervention') title("`dis_full'", size(medium) margin(b=2)) legend(off) name(median_age${suffix}_`dis', replace) saving("$projectdir/output/figures/median${suffix}_age_`dis'.gph", replace)	
-		*graph export "$projectdir/output/figures/median${suffix}_age_`dis'.png", replace
-		graph export "$projectdir/output/figures/median${suffix}_age_`dis'.svg", replace
+	twoway connected median_age year, ytitle("`ytitle'", size(medsmall)) color(orange%20) msymbol(circle) lstyle(solid) lcolor(orange) ylabel(20(10)80, nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(`intervention') title("`dis_full'", size(medium) margin(b=2)) legend(off) name(median_age${suffix}_`dis', replace) saving("$projectdir/output/figures/median_age${suffix}_`dis'.gph", replace)	
+		*graph export "$projectdir/output/figures/median_age${suffix}_`dis'.png", replace
+		graph export "$projectdir/output/figures/median_age${suffix}_`dis'.svg", replace
 		
 	twoway connected mean_age year, ytitle("`ytitle'", size(medsmall)) color(emerald%20) msymbol(circle) lstyle(solid) lcolor(emerald) || connected median_age year, color(orange%20) msymbol(circle) lstyle(solid) lcolor(orange) ylabel(20(10)80, nogrid labsize(small)) xtitle("`xtitle'", size(medsmall) margin(medsmall)) xlabel(2016(2)2024, nogrid) xline(`intervention') title("`dis_full'", size(medium) margin(b=2)) legend(region(fcolor(white%0)) order(1 "Mean age" 2 "Median age")) name(mean_med_age_`dis', replace) saving("$projectdir/output/figures/mean_med_age${suffix}_`dis'.gph", replace)	
 		*graph export "$projectdir/output/figures/mean_med_age${suffix}_`dis'.png", replace width(1800) height(1200)
