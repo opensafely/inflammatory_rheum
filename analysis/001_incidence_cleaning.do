@@ -13,33 +13,56 @@ USER-INSTALLED ADO:
 ==============================================================================*/
 
 *Set filepaths
-*global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+/*
+global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+global running_locally = 1 // Running on local machine
+*/
+
 global projectdir `c(pwd)'
-di "$projectdir"
+global running_locally = 0 // Running on OpenSAFELY console
 
 capture mkdir "$projectdir/output/data"
 capture mkdir "$projectdir/output/tables"
 capture mkdir "$projectdir/output/figures"
 
-global logdir "$projectdir/logs"
-di "$logdir"
-
-*Open a log file
-cap log close
-log using "$logdir/incidence_cleaning.log", replace
-
 *Set Ado file path
 adopath + "$projectdir/analysis/extra_ados"
 
-*Set disease list
-global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+*Set disease list and study dates (passed from yaml)
+global arglist diseases studystart_date studyend_date suffix
+args $arglist
+
+if $running_locally ==0 {
+	foreach var of global arglist {
+		local `var' : subinstr local `var' "|" " ", all
+		global `var' "``var''"
+		di "$`var'"
+	}
+}
+
+if $running_locally ==1 {
+	global diseases "eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+	global studystart_date "2016-04-01"
+	global studyend_date "2025-03-31"
+	global suffix ""
+}
+
+di "$diseases"
+di "$studystart_date"
+di "$studyend_date"
+di "$suffix"
 
 set type double
 
 set scheme plotplainblind
 
+*Open a log file
+global logdir "$projectdir/logs"
+cap log close
+log using "$logdir/incidence_cleaning${suffix}.log", replace
+
 *Import dataset
-import delimited "$projectdir/output/dataset_incidence.csv", clear
+import delimited "$projectdir/output/dataset_incidence${suffix}.csv", clear
 
 *Keep only patients with one or more incident diagnoses (handled in dataset definition)=======================
 gen has_disease = 0
@@ -168,11 +191,11 @@ foreach disease in $diseases {
 	replace `disease'_year = `disease'_year_old - 1 if inlist(month(dofm(`disease'_moyear)),1,2,3)
 }
 
-save "$projectdir/output/data/incidence_data_processed.dta", replace
+save "$projectdir/output/data/incidence_data_processed${suffix}.dta", replace
 
 *Baseline tables================================================================*/
 
-use "$projectdir/output/data/incidence_data_processed.dta", clear
+use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 
 **Baseline table for each disease
 foreach disease in $diseases {
@@ -191,10 +214,10 @@ restore
 
 **Rounded and redacted baseline tables for each disease
 clear *
-save "$projectdir/output/data/baseline_table_rounded.dta", replace emptyok
+save "$projectdir/output/data/baseline_table_rounded${suffix}.dta", replace emptyok
 
 foreach disease in $diseases {
-	use "$projectdir/output/data/incidence_data_processed.dta", clear
+	use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 	keep if `disease'==1
 	drop imd ethnicity
 	rename imd_n imd
@@ -218,8 +241,8 @@ foreach disease in $diseases {
 		format count total %14.0f
 		list cohort variable categories count total percent
 		keep cohort variable categories count total percent
-		append using "$projectdir/output/data/baseline_table_rounded.dta"
-		save "$projectdir/output/data/baseline_table_rounded.dta", replace
+		append using "$projectdir/output/data/baseline_table_rounded${suffix}.dta"
+		save "$projectdir/output/data/baseline_table_rounded${suffix}.dta", replace
 		restore
 	}
 
@@ -245,19 +268,19 @@ foreach disease in $diseases {
 	format count %14.0f
 	list cohort variable categories mean_age stdev_age count total
 	keep cohort variable categories mean_age stdev_age count total
-	append using "$projectdir/output/data/baseline_table_rounded.dta"
-	save "$projectdir/output/data/baseline_table_rounded.dta", replace	
+	append using "$projectdir/output/data/baseline_table_rounded${suffix}.dta"
+	save "$projectdir/output/data/baseline_table_rounded${suffix}.dta", replace	
 	restore
 }	
-use "$projectdir/output/data/baseline_table_rounded.dta", clear
-export delimited using "$projectdir/output/tables/baseline_table_rounded.csv", datafmt replace
+use "$projectdir/output/data/baseline_table_rounded${suffix}.dta", clear
+export delimited using "$projectdir/output/tables/baseline_table_rounded${suffix}.csv", datafmt replace
 
 **Mean age, by study year, for each disease
 clear *
-save "$projectdir/output/data/mean_age_rounded.dta", replace emptyok
+save "$projectdir/output/data/mean_age_rounded${suffix}.dta", replace emptyok
 
 foreach disease in $diseases {
-	use "$projectdir/output/data/incidence_data_processed.dta", clear
+	use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 	keep if `disease'==1
 
 	preserve
@@ -285,28 +308,37 @@ foreach disease in $diseases {
 	rename `disease'_year year
 	list cohort variable year mean_age stdev_age median_age upper75_age lower25_age count
 	keep cohort variable year mean_age stdev_age median_age upper75_age lower25_age count
-	append using "$projectdir/output/data/mean_age_rounded.dta"
-	save "$projectdir/output/data/mean_age_rounded.dta", replace	
+	append using "$projectdir/output/data/mean_age_rounded${suffix}.dta"
+	save "$projectdir/output/data/mean_age_rounded${suffix}.dta", replace	
 	restore
 }	
-use "$projectdir/output/data/mean_age_rounded.dta", clear
-export delimited using "$projectdir/output/tables/mean_age_rounded.csv", datafmt replace
+use "$projectdir/output/data/mean_age_rounded${suffix}.dta", clear
+export delimited using "$projectdir/output/tables/mean_age_rounded${suffix}.csv", datafmt replace
 
 *Import measures data for denominators**********************************
 
-local years "2016 2017 2018 2019 2020 2021 2022 2023 2024"
+**Derive years from study dates
+local start_year = real(substr("$studystart_date", 1, 4))
+local end_year = real(substr("$studyend_date", 1, 4)) - 1
+local years
+forvalues y = `start_year'/`end_year' {
+    local years "`years' `y'"
+}
+local years: list retokenize years
+di "`years'"
+
 local first_year: word 1 of `years'
 
 **Import first file as base dataset
-import delimited "$projectdir/output/measures/measures_incidence_`first_year'.csv", clear
-save "$projectdir/output/data/measures_appended.dta", replace
+import delimited "$projectdir/output/measures/measures_incidence${suffix}_`first_year'.csv", clear
+save "$projectdir/output/data/measures_appended${suffix}.dta", replace
 
 **Loop over diseases and years
 foreach year in `years' {
 	if ("`year'" != "`first_year'")  {
-	import delimited "$projectdir/output/measures/measures_incidence_`year'.csv", clear
-	append using "$projectdir/output/data/measures_appended.dta"
-	save "$projectdir/output/data/measures_appended.dta", replace 
+	import delimited "$projectdir/output/measures/measures_incidence${suffix}_`year'.csv", clear
+	append using "$projectdir/output/data/measures_appended${suffix}.dta"
+	save "$projectdir/output/data/measures_appended${suffix}.dta", replace 
 	}
 }
 
@@ -362,7 +394,7 @@ codebook age_band
 codebook sex
 drop if age_band==.
 keep if sex == 1 | sex == 2
-save "$projectdir/output/data/measures_appended_age_sex.dta", replace
+save "$projectdir/output/data/measures_appended_age_sex${suffix}.dta", replace
 restore 
 
 preserve
@@ -371,7 +403,7 @@ collapse (mean) numerator denominator, by(year imd)
 gen numerator = round(numerator_un, 5)
 gen denominator = round(denominator_un, 5)
 drop numerator_un denominator_un
-save "$projectdir/output/data/measures_appended_imd.dta", replace
+save "$projectdir/output/data/measures_appended_imd${suffix}.dta", replace
 restore 
 
 preserve
@@ -380,7 +412,7 @@ collapse (mean) numerator denominator, by(year ethnicity)
 gen numerator = round(numerator_un, 5)
 gen denominator = round(denominator_un, 5)
 drop numerator_un denominator_un
-save "$projectdir/output/data/measures_appended_ethn.dta", replace
+save "$projectdir/output/data/measures_appended_ethn${suffix}.dta", replace
 restore 
 
 **Round numbers
@@ -391,15 +423,15 @@ gen rate = numerator/denominator
 *Overall denominator
 keep if measure == "population_overall"
 drop age* sex* measure rate numerator_un denominator_un ratio ethnicity imd
-export delimited using "$projectdir/output/tables/denominator_counts.csv", datafmt replace
-save "$projectdir/output/data/measures_appended.dta", replace 
+export delimited using "$projectdir/output/tables/denominator_counts${suffix}.csv", datafmt replace
+save "$projectdir/output/data/measures_appended${suffix}.dta", replace 
 
 *Incidence rates diagnoses by month, by disease; not age/sex-standardised =================================================*/
 
 clear *
-save "$projectdir/output/data/incidence_rates_rounded.dta", replace emptyok
+save "$projectdir/output/data/incidence_rates_rounded${suffix}.dta", replace emptyok
 
-use "$projectdir/output/data/incidence_data_processed.dta", clear
+use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 
 *Create rounded/redacted incidence rates diagnoses by month, by disease
 foreach disease in $diseases {
@@ -415,7 +447,7 @@ foreach disease in $diseases {
 	order total_diag, after(mo_year_diagn)
 
 	**Import rounded denominators
-	merge 1:1 mo_year_diagn using "$projectdir/output/data/measures_appended.dta", keep(match) nogen
+	merge 1:1 mo_year_diagn using "$projectdir/output/data/measures_appended${suffix}.dta", keep(match) nogen
 	
 	**Drop unnecessary variables
 	drop denominator
@@ -434,28 +466,28 @@ foreach disease in $diseases {
 	replace dis_full = "Systemic sclerosis" if dis_full == "Ssc"
 	replace dis_full = "SLE" if dis_full == "Sle"
 	replace dis_full = "Myositis" if dis_full == "Myositis"
-	replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
+	replace dis_full = "Small vessel vasculitis" if dis_full == "Anca"
 	order dis_full, after(disease)
 		
 	**Gen incidence rate per 100,000 adult population	
 	gen incidence = (numerator/denominator)*100000
 
 	**Output to appended dta
-	append using "$projectdir/output/data/incidence_rates_rounded.dta"
-	save "$projectdir/output/data/incidence_rates_rounded.dta", replace  
+	append using "$projectdir/output/data/incidence_rates_rounded${suffix}.dta"
+	save "$projectdir/output/data/incidence_rates_rounded${suffix}.dta", replace  
 	
 	restore
 }
 
-use "$projectdir/output/data/incidence_rates_rounded.dta", clear
-export delimited using "$projectdir/output/tables/incidence_rates_rounded.csv", datafmt replace
+use "$projectdir/output/data/incidence_rates_rounded${suffix}.dta", clear
+export delimited using "$projectdir/output/tables/incidence_rates_rounded${suffix}.csv", datafmt replace
 
 *Age/sex-standardised incidence rates diagnoses by year, by disease=================================*/
 
 clear *
-save "$projectdir/output/data/incidence_rates_rounded_standardised.dta", replace emptyok
+save "$projectdir/output/data/incidence_rates_rounded_standardised${suffix}.dta", replace emptyok
 
-use "$projectdir/output/data/incidence_data_processed.dta", clear
+use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 
 foreach disease in $diseases {
 	preserve
@@ -466,7 +498,7 @@ foreach disease in $diseases {
 	rename `disease'_age_band age_band
 
 	**Import denominators
-	merge 1:1 year age_band sex using "$projectdir/output/data/measures_appended_age_sex.dta", keep(match) nogen
+	merge 1:1 year age_band sex using "$projectdir/output/data/measures_appended_age_sex${suffix}.dta", keep(match) nogen
 	
 	**Drop unnecessary variables
 	drop denominator
@@ -622,12 +654,12 @@ foreach disease in $diseases {
 	replace dis_full = "Systemic sclerosis" if dis_full == "Ssc"
 	replace dis_full = "SLE" if dis_full == "Sle"
 	replace dis_full = "Myositis" if dis_full == "Myositis"
-	replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
+	replace dis_full = "Small vessel vasculitis" if dis_full == "Anca"
 	order dis_full, after(disease)
 	
 	**Output to appended dta
-	append using "$projectdir/output/data/incidence_rates_rounded_standardised.dta"
-	save "$projectdir/output/data/incidence_rates_rounded_standardised.dta", replace  
+	append using "$projectdir/output/data/incidence_rates_rounded_standardised${suffix}.dta"
+	save "$projectdir/output/data/incidence_rates_rounded_standardised${suffix}.dta", replace  
 	
 	restore
 }
@@ -635,9 +667,9 @@ foreach disease in $diseases {
 *Append incidence rates diagnoses by year, by IMD and ethnicity=================================*/
 
 clear *
-save "$projectdir/output/data/incidence_rates_rounded_imd.dta", replace emptyok
+save "$projectdir/output/data/incidence_rates_rounded_imd${suffix}.dta", replace emptyok
 
-use "$projectdir/output/data/incidence_data_processed.dta", clear
+use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 
 foreach disease in $diseases {
 	preserve
@@ -647,7 +679,7 @@ foreach disease in $diseases {
 	rename `disease'_year year
 
 	**Import denominators
-	merge 1:1 year imd using "$projectdir/output/data/measures_appended_imd.dta", keep(match) nogen
+	merge 1:1 year imd using "$projectdir/output/data/measures_appended_imd${suffix}.dta", keep(match) nogen
 	
 	**Drop unnecessary variables
 	drop denominator
@@ -706,16 +738,16 @@ foreach disease in $diseases {
 	}
 	
 	**Output to appended dta
-	append using "$projectdir/output/data/incidence_rates_rounded_imd.dta"
-	save "$projectdir/output/data/incidence_rates_rounded_imd.dta", replace  
+	append using "$projectdir/output/data/incidence_rates_rounded_imd${suffix}.dta"
+	save "$projectdir/output/data/incidence_rates_rounded_imd${suffix}.dta", replace  
 	
 	restore
 }
 
 clear *
-save "$projectdir/output/data/incidence_rates_rounded_ethn.dta", replace emptyok
+save "$projectdir/output/data/incidence_rates_rounded_ethn${suffix}.dta", replace emptyok
 
-use "$projectdir/output/data/incidence_data_processed.dta", clear
+use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
 
 foreach disease in $diseases {
 	preserve
@@ -725,7 +757,7 @@ foreach disease in $diseases {
 	rename `disease'_year year
 
 	**Import denominators
-	merge 1:1 year ethnicity using "$projectdir/output/data/measures_appended_ethn.dta", keep(match) nogen
+	merge 1:1 year ethnicity using "$projectdir/output/data/measures_appended_ethn${suffix}.dta", keep(match) nogen
 	
 	**Drop unnecessary variables
 	drop denominator
@@ -784,17 +816,17 @@ foreach disease in $diseases {
 	}
 	
 	**Output to appended dta
-	append using "$projectdir/output/data/incidence_rates_rounded_ethn.dta"
-	save "$projectdir/output/data/incidence_rates_rounded_ethn.dta", replace  
+	append using "$projectdir/output/data/incidence_rates_rounded_ethn${suffix}.dta"
+	save "$projectdir/output/data/incidence_rates_rounded_ethn${suffix}.dta", replace  
 	
 	restore
 }
 
 **Merge in IMD and ethnicity to age and sex standardised data
-use "$projectdir/output/data/incidence_rates_rounded_standardised.dta", clear
-merge 1:1 year disease using "$projectdir/output/data/incidence_rates_rounded_ethn.dta", keep(match) nogen
-merge 1:1 year disease using "$projectdir/output/data/incidence_rates_rounded_imd.dta", keep(match) nogen
+use "$projectdir/output/data/incidence_rates_rounded_standardised${suffix}.dta", clear
+merge 1:1 year disease using "$projectdir/output/data/incidence_rates_rounded_ethn${suffix}.dta", keep(match) nogen
+merge 1:1 year disease using "$projectdir/output/data/incidence_rates_rounded_imd${suffix}.dta", keep(match) nogen
 sort disease year
-export delimited using "$projectdir/output/tables/incidence_rates_rounded_subgroups.csv", datafmt replace
+export delimited using "$projectdir/output/tables/incidence_rates_rounded_subgroups${suffix}.csv", datafmt replace
 
 log close	

@@ -13,26 +13,43 @@ USER-INSTALLED ADO:
 ==============================================================================*/
 
 *Set filepaths
-*global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+/*
+global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+global running_locally = 1 // Running on local machine
+*/
+
 global projectdir `c(pwd)'
-di "$projectdir"
+global running_locally = 0 // Running on OpenSAFELY console
 
 capture mkdir "$projectdir/output/data"
 capture mkdir "$projectdir/output/tables"
 capture mkdir "$projectdir/output/figures"
 
-global logdir "$projectdir/logs"
-di "$logdir"
-
 *Open a log file
+global logdir "$projectdir/logs"
 cap log close
 log using "$logdir/prevalence_cleaning.log", replace
 
 *Set Ado file path
 adopath + "$projectdir/analysis/extra_ados"
 
-*Set disease list
-global diseases "rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+*Set disease list (passed from yaml)
+global arglist diseases
+args $arglist
+
+if $running_locally ==0 {
+	foreach var of global arglist {
+		local `var' : subinstr local `var' "|" " ", all
+		global `var' "``var''"
+		di "$`var'"
+	}
+}
+
+if $running_locally ==1 {
+	global diseases "eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis anca"
+}
+
+di "$diseases"
 
 set type double
 
@@ -87,7 +104,7 @@ replace dis_full = "Sjogren's disease" if dis_full == "Sjogren"
 replace dis_full = "Systemic sclerosis" if dis_full == "Ssc"
 replace dis_full = "SLE" if dis_full == "Sle"
 replace dis_full = "Myositis" if dis_full == "Myositis"
-replace dis_full = "ANCA vasculitis" if dis_full == "Anca"
+replace dis_full = "Small vessel vasculitis" if dis_full == "Anca"
 order dis_full, after(disease)
 drop diseases_
 

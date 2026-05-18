@@ -1,21 +1,19 @@
-from ehrql import create_dataset, days, months, years, case, when, create_measures, INTERVAL, minimum_of, maximum_of
+from ehrql import create_dataset, days, months, years, case, when, create_measures, INTERVAL, minimum_of, maximum_of, get_parameter
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ons_deaths, appointments
 from datetime import date, datetime
 import codelists_ehrQL as codelists
 from analysis.dataset_definition_incidence import dataset
 import sys
 
-# Arguments (from project.yaml)
-from argparse import ArgumentParser
+# Read parameters from project.yaml
+measure_date = get_parameter("measure_date")
+intervals = int(get_parameter("intervals"))
 
-parser = ArgumentParser()
-parser.add_argument("--start-date", type=str)
-parser.add_argument("--intervals", type=int)
-args = parser.parse_args()
-
-start_date = args.start_date
-intervals = args.intervals
-intervals_years = int(intervals/12)
+studystart_date = get_parameter("studystart_date")
+studyend_date = get_parameter("studyend_date")
+studyfup_date = get_parameter("studyfup_date")
+diseases_list = get_parameter("diseases_list")
+registration_months = int(get_parameter("registration_months"))        
 
 index_date = INTERVAL.start_date
 end_date = INTERVAL.end_date
@@ -23,10 +21,10 @@ end_date = INTERVAL.end_date
 # Currently registered
 curr_registered = practice_registrations.for_patient_on(index_date).exists_for_patient()
 
-# Registration for at least 12 months before index date
+# Registration for at least X months before index date
 pre_registrations = (
     practice_registrations.where(
-        practice_registrations.start_date.is_on_or_before(index_date - months(12))
+        practice_registrations.start_date.is_on_or_before(index_date - months(registration_months))
     ).except_where(
         practice_registrations.end_date.is_on_or_before(index_date)
     )
@@ -50,7 +48,7 @@ age_band = case(
 measures = create_measures()
 measures.configure_dummy_data(population_size=1000, legacy=True)
 measures.configure_disclosure_control(enabled=False)
-measures.define_defaults(intervals=months(intervals).starting_on(start_date))
+measures.define_defaults(intervals=months(intervals).starting_on(measure_date))
 
 # Population denominator (currently registered)
 current_denominator = (
@@ -60,7 +58,7 @@ current_denominator = (
     & curr_registered
 )
 
-# Population denominator (with 12m+ preceding registration)
+# Population denominator (with X months preceding registration)
 preceding_denominator = (
     ((age >= 18) & (age <= 110))
     & dataset.sex.is_in(["male", "female"])

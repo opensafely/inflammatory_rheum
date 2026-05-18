@@ -36,14 +36,33 @@ sessionInfo()
 #running_locally <- TRUE
 running_locally <- FALSE
 
-## Create directories if needed
+# Create directories if needed
 dir_create(here::here("output/figures"), showWarnings = FALSE, recurse = TRUE)
 dir_create(here::here("output/tables"), showWarnings = FALSE, recurse = TRUE)
 
-sink("logs/sarima_log.txt")
+# Set intervention date of interest (passed from yaml)
+args <- commandArgs(trailingOnly = TRUE)
+intervention_raw <- if (length(args) >= 1) {
+  args[1]
+} else {
+  "2020-03-01"
+}
+intervention_date <- as.Date(intervention_raw, format = "%Y-%m-%d")
+intervention <- c(year(intervention_date), month(intervention_date))
+print(intervention_date)
+
+# Suffix for files (primary vs. sensitivity analyses)
+suffix <- if (length(args) >= 2) {
+  args[2]
+} else {
+  ""
+}
+
+# Open log file
+sink(paste0("logs/sarima_log", suffix, ".txt"))
 
 # Incidence data
-df <-read.csv("output/tables/incidence_rates_rounded.csv")
+df <-read.csv(paste0("output/tables/incidence_rates_rounded", suffix, ".csv"))
 
 # Rename variables in the data and ensure dates in correct format
 names(df)[names(df) == "numerator"] <- "count"
@@ -58,9 +77,6 @@ month_lab <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov"
 # Extract list of diseases from data
 disease_list <- unique(df$disease)
 
-# Rename ANCA vasculitis
-df$dis_full[df$dis_full == "ANCA vasculitis"] <- "Small vessel vasculitis"
-
 # Initialize index for axis labelling
 index_axis <- 1
 
@@ -72,16 +88,12 @@ end_date   <- max(df$mo_year_diagn, na.rm = TRUE)
 start <- c(year(start_date), month(start_date))
 end <- c(year(end_date), month(end_date))
 
-# Define intervention date (March 2020)
-intervention <- c(2020, 3)
-intervention_date <- as.Date(paste0(intervention[1], "-", intervention[2], "-01"), format = "%Y-%m-%d")
-
 # Define number of months before intervention
-n_preintervention <- (intervention[1] - start[1]) * 12 + (intervention[2] - start[2])
+n_preintervention <- (year(intervention_date) - year(start_date)) * 12 + (month(intervention_date) - month(start_date))
 print(n_preintervention)
 
 # Define max number of months and years (rounded up) in series
-max_index <- (end[1] - start[1]) * 12 + (end[2] - start[2]) + 1
+max_index <- (year(end_date) - year(start_date)) * 12 + (month(end_date) - month(start_date)) + 1
 print(max_index)
 max_years <- ceiling(max_index / 12)
 
@@ -100,8 +112,6 @@ for (j in 1:length(disease_list)) {
   dis_full <- unique(df_dis$dis_full)
   #dis_full <- unique(df_dis$disease)
 
-  print(index_axis)
-  
   # Label x and y-axis
   #if (index_axis %in% c(1, 4)) {
   #  y_label <- "Monthly incidence rate per 100,000"
@@ -111,25 +121,27 @@ for (j in 1:length(disease_list)) {
   
   x_label <- ""
   
-  # Keep data from before intervention date (March 2020)
+  # Keep data from before intervention date
   df_obs <- df_dis[which(df_dis$index<=n_preintervention),]
-  
+
   # Loop through incidence (+/- counts if needed)
   for (i in 1:length(variables)) {
     var <- variables[i]
+    
+    dis_title <- str_to_title(str_replace_all(dis, "_", " "))
 
     # Convert to time series object 
     df_obs_rate <- ts(df_obs[[var]], frequency=12, start=start)
     assign(paste0("ts_", var), df_obs_rate)
     
     # Plot time series for raw data; 1st order difference; 1st order seasonal difference
-    svg(filename = paste0("output/figures/raw_pre_covid_", var, "_", dis, ".svg"), width = 8, height = 6)
+    svg(filename = paste0("output/figures/raw_pre_covid", suffix, "_", var, "_", dis, ".svg"), width = 8, height = 6)
     plot(df_obs_rate, ylim=c(), type='l', col="blue", xlab="Year", ylab=y_label)
     dev.off()
-    svg(filename = paste0("output/figures/differenced_pre_covid_", var, "_", dis, ".svg"), width = 8, height = 6)
+    svg(filename = paste0("output/figures/differenced_pre_covid", suffix, "_", var, "_", dis, ".svg"), width = 8, height = 6)
     plot(diff(df_obs_rate),type = "l");abline(h=0,col = "red")
     dev.off()
-    svg(filename = paste0("output/figures/seasonal_pre_covid_", var, "_", dis, ".svg"), width = 8, height = 6)
+    svg(filename = paste0("output/figures/seasonal_pre_covid", suffix, "_", var, "_", dis, ".svg"), width = 8, height = 6)
     plot(diff(diff(df_obs_rate),12),type = "l");abline(h=0,col = "red")
     dev.off()
     
@@ -239,7 +251,7 @@ for (j in 1:length(disease_list)) {
     # Bai–Perron and CUSUM tests
     bp_str <- NULL
     cusum_str <- NULL
-    
+
     if (requireNamespace("strucchange", quietly = TRUE)) {
       library(strucchange)
       
@@ -292,8 +304,8 @@ for (j in 1:length(disease_list)) {
       bottom = caption_grob
     )
     
-    ggsave(sprintf("output/figures/auto_residuals_%s_%s.svg", var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "svg")
-    #ggsave(sprintf("output/figures/auto_residuals_%s_%s.png", var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "png")
+    ggsave(sprintf("output/figures/auto_residuals_%s_%s_%s.svg", suffix, var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "svg")
+    #ggsave(sprintf("output/figures/auto_residuals_%s_%s_%s.png", suffix, var, as.character(dis)[1]), plot = g, width = 8, height = 6, device = "png")
     
     # Forecast from March 2020 and convert to time series object
     fc.rate  <- forecast(m1.rate, h = (max_index - n_preintervention), level = 95, bootstrap=TRUE, npaths=10000)
@@ -323,10 +335,7 @@ for (j in 1:length(disease_list)) {
     df_new <- df_new %>%
       arrange(index) %>%
       mutate(mean_ma = rollmean(mean, k = 3, fill = NA, align = "center"))
-    
-    # Save a table of values
-    write.csv(df_new, file = paste0("output/tables/values_", var, "_", dis, ".csv"), row.names = FALSE)
-    
+
     # Plot observed and expected graphs
     c1<- 
       ggplot(data = df_new,aes(x = mo_year_diagn))+
@@ -336,8 +345,8 @@ for (j in 1:length(disease_list)) {
       geom_line(data = df_new %>% filter(mo_year_diagn >= intervention_date), aes(y = mean_ma), color = "orange", linetype = "solid", size=0.65)+
       geom_ribbon(data = df_new %>% filter(mo_year_diagn >= intervention_date), aes(ymin = pmax(lower, 1e-9), ymax = upper), alpha = 0.3, fill = "grey")+
       geom_vline(xintercept = as.numeric(intervention_date), linetype = "dashed", color = "grey")+
-      scale_x_date(breaks = seq(as.Date(paste0(start[1], "-01-01")), as.Date(paste0(end[1] + 1, "-01-01")), by = "2 years"), date_labels = "%Y")+
-      theme_minimal()+
+      scale_x_date(limits = c(as.Date(sprintf("%d-01-01", start[1])), as.Date(sprintf("%d-01-01", end[1] + 1))),
+      breaks = seq(as.Date(sprintf("%d-01-01", start[1])), as.Date(sprintf("%d-01-01", end[1] + 1)), by = "1 year"), date_labels = "%Y")+      theme_minimal()+
       xlab(x_label)+
       ylab(y_label)+
       theme(
@@ -349,13 +358,15 @@ for (j in 1:length(disease_list)) {
         axis.text = element_text(size = 10, color = "black"),
         axis.title.x = element_text(size = 12, margin = margin(t = 5)),
         axis.title.y = element_text(size = 12, margin = margin(r = 5)), 
-        plot.title = element_text(size = 14, hjust = 0.5, face = "plain") 
-      ) +
-      ggtitle(dis_full)
+        plot.title = element_text(size = 14, hjust = 0.5, face = "plain"),
+        plot.margin = margin(t = 20))+
+      annotate("text", x = intervention_date, y = Inf, label = "COVID-19", vjust = -0.5, hjust = 0.5, size = 3.0, color = "navy")+        
+      coord_cartesian(clip = "off")+
+      ggtitle(paste0(dis_full))
     
-    saveRDS(c1, file = paste0("output/figures/obs_pred_", var, "_", dis, ".rds"))
-    ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".svg"), plot = c1, width = 8, height = 6, device = "svg")
-    #ggsave(filename = paste0("output/figures/obs_pred_", var, "_", dis, ".png"), plot = c1, width = 8, height = 6, device = "png")
+    saveRDS(c1, file = paste0("output/figures/obs_pred", suffix, "_", var, "_", dis, ".rds"))
+    ggsave(filename = paste0("output/figures/obs_pred", suffix, "_", var, "_", dis, ".svg"), plot = c1, width = 1200, height = 600, units = "px", device = svglite::svglite)
+    #ggsave(filename = paste0("output/figures/obs_pred", suffix, "_", var, "_", dis, ".png"), plot = c1, width = 1200, height = 600, units = "px", dpi = 144, bg = "white", device = "png", type="cairo")
     
     print(c1)
     
@@ -370,9 +381,15 @@ for (j in 1:length(disease_list)) {
     a<- c(n_preintervention, (n_preintervention + 12), (n_preintervention + 24), (n_preintervention + 36), n_preintervention)
     b<- c((n_preintervention + 12), (n_preintervention + 24), (n_preintervention + 36), max_index, max_index)
     
-    results_list <- list()
+    # Number of intervals
+    n <- length(a)
+    results_list <- vector("list", n)
     
-    for (i in 1:5) {
+    # Table suffixes
+    tabsuffix <- as.character(year(intervention_date) + seq_len(n) - 1L)
+    tabsuffix[n] <- "total"
+    
+    for (i in seq_len(n)) {
       
       observed_val <- df_new %>%
         filter(index > a[i] & index <= b[i]) %>%
@@ -389,85 +406,50 @@ for (j in 1:length(disease_list)) {
         ) %>%
         select(sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u)
       
-      observed_predicted_rate <- merge(observed_val, predicted_val)
-      
-      observed_predicted_rate <- observed_predicted_rate %>%
+      observed_predicted_rate <- merge(observed_val, predicted_val) %>%
         mutate(change_rate = observed - sum_pred_rate,
                change_ratelow = observed - sum_pred_rate_l,
                change_ratehigh = observed - sum_pred_rate_u, 
                change_rate_per = (observed - sum_pred_rate) * 100 / sum_pred_rate,
                change_rate_per_low = (observed - sum_pred_rate_l) * 100 / sum_pred_rate_l, 
                change_rate_per_high = (observed - sum_pred_rate_u) * 100 / sum_pred_rate_u
+        ) %>%
+        mutate(observed = round(observed, 2),
+               sum_pred_rate = round(sum_pred_rate, 2),
+               sum_pred_rate_l = round(sum_pred_rate_l, 2),
+               sum_pred_rate_u = round(sum_pred_rate_u, 2),
+               change_rate = round(change_rate, 2),
+               change_ratelow = round(change_ratelow, 2),
+               change_ratehigh = round(change_ratehigh, 2),
+               change_rate_per = round(change_rate_per, 2),
+               change_rate_per_low = round(change_rate_per_low, 2),
+               change_rate_per_high = round(change_rate_per_high, 2)
         )
       
-      # Store the result for this iteration in the list
-      results_list[[i]] <- observed_predicted_rate %>%
-        mutate(
-          observed = round(observed, 2),
-          sum_pred_rate = round(sum_pred_rate, 2),
-          sum_pred_rate_l = round(sum_pred_rate_l, 2),
-          sum_pred_rate_u = round(sum_pred_rate_u, 2),
-          change_rate = round(change_rate, 2),
-          change_ratelow = round(change_ratelow, 2),
-          change_ratehigh = round(change_ratehigh, 2),
-          change_rate_per = round(change_rate_per, 2),
-          change_rate_per_low = round(change_rate_per_low, 2),
-          change_rate_per_high = round(change_rate_per_high, 2)
-        )
+      current_summary <- observed_predicted_rate %>%
+        select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
+               change_rate, change_ratelow, change_ratehigh,
+               change_rate_per, change_rate_per_low, change_rate_per_high)
+      
+      colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".", tabsuffix[i])
       
       if (i == 1) {
-        rates.summary <- results_list[[i]] %>%
-          select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                 change_rate, change_ratelow, change_ratehigh,
-                 change_rate_per, change_rate_per_low, change_rate_per_high)
-        colnames(rates.summary)[1:10] <- paste0(colnames(rates.summary)[1:10], ".2020")
-      } else if (i == 2) {
-        current_summary <- results_list[[i]] %>%
-          select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                 change_rate, change_ratelow, change_ratehigh,
-                 change_rate_per, change_rate_per_low, change_rate_per_high)
-        colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".2021")
-        rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
-          select(-Row.names)
-      } else if (i == 3) {
-        current_summary <- results_list[[i]] %>%
-          select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                 change_rate, change_ratelow, change_ratehigh,
-                 change_rate_per, change_rate_per_low, change_rate_per_high)
-        colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".2022")
-        rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
-          select(-Row.names)
-      } else if (i == 4) {
-        current_summary <- results_list[[i]] %>%
-          select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                 change_rate, change_ratelow, change_ratehigh,
-                 change_rate_per, change_rate_per_low, change_rate_per_high)
-        colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".202324")
-        rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
-          select(-Row.names)
-      } else if (i == 5) {
-        current_summary <- results_list[[i]] %>%
-          select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                 change_rate, change_ratelow, change_ratehigh,
-                 change_rate_per, change_rate_per_low, change_rate_per_high)
-        colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".total")
+        rates.summary <- current_summary
+      } else {
         rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
           select(-Row.names)
       }
     }
     
     rates.summary <- rates.summary %>%
-      mutate(disease = dis_full) %>% 
+      mutate(disease = dis_title) %>% 
       mutate(measure = var) %>% 
       select(measure, everything()) %>% 
       select(disease, everything()) 
     
-    # Print summary table
-    print(rates.summary)
-    
     # Output to csv
     new_row <- rates.summary
-    file_name <- "output/tables/change_incidence_byyear.csv"
+    file_name <- paste0("output/tables/change_incidence_byyear", suffix, ".csv")
     
     # Check if the file exists
     if (file.exists(file_name)) {
@@ -549,10 +531,10 @@ for (j in 1:length(disease_list)) {
         ) +
         ggtitle(paste0(dis_full))
       
-      saveRDS(c_prophet, file = paste0("output/figures/prophet_", var, "_", dis, ".rds"))
-      ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".svg"),
+      saveRDS(c_prophet, file = paste0("output/figures/prophet", suffix, "_", var, "_", dis, ".rds"))
+      ggsave(filename = paste0("output/figures/prophet", suffix, "_", var, "_", dis, ".svg"),
              plot = c_prophet, width = 8, height = 6, device = "svg")
-      #ggsave(filename = paste0("output/figures/prophet_", var, "_", dis, ".png"),
+      #ggsave(filename = paste0("output/figures/prophet", suffix, "_", var, "_", dis, ".png"),
       #       plot = c_prophet, width = 8, height = 6, device = "png")
       
       print(c_prophet)
@@ -561,9 +543,15 @@ for (j in 1:length(disease_list)) {
       a<- c(n_preintervention, (n_preintervention + 12), (n_preintervention + 24), (n_preintervention + 36), n_preintervention)
       b<- c((n_preintervention + 12), (n_preintervention + 24), (n_preintervention + 36), max_index, max_index)
       
-      results_list <- list()
+      # Number of intervals
+      n <- length(a)
+      results_list <- vector("list", n)
       
-      for (i in 1:5) {
+      # Table suffixes
+      tabsuffix <- as.character(year(intervention_date) + seq_len(n) - 1L)
+      tabsuffix[n] <- "total"
+      
+      for (i in seq_len(n)) {
         
         observed_val <- df_new2 %>%
           filter(index > a[i] & index <= b[i]) %>%
@@ -580,87 +568,50 @@ for (j in 1:length(disease_list)) {
           ) %>%
           select(sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u)
         
-        observed_predicted_rate <- merge(observed_val, predicted_val)
-        
-        observed_predicted_rate <- observed_predicted_rate %>%
+        observed_predicted_rate <- merge(observed_val, predicted_val) %>%
           mutate(change_rate = observed - sum_pred_rate,
                  change_ratelow = observed - sum_pred_rate_l,
                  change_ratehigh = observed - sum_pred_rate_u, 
                  change_rate_per = (observed - sum_pred_rate) * 100 / sum_pred_rate,
                  change_rate_per_low = (observed - sum_pred_rate_l) * 100 / sum_pred_rate_l, 
                  change_rate_per_high = (observed - sum_pred_rate_u) * 100 / sum_pred_rate_u
+          ) %>%
+          mutate(observed = round(observed, 2),
+                 sum_pred_rate = round(sum_pred_rate, 2),
+                 sum_pred_rate_l = round(sum_pred_rate_l, 2),
+                 sum_pred_rate_u = round(sum_pred_rate_u, 2),
+                 change_rate = round(change_rate, 2),
+                 change_ratelow = round(change_ratelow, 2),
+                 change_ratehigh = round(change_ratehigh, 2),
+                 change_rate_per = round(change_rate_per, 2),
+                 change_rate_per_low = round(change_rate_per_low, 2),
+                 change_rate_per_high = round(change_rate_per_high, 2)
           )
         
-        # Store the result for this iteration in the list
-        results_list[[i]] <- observed_predicted_rate %>%
-          mutate(
-            observed = round(observed, 2),
-            sum_pred_rate = round(sum_pred_rate, 2),
-            sum_pred_rate_l = round(sum_pred_rate_l, 2),
-            sum_pred_rate_u = round(sum_pred_rate_u, 2),
-            change_rate = round(change_rate, 2),
-            change_ratelow = round(change_ratelow, 2),
-            change_ratehigh = round(change_ratehigh, 2),
-            change_rate_per = round(change_rate_per, 2),
-            change_rate_per_low = round(change_rate_per_low, 2),
-            change_rate_per_high = round(change_rate_per_high, 2)
-          )
+        current_summary <- observed_predicted_rate %>%
+          select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
+                 change_rate, change_ratelow, change_ratehigh,
+                 change_rate_per, change_rate_per_low, change_rate_per_high)
+        
+        colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".", tabsuffix[i])
         
         if (i == 1) {
-          rates.summary <- results_list[[i]] %>%
-            select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                   change_rate, change_ratelow, change_ratehigh,
-                   change_rate_per, change_rate_per_low, change_rate_per_high)
-          colnames(rates.summary)[1:10] <- paste0(colnames(rates.summary)[1:10], ".2020")
-        } else if (i == 2) {
-          current_summary <- results_list[[i]] %>%
-            select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                   change_rate, change_ratelow, change_ratehigh,
-                   change_rate_per, change_rate_per_low, change_rate_per_high)
-          colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".2021")
-          rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
-            select(-Row.names)
-        } else if (i == 3) {
-          current_summary <- results_list[[i]] %>%
-            select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                   change_rate, change_ratelow, change_ratehigh,
-                   change_rate_per, change_rate_per_low, change_rate_per_high)
-          colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".2022")
-          rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
-            select(-Row.names)
-        } else if (i == 4) {
-          current_summary <- results_list[[i]] %>%
-            select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                   change_rate, change_ratelow, change_ratehigh,
-                   change_rate_per, change_rate_per_low, change_rate_per_high)
-          colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".202324")
-          rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
-            select(-Row.names)
-        } else if (i == 5) {
-          current_summary <- results_list[[i]] %>%
-            select(observed, sum_pred_rate, sum_pred_rate_l, sum_pred_rate_u, 
-                   change_rate, change_ratelow, change_ratehigh,
-                   change_rate_per, change_rate_per_low, change_rate_per_high)
-          colnames(current_summary)[1:10] <- paste0(colnames(current_summary)[1:10], ".total")
+          rates.summary <- current_summary
+        } else {
           rates.summary <- merge(rates.summary, current_summary, by = "row.names", all = TRUE) %>%
             select(-Row.names)
         }
       }
       
       rates.summary <- rates.summary %>%
-        mutate(disease = dis_full) %>% 
+        mutate(disease = dis_title) %>% 
         mutate(measure = var) %>% 
         select(measure, everything()) %>% 
-        select(disease, everything()) 
+        select(disease, everything())
       
-      # Print summary table
-      print(rates.summary)
+      new_row   <- rates.summary
+      file_name <- paste0("output/tables/change_incidence_byyear_prophet", suffix, ".csv")
       
-      # Output to csv
-      new_row <- rates.summary
-      file_name <- "output/tables/change_incidence_byyear_prophet.csv"
-      
-      # Check if the file exists
       if (file.exists(file_name)) {
         existing_data <- read.csv(file_name)
         updated_data <- rbind(existing_data, new_row)
@@ -672,12 +623,11 @@ for (j in 1:length(disease_list)) {
     } else {
       message("Prophet package not installed, skipping forecast.")
     }
-  }
   
-  # Increment index (for labelling)
-  index_axis <- index_axis + 1
-}    
-
+    # Increment index (for labelling)
+    index_axis <- index_axis + 1
+  }    
+}
 # Combine graphs (Nb. this doesnt work in OpenSAFELY console)
 if (running_locally) {
   
@@ -685,9 +635,9 @@ if (running_locally) {
   dis_vec <- as.character(disease_list)
   
   # List and read all RDS files that match the pattern (for SARIMA)
-  rds_files <- list.files(path = "output/figures/", pattern = "^obs_pred_incidence.*_.*\\.rds$", full.names = TRUE)
+  rds_files <- list.files(path = "output/figures/", pattern = paste0("^obs_pred", suffix, "_incidence_.*\\.rds$"), full.names = TRUE)
   fnames <- basename(rds_files)
-  file_dis <- sub("^obs_pred_incidence_(.*)\\.rds$", "\\1", fnames)
+  file_dis <- sub(paste0("^obs_pred", suffix, "_incidence_(.*)\\.rds$"), "\\1", fnames)
   keep <- file_dis %in% dis_vec
   matching_rds <- rds_files[keep]
   matching_dis <- file_dis[keep]
@@ -696,14 +646,14 @@ if (running_locally) {
   matching_rds <- matching_rds[ord]
   plot_list <- lapply(matching_rds, readRDS)
   
-  png("output/figures/sarima_combined.png", width = 12830, height = 8680, res = 720)
+  png(paste0("output/figures/sarima_combined", suffix, ".png"), width = 12830, height = 8680, res = 720)
   do.call(grid.arrange, c(plot_list, ncol=3))
   dev.off()
   
   # List and read all RDS files that match the pattern (for Prophet sensitivity)
-  rds_files_p <- list.files(path = "output/figures/", pattern = "^prophet_incidence.*_.*\\.rds$", full.names = TRUE)
+  rds_files_p <- list.files(path = "output/figures/", pattern = paste0("^prophet", suffix, "_incidence_.*\\.rds$"), full.names = TRUE)
   fnames_p <- basename(rds_files_p)
-  file_dis_p <- sub("^prophet_incidence_(.*)\\.rds$", "\\1", fnames_p)
+  file_dis_p <- sub(paste0("^prophet", suffix, "_incidence_(.*)\\.rds$"), "\\1", fnames_p)
   keep <- file_dis_p %in% dis_vec
   matching_rds_p <- rds_files_p[keep]
   matching_dis_p <- file_dis_p[keep]
@@ -712,7 +662,8 @@ if (running_locally) {
   matching_rds_p <- matching_rds_p[ord_p]
   plot_list <- lapply(matching_rds_p, readRDS)
   
-  png("output/figures/sarima_combined_prophet.png", width = 12830, height = 8680, res = 720)
+  png(paste0("output/figures/prophet_combined", suffix, ".png"), width = 12830, height = 8680, res = 720)
+  #svg(paste0("output/figures/prophet_combined", suffix, ".svg"), width = 18, height = 12)
   do.call(grid.arrange, c(plot_list, ncol=3))
   dev.off()
   

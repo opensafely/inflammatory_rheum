@@ -126,6 +126,30 @@
       "downloaded_at": "2025-07-23 08:24:52.806010Z",
       "sha": "435141cacd9746d82b5ce74692f53f71c238421f"
     },
+    "user-markdrussell-polymyalgia-rheumatica-prevalent.csv": {
+      "id": "user/markdrussell/polymyalgia-rheumatica-prevalent/08e237db",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/polymyalgia-rheumatica-prevalent/08e237db/",
+      "downloaded_at": "2026-05-18 09:24:05.865871Z",
+      "sha": "70dbce1055e7cb460151e19ad6bbd21810cd9b84"
+    },
+    "user-markdrussell-polymyalgia-rheumatica-pmr-secondary-care.csv": {
+      "id": "user/markdrussell/polymyalgia-rheumatica-pmr-secondary-care/6fd2c4a5",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/polymyalgia-rheumatica-pmr-secondary-care/6fd2c4a5/",
+      "downloaded_at": "2026-05-18 09:24:05.965281Z",
+      "sha": "e90f6c2bb6a1fdf02bc0b068dfaa94c13d737954"
+    },
+    "user-markdrussell-ocular-complications-that-can-be-associated-with-gca-including-blindness.csv": {
+      "id": "user/markdrussell/ocular-complications-that-can-be-associated-with-gca-including-blindness/7285849b",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/ocular-complications-that-can-be-associated-with-gca-including-blindness/7285849b/",
+      "downloaded_at": "2026-05-18 16:13:31.847016Z",
+      "sha": "0ea91afdcd363873fc2735d4b5f9d8df02616e66"
+    },
+    "user-markdrussell-large-vessel-complications-associated-with-giant-cell-arterities.csv": {
+      "id": "user/markdrussell/large-vessel-complications-associated-with-giant-cell-arterities/40669e31",
+      "url": "https://www.opencodelists.org/codelist/user/markdrussell/large-vessel-complications-associated-with-giant-cell-arterities/40669e31/",
+      "downloaded_at": "2026-05-18 16:13:32.051896Z",
+      "sha": "0f41b8976bbd59c7222a9b034125907cfdeec6f6"
+    },
     "opensafely-ethnicity-snomed-0removed.csv": {
       "id": "opensafely/ethnicity-snomed-0removed/22911876",
       "url": "https://www.opencodelists.org/codelist/opensafely/ethnicity-snomed-0removed/22911876/",
@@ -144,11 +168,11 @@
       "downloaded_at": "2025-05-19 15:30:37.052995Z",
       "sha": "7b47b2cb6c00a2fc71ad9dfb1030bd6b08418535"
     },
-    "nhsd-primary-care-domain-refsets-strk_cod.csv": {
-      "id": "nhsd-primary-care-domain-refsets/strk_cod/78779ff3",
-      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/strk_cod/78779ff3/",
-      "downloaded_at": "2025-05-19 15:30:37.190482Z",
-      "sha": "b43c467ddf0b39acde84699cfc70bb96646da02a"
+    "nhsd-primary-care-domain-refsets-ostr_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/ostr_cod/7ce7eac6",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/ostr_cod/7ce7eac6/",
+      "downloaded_at": "2026-05-18 16:13:32.498325Z",
+      "sha": "61fe118e8c387181ed022ea7a295848d1d56471c"
     },
     "nhsd-primary-care-domain-refsets-tia_cod.csv": {
       "id": "nhsd-primary-care-domain-refsets/tia_cod/1625df86",
@@ -174,11 +198,29 @@
       "downloaded_at": "2025-05-19 15:30:37.729541Z",
       "sha": "a12dbc4f6c0a2ad1c5e77554389a2f8cdcf5cb26"
     },
-    "ardens-creatinine-level.csv": {
-      "id": "ardens/creatinine-level/1d46314c",
-      "url": "https://www.opencodelists.org/codelist/ardens/creatinine-level/1d46314c/",
-      "downloaded_at": "2025-05-19 15:41:32.338292Z",
-      "sha": "ed2c0273d6d42524d75465b05bed45670ea726e9"
+    "nhsd-primary-care-domain-refsets-hflvsd_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/hflvsd_cod/31a633c6",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/hflvsd_cod/31a633c6/",
+      "downloaded_at": "2026-05-18 16:13:33.117787Z",
+      "sha": "4b02e302dc12137b6c1b54cb846748eb1b66192c"
+    },
+    "nhsd-primary-care-domain-refsets-hyp_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/hyp_cod/521a90af",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/hyp_cod/521a90af/",
+      "downloaded_at": "2026-05-18 16:13:33.217985Z",
+      "sha": "f94870510a3550ff79710b2d88b551812bb2fb3b"
+    },
+    "nhsd-primary-care-domain-refsets-ifcchbam_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/ifcchbam_cod/00aca634",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/ifcchbam_cod/00aca634/",
+      "downloaded_at": "2026-05-18 16:13:33.300563Z",
+      "sha": "e4b05d5290a5ed002046eb9d27bb7e62b994c4f6"
+    },
+    "nhsd-primary-care-domain-refsets-cre_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/cre_cod/48c03197",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/cre_cod/48c03197/",
+      "downloaded_at": "2026-05-18 16:13:33.401681Z",
+      "sha": "c6f53558c19c41b025c564d408d03eaad883345b"
     },
     "nhsd-primary-care-domain-refsets-osteo_cod.csv": {
       "id": "nhsd-primary-care-domain-refsets/osteo_cod/1dd61122",
@@ -269,6 +311,18 @@
       "url": "https://www.opencodelists.org/codelist/user/markdrussell/corticosteroids-oral-im-or-iv-dmd/6e4446b9/",
       "downloaded_at": "2025-05-23 09:10:07.724496Z",
       "sha": "7578106f66d5bd0d02b206513d00426551ee4271"
+    },
+    "nhs-drug-refsets-c19corstedrug_cod.csv": {
+      "id": "nhs-drug-refsets/c19corstedrug_cod/41d73ef1",
+      "url": "https://www.opencodelists.org/codelist/nhs-drug-refsets/c19corstedrug_cod/41d73ef1/",
+      "downloaded_at": "2026-05-18 16:13:35.826610Z",
+      "sha": "39c9907323006787428f23c22bd176d364ec2069"
+    },
+    "nhs-drug-refsets-c19preddrug_cod.csv": {
+      "id": "nhs-drug-refsets/c19preddrug_cod/7ae90c65",
+      "url": "https://www.opencodelists.org/codelist/nhs-drug-refsets/c19preddrug_cod/7ae90c65/",
+      "downloaded_at": "2026-05-18 16:13:35.914542Z",
+      "sha": "56e739eda886a51b4b0ded3b629de010e95a3c75"
     },
     "user-markdrussell-rheumatoid-factor.csv": {
       "id": "user/markdrussell/rheumatoid-factor/3c25604f",

@@ -1,25 +1,30 @@
-from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of
+from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of, get_parameter
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ethnicity_from_sus 
 from ehrql.codes import ICD10Code
 from datetime import date, datetime
 from functools import reduce
 import codelists_ehrQL as codelists
 
-diseases = ["rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
-codelist_types = ["snomed", "icd"]
+# Read parameters from project.yaml
+studystart_date = get_parameter("studystart_date")
+studyend_date = get_parameter("studyend_date")
+studyfup_date = get_parameter("studyfup_date")
+diseases_list = get_parameter("diseases_list")
 
-index_date = "2016-04-01"
-end_date = "2025-03-31"
-fup_date = "2025-09-30"
+diseases = diseases_list if isinstance(diseases_list, list) else [diseases_list]
+print("Diseases:", diseases)
+
+# Define codelist types
+codelist_types = ["snomed", "icd"]
 
 dataset = create_dataset()
 dataset.configure_dummy_data(population_size=1000)
 
 # Any practice registration before study end date
 any_registration = practice_registrations.where(
-            practice_registrations.start_date <= end_date
+            practice_registrations.start_date <= studyend_date
         ).except_where(
-            practice_registrations.end_date < index_date    
+            practice_registrations.end_date < studystart_date    
         ).exists_for_patient()
 
 # Incident diagnostic code in primary care record (SNOMED) (assuming before study end date)
@@ -27,7 +32,7 @@ def first_code_in_period_snomed(dx_codelist):
     return clinical_events.where(
         clinical_events.snomedct_code.is_in(dx_codelist)
     ).where(
-        clinical_events.date.is_on_or_before(end_date)
+        clinical_events.date.is_on_or_before(studyend_date)
     ).sort_by(
         clinical_events.date
     ).first_for_patient()
@@ -37,7 +42,7 @@ def first_code_in_period_icd(dx_codelist):
     return apcs.where(
         apcs.primary_diagnosis.is_in(dx_codelist)
     ).where(
-        apcs.admission_date.is_on_or_before(end_date)
+        apcs.admission_date.is_on_or_before(studyend_date)
     ).sort_by(
         apcs.admission_date
     ).first_for_patient()
@@ -88,7 +93,7 @@ for disease in diseases:
 
     # Incident date before study end (prevalent cases)
     dataset.add_column(f"{disease}_prev_case",
-        (getattr(dataset, disease + "_inc_date").is_before(end_date)
+        (getattr(dataset, disease + "_inc_date").is_before(studyend_date)
         ).when_null_then(False)
     )
 

@@ -1,0 +1,1458 @@
+version 16
+
+/*==============================================================================
+DO FILE NAME:			Cleaning of GCA dataset
+PROJECT:				Inflammatory Rheum OpenSAFELY project
+DATE: 					20/05/2025
+AUTHOR:					M Russell									
+DESCRIPTION OF FILE:	Data management for GCA cohort 
+DATASETS USED:			GCA dataset definition
+USER-INSTALLED ADO: 	 
+  (place .ado file(s) in analysis folder)						
+==============================================================================*/
+
+
+*Set filepaths
+/*
+global projectdir "C:\Users\k1754142\OneDrive\PhD Project\OpenSAFELY NEIAA\inflammatory_rheum"
+global running_locally = 1 // Running on local machine
+*/
+
+global projectdir `c(pwd)'
+global running_locally = 0 // Running on OpenSAFELY console
+
+capture mkdir "$projectdir/output/data"
+capture mkdir "$projectdir/output/tables"
+capture mkdir "$projectdir/output/figures"
+
+*Set Ado file path
+adopath + "$projectdir/analysis/extra_ados"
+
+*Define list of diseases of interest
+global disease "gca"
+
+*Define study dates (passed from yaml)
+global arglist studystart_date studyend_date studyfup_date
+args $arglist
+
+if $running_locally ==0 {
+	foreach var of global arglist {
+		local `var' : subinstr local `var' "|" " ", all
+		global `var' "``var''"
+		di "$`var'"
+	}
+}
+
+if $running_locally ==1 {
+	global studystart_date "2016-04-01"
+	global studyend_date "2025-03-31"
+	global studyfup_date "2025-09-30"
+}
+
+di "$studystart_date"
+di "$studyend_date"
+di "$suffix"
+
+*Start year, end year and number of study years (derived from above)
+global base_year = year(date("$studystart_date", "YMD"))
+global end_year = year(date("$studyend_date", "YMD"))
+global max_year = $end_year - $base_year
+di "$base_year"
+di "$end_year"
+di "$max_year"
+
+set type double
+
+set scheme plotplainblind
+
+*Open a log file
+global logdir "$projectdir/logs"
+cap log close
+log using "$logdir/${disease}_cleaning.log", replace
+
+*Import dataset
+import delimited "$projectdir/output/dataset_${disease}.csv", clear
+
+*Conversion and formatting for dates====================================================*
+
+**Convert format for variables containing dates that are in string format
+ds *date*, has(type string) //check list of variables is appropriate
+local string_dates `r(varlist)'
+
+foreach var of local string_dates {
+	gen double `var'_num = daily(`var', "YMD")
+	quietly count if !missing(`var'_num)
+	if r(N) {
+		format `var'_num %td
+		order `var'_num, after(`var')
+		drop `var'
+		rename `var'_num `var'
+	}
+	else {
+		drop `var'_num
+	}
+}
+
+**Convert format for variables containing dates that are in numeric format
+ds *date*, has(type numeric) //check list of variables is appropriate
+capture ds *date*, has(type numeric)
+if !_rc & "`r(varlist)'" != "" {
+    foreach var of varlist `r(varlist)' {
+        format `var' %td
+    }
+}
+
+*Keep cohort of interest====================================================*
+
+codebook ${disease}_inc_case
+
+**Check criteria applied in dataset definition (restricted to minimum age of 50 for GCA)
+gen ${disease} = 1 if ${disease}_inc_case=="T" & ((${disease}_inc_date >= date("$studystart_date", "YMD")) & (${disease}_inc_date <= date("$studyend_date", "YMD"))) & (${disease}_age >=50 & ${disease}_age <= 110) & (sex!="") & ${disease}_pre_reg=="T" & ${disease}_alive_inc=="T"
+recode ${disease} .=0
+tab ${disease}, missing //should all be 1
+
+keep if ${disease} == 1
+
+**Primary care only codes
+gen ${disease}_p = 1 if ${disease}_inc_date==${disease}_prim_date
+recode ${disease}_p .=0 if ${disease} == 1
+tab ${disease}_p, missing
+lab var ${disease}_p "First ${disease} code in primary care"
+lab def ${disease}_p 0 "No" 1 "Yes"
+lab val ${disease}_p ${disease}_p
+
+*Generate month and year of diagnosis, and define duration of follow-up post-diagnosis ===========================================================*/
+
+gen ${disease}_year = year(${disease}_inc_date)
+format ${disease}_year %ty
+gen ${disease}_mon = month(${disease}_inc_date)
+gen ${disease}_moyear = ym(${disease}_year, ${disease}_mon)
+format ${disease}_moyear %tmMon-CCYY
+generate str16 ${disease}_moyear_st = strofreal(${disease}_moyear,"%tmCCYY!mNN")
+lab var ${disease}_moyear "Month/Year of Diagnosis"
+lab var ${disease}_moyear_st "Month/Year of Diagnosis"
+
+**Separate into 12-month time windows from April (with relation to diagnosis date)
+gen diagnosis_year = (floor((${disease}_inc_date - date("$studystart_date", "YMD")) / 365.25) + 1) if inrange(${disease}_inc_date, date("$studystart_date", "YMD"), date("$studyend_date", "YMD"))
+lab var diagnosis_year "Year of diagnosis"
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+    label define diagnosis_year_lbl `i' "April `start'-March `end'", add
+}
+lab val diagnosis_year diagnosis_year_lbl
+tab diagnosis_year, missing
+
+**Proportion of patients with at least 6 or 12 months of GP registration after diagnosis
+foreach t in 6 12 {
+	local days = int((`t'/12)*365.25)
+	di `days'
+	
+	gen has_`t'm_fup=1 if (reg_end_date!=. & (reg_end_date >= (${disease}_inc_date + `days')) & ((${disease}_inc_date + `days') <= (date("$studyfup_date", "YMD")))) | (reg_end_date==. & ((${disease}_inc_date + `days') <= (date("$studyfup_date", "YMD"))))
+	recode has_`t'm_fup .=0
+	lab var has_`t'm_fup "At least `t' months of follow-up after diagnosis"
+	lab def has_`t'm_fup 0 "No" 1 "Yes"
+	lab val has_`t'm_fup has_`t'm_fup
+	tab has_`t'm_fup
+	tab ${disease}_moyear has_`t'm_fup
+}
+		
+**Create and label variables ===========================================================*/
+
+
+*Clean and label demographic and comorbidity variables ====================================*/
+
+**Age
+rename ${disease}_age age
+lab var age "Age at diagnosis"
+tabstat age, stat(n mean sd p50 p25 p75)
+
+gen age_decile = age/10
+lab var age_decile "Age decile at diagnosis"
+
+***Define 10-year age bands
+recode age 18/29.9999 = 1 /// 
+		   30/39.9999 = 2 ///
+           40/49.9999 = 3 ///
+		   50/59.9999 = 4 ///
+	       60/69.9999 = 5 ///
+		   70/79.9999 = 6 ///
+		   80/max = 7, gen(agegroup_broad) 
+
+label define agegroup_broad	1 "18 to 29" ///
+							2 "30 to 39" ///
+							3 "40 to 49" ///
+							4 "50 to 59" ///
+							5 "60 to 69" ///
+							6 "70 to 79" ///
+							7 "80 or above", modify
+						
+label values agegroup_broad agegroup_broad
+lab var agegroup_broad "Age group"
+order agegroup_broad, after(age)
+tab agegroup_broad, missing
+
+**Sex
+rename sex sex_s
+encode sex_s, gen(sex)
+lab def sex 1 "Female" 2 "Male", modify
+lab val sex sex
+lab var sex "Sex"
+drop sex_s
+tab sex, missing
+
+**Ethnicity
+gen ethnicity_n = 1 if ethnicity == "White"
+replace ethnicity_n = 2 if ethnicity == "Asian or Asian British"
+replace ethnicity_n = 3 if ethnicity == "Black or Black British"
+replace ethnicity_n = 4 if ethnicity == "Mixed"
+replace ethnicity_n = 5 if ethnicity == "Chinese or Other Ethnic Groups"
+replace ethnicity_n = 9 if ethnicity == "Unknown"
+
+
+label define ethnicity_n	1 "White"  						///
+							2 "Asian or Asian British"		///
+							3 "Black or Black British"  	///
+							4 "Mixed"						///
+							5 "Chinese or Other Ethnic Groups" ///
+							9 "Unknown", modify
+							
+label values ethnicity_n ethnicity_n
+lab var ethnicity_n "Ethnicity"
+tab ethnicity_n, missing
+drop ethnicity
+rename ethnicity_n ethnicity
+
+**IMD at time of diagnosis
+drop imd_quintile //latest address, rather than at diagnosis
+gen imd = 1 if imd_quintile_diag == "1 (most deprived)"
+replace imd = 2 if imd_quintile_diag == "2"
+replace imd = 3 if imd_quintile_diag == "3"
+replace imd = 4 if imd_quintile_diag == "4"
+replace imd = 5 if imd_quintile_diag == "5 (least deprived)"
+replace imd = 9 if imd_quintile_diag == "Unknown"
+
+label define imd 1 "1 most deprived" 2 "2" 3 "3" 4 "4" 5 "5 least deprived" 9 "Not known", modify
+label val imd imd 
+lab var imd "Index of multiple deprivation"
+drop imd_quintile_diag
+tab imd, missing
+
+***Practice region (at time of primary diagnosis)
+replace region="Not known" if region==""
+replace region="Yorkshire Humber" if region=="Yorkshire and The Humber"
+encode region, gen(nuts_region)
+gen region_nospace = region
+replace region_nospace="SouthWest" if region=="South West"
+replace region_nospace="EastMidlands" if region=="East Midlands"
+replace region_nospace="East" if region=="East"
+replace region_nospace="London" if region=="London"
+replace region_nospace="NorthEast" if region=="North East"
+replace region_nospace="NorthWest" if region=="North West"
+replace region_nospace="SouthEast" if region=="South East"
+replace region_nospace="WestMidlands" if region=="West Midlands"
+replace region_nospace="YorkshireandTheHumber" if region=="Yorkshire Humber"
+drop region
+rename nuts_region region
+lab var region "Region"
+tab region, missing
+
+**Body Mass Index
+***Recode values that are more likely to be erroneous
+replace bmi_value = . if !inrange(bmi_value, 10, 80)
+
+***Restrict to BMI recorded within 10 years of primary diagnosis date and aged > 16 years old
+gen bmi_time = (${disease}_inc_date - bmi_date)/365.25
+gen bmi_age = age - bmi_time
+replace bmi_value = . if bmi_age < 16 
+replace bmi_value = . if bmi_time > 10 & bmi_time !=. 
+replace bmi_value = . if bmi_date == . 
+replace bmi_date = . if bmi_value == . 
+replace bmi_time = . if bmi_value == . 
+replace bmi_age = . if bmi_value == . 
+
+***Create BMI categories
+gen bmicat = .
+recode bmicat . = 1 if bmi_value < 18.5
+recode bmicat . = 2 if bmi_value < 25
+recode bmicat . = 3 if bmi_value < 30
+recode bmicat . = 4 if bmi_value < 35
+recode bmicat . = 5 if bmi_value < 40
+recode bmicat . = 6 if bmi_value >= 40 & bmi_value!=.
+replace bmicat = 9 if bmi_value == .
+
+label define bmicat 1 "Underweight (<18.5)" 	///
+					2 "Normal (18.5-24.9)"		///
+					3 "Overweight (25-29.9)"	///
+					4 "Obese I (30-34.9)"		///
+					5 "Obese II (35-39.9)"		///
+					6 "Obese III (40+)"			///
+					9 "Not known"
+					
+label values bmicat bmicat
+lab var bmicat "BMI"
+order bmicat, after (bmi_value)
+drop bmi_age bmi_time
+tab bmicat, missing
+
+**Smoking status
+gen smoke = 1 if smoking_status == "N"
+replace smoke = 2 if smoking_status == "E"
+replace smoke = 3 if smoking_status == "S"
+replace smoke = 9 if smoking_status == "M"
+replace smoke = 9 if smoking_status == "" 
+label define smoke 1 "Never" 2 "Former" 3 "Current" 9 "Not known"
+label values smoke smoke
+lab var smoke "Smoking status"
+drop smoking_status ever_smoked most_recent_smoking_code
+tab smoke, missing
+
+***Create non-missing 3-category variable for current smoking (assumes missing smoking is never smoking)
+recode smoke 9 = 1, gen(smoke_nomiss)
+order smoke_nomiss, after(smoke)
+label values smoke_nomiss smoke
+lab var smoke_nomiss "Smoking status"
+tab smoke_nomiss, missing
+
+**Clinical comorbidities
+***Nb. not using creatinine of HBA1c values for now, just codes
+foreach disease in ckd dm ild copd cva lung_ca solid_ca haem_ca depr osteop frac dem chd {
+	tab ${disease}_before, missing
+	tab ${disease}_after, missing
+	gen ${disease}_new = 1 if (${disease}_after == 1 & ${disease}_before == 0)
+	recode ${disease}_new .=0
+	label define ${disease}_new 0 "No" 1 "Yes"
+	label values ${disease}_new ${disease}_new
+	tab ${disease}_new, missing
+	order ${disease}_new, after(${disease}_after)
+}
+
+*Label remaining variables 
+lab var ckd_before "Chronic kidney disease"
+lab var ckd_after "Chronic kidney disease"
+lab var ckd_new "Chronic kidney disease"
+lab var dm_before "Type 2 diabetes mellitus"
+lab var dm_after "Type 2 diabetes mellitus"
+lab var dm_new "Type 2 diabetes mellitus"
+lab var ild_before "Interstitial lung disease"
+lab var ild_after "Interstitial lung disease"
+lab var ild_new "Interstitial lung disease"
+lab var copd_before "COPD"
+lab var copd_after "COPD"
+lab var copd_new "COPD"
+lab var lung_ca_before "Lung cancer"
+lab var lung_ca_after "Lung cancer"
+lab var lung_ca_new "Lung cancer"
+lab var solid_ca_before "Solid organ cancer"
+lab var solid_ca_after "Solid organ cancer"
+lab var solid_ca_new "Solid organ cancer"
+lab var haem_ca_before "Haematological cancer"
+lab var haem_ca_after "Haematological cancer"
+lab var haem_ca_new "Haematological cancer"
+lab var depr_before "Depression"
+lab var depr_after "Depression"
+lab var depr_new "Depression"
+lab var osteop_before "Osteoporosis"
+lab var osteop_after "Osteoporosis"
+lab var osteop_new "Osteoporosis"
+lab var frac_before "Fragility fracture"
+lab var frac_after "Fragility fracture"
+lab var frac_new "Fragility fracture"
+lab var dem_before "Dementia"
+lab var dem_after "Dementia"
+lab var dem_new "Dementia"
+lab var chd_before "Coronary heart disease"
+lab var chd_after "Coronary heart disease"
+lab var chd_new "Coronary heart disease"
+
+lab var rheum_appt "First rheumatology appointment within 12 months"
+lab var rheum_appt_any "Any rheumatology appointment within 12 months"
+
+lab var eia_inc "Early inflammatory arthritis"
+lab var rheumatoid_inc "Rheumatoid arthritis"
+lab var psa_inc "Psoriatic arthritis"
+lab var axialspa_inc "Axial spondyloarthritis"
+lab var undiffia_inc "Undifferentiated inflammatory arthritis"
+
+*Generate diagnosis date===============================================================*/
+
+**Use diagnostic code date (in GP record) as diagnosis date
+gen diagnosis_date=eia_inc_date
+format diagnosis_date %td
+
+**Keep patients with diagnosis date after start date and before end date - should be none dropped
+keep if diagnosis_date>=date("$start_date", "DMY") & diagnosis_date!=. 
+tab eia_inc, missing
+keep if diagnosis_date<=date("$end_date", "DMY") & diagnosis_date!=. 
+tab eia_inc, missing
+
+**Month/Year of diagnostic code
+gen year_diag=year(diagnosis_date)
+format year_diag %ty
+gen month_diag=month(diagnosis_date)
+gen mo_year_diagn=ym(year_diag, month_diag)
+format mo_year_diagn %tmMon-CCYY
+generate str16 mo_year_diagn_s = strofreal(mo_year_diagn,"%tmCCYY!mNN")
+lab var mo_year_diagn "Month/Year of Diagnosis"
+lab var mo_year_diagn_s "Month/Year of Diagnosis"
+
+*Include only most recent EIA sub-diagnosis=============================================*/
+
+replace rheumatoid_inc =0 if psa_inc_date > rheumatoid_inc_date & psa_inc_date !=.
+replace rheumatoid_inc =0 if axialspa_inc_date > rheumatoid_inc_date & axialspa_inc_date !=.
+replace rheumatoid_inc =0 if undiffia_inc_date > rheumatoid_inc_date & undiffia_inc_date !=.
+replace psa_inc =0 if rheumatoid_inc_date >= psa_inc_date & rheumatoid_inc_date !=.
+replace psa_inc =0 if axialspa_inc_date > psa_inc_date & axialspa_inc_date !=.
+replace psa_inc =0 if undiffia_inc_date > psa_inc_date & undiffia_inc_date !=.
+replace axialspa_inc =0 if psa_inc_date >= axialspa_inc_date & psa_inc_date !=.
+replace axialspa_inc =0 if rheumatoid_inc_date >= axialspa_inc_date & rheumatoid_inc_date !=.
+replace axialspa_inc =0 if undiffia_inc_date > axialspa_inc_date & undiffia_inc_date !=.
+replace undiffia_inc =0 if rheumatoid_inc_date >= undiffia_inc_date & rheumatoid_inc_date !=.
+replace undiffia_inc =0 if psa_inc_date >= undiffia_inc_date & psa_inc_date !=.
+replace undiffia_inc =0 if axialspa_inc_date >= undiffia_inc_date & axialspa_inc_date !=.
+gen eia_diagnosis=1 if rheumatoid_inc==1
+replace eia_diagnosis=2 if psa_inc==1
+replace eia_diagnosis=3 if axialspa_inc==1
+replace eia_diagnosis=4 if undiffia_inc==1
+lab define eia_diagnosis 1 "RA" 2 "PsA" 3 "AxSpA" 4 "Undifferentiated IA", modify
+lab val eia_diagnosis eia_diagnosis
+tab eia_diagnosis, missing
+
+decode eia_diagnosis, gen(eia_diag)
+tab eia_diag
+
+**Check first rheum appt date==================================*/
+
+tab rheum_appt, missing //proportion of patients with an rheum outpatient date (with first attendance option selected) in the 12 months before or after after EIA code appeared in GP record; data only April 2019 onwards
+tab rheum_appt if rheum_appt_date>eia_inc_date & rheum_appt_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
+tab rheum_appt if rheum_appt_date>(eia_inc_date + 30) & rheum_appt_date!=. //confirm proportion who had first rheum appt 30 days after EIA code 
+tab rheum_appt if rheum_appt_date>(eia_inc_date + 60) & rheum_appt_date!=. //confirm proportion who had first rheum appt 60 days after EIA code
+tab rheum_appt if rheum_appt_date>(eia_inc_date + 120) & rheum_appt_date!=. //confirm proportion who had first rheum appt 120 days after EIA code
+tab rheum_appt if rheum_appt_date>(eia_inc_date + 180) & rheum_appt_date!=. //confirm proportion who had first rheum appt 180 days after EIA code
+replace rheum_appt=0 if rheum_appt_date>(eia_inc_date + 365) & rheum_appt_date!=. //replace as missing if first appt >365 days after EIA code
+replace rheum_appt_date=. if rheum_appt_date>(eia_inc_date + 365) & rheum_appt_date!=. //replace as missing if first appt >365 days after EIA code
+
+tab rheum_appt_any, missing //proportion of patients with a rheum outpatient date (without first attendance option selected) in the 12 months before or after EIA code appeared in GP record; data only April 2019 onwards
+tab rheum_appt_any if rheum_appt_any_date>eia_inc_date & rheum_appt_any_date!=. //confirm proportion who had first rheum appt (i.e. not missing) after EIA code
+tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 60) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 60 days after EIA code
+tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 120) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 120 days after EIA code
+tab rheum_appt_any if rheum_appt_any_date>(eia_inc_date + 180) & rheum_appt_any_date!=. //confirm proportion who had first rheum appt 180 days after EIA code
+replace rheum_appt_any=0 if rheum_appt_any_date>(eia_inc_date + 365) & rheum_appt_any_date!=. //replace as missing those appts >365 days after EIA code
+replace rheum_appt_any_date=. if rheum_appt_any_date>(eia_inc_date + 365) & rheum_appt_any_date!=. //replace as missing those appts >365 days after EIA code
+
+**Month/year of first rheum appt
+gen year_appt=year(rheum_appt_date) if rheum_appt_date!=.
+format year_appt %ty
+gen month_appt=month(rheum_appt_date) if rheum_appt_date!=. 
+gen mo_year_appt=ym(year_appt, month_appt)
+format mo_year_appt %tmMon-CCYY
+generate str16 mo_year_appt_s = strofreal(mo_year_appt,"%tmCCYY!mNN")
+
+*Check first csDMARD/biologic with respect to first rheum appt date=====================================================*/
+
+**csDMARDs (not including high cost MTX; wouldn't be shared care)
+gen csdmard=1 if hydroxychloroquine==1 | leflunomide==1 | methotrexate_oral==1 | methotrexate_inj==1 | sulfasalazine==1
+recode csdmard .=0 
+tab csdmard, missing
+
+**Date of first csDMARD script (not including high cost MTX prescriptions)
+gen csdmard_date=min(hydroxychloroquine_date, leflunomide_date, methotrexate_oral_date, methotrexate_inj_date, sulfasalazine_date)
+format %td csdmard_date
+
+**Generate combined methotrexate (primary care only)
+gen mtx = 1 if methotrexate_oral==1 | methotrexate_inj==1
+recode mtx .=0
+lab var mtx "Methotrexate"
+gen mtx_date = min(methotrexate_oral_date, methotrexate_inj_date) if mtx == 1
+format %td mtx_date
+
+**Timing of first csdmard with respect to first rheum appt
+tab csdmard if rheum_appt_date!=. & csdmard_date!=. & csdmard_date<rheum_appt_date
+tab csdmard if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_date
+ 
+gen pre_ra_csdmard_time = (rheum_appt_date - csdmard_date) if rheum_appt_date!=. & csdmard_date!=. & csdmard_date<rheum_appt_date
+tabstat pre_ra_csdmard_time, stats (n mean p50 p25 p75) // how long before were csdmards prescribed
+
+tab mtx if rheum_appt_date!=. & mtx_date!=. & mtx_date<rheum_appt_date
+tab hydroxychloroquine if rheum_appt_date!=. & hydroxychloroquine_date!=. & hydroxychloroquine_date<rheum_appt_date 
+tab sulfasalazine if rheum_appt_date!=. & sulfasalazine_date!=. & sulfasalazine_date<rheum_appt_date 
+tab leflunomide if rheum_appt_date!=. & leflunomide_date!=. & leflunomide_date<rheum_appt_date 
+
+**Also check timing of csDMARD with respect to rheum appt without first attendance flag 
+*tab csdmard if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & csdmard_date<rheum_appt_any_date
+*drop if rheum_appt_date==. & rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date + 60)<rheum_appt_any_date //drop if first csDMARD more than 60 days before first captured rheum appt that did not have first attendance tag
+
+**Check rheumatology referrals======================================*/
+
+***From clinical events using 12m cut-off
+tab ref_12m_preappt, missing //last rheum referral in the year before rheumatology outpatient (requires rheum appt to have been present)
+
+***From clinical events using 6m cut-off
+tab ref_6m_preappt, missing //last rheum referral in the 6 months before rheumatology outpatient (requires rheum appt to have been present)
+
+***From HES OPA (referral_request_received_date)
+tab rheum_appt_ref, missing
+codebook rheum_appt_ref_date
+tab mo_year_diagn rheum_appt_ref, missing
+tab mo_year_diagn rheum_appt_ref if rheum_appt==1, missing
+
+***Difference between referral ordered date (SNOMED code date) and referral request received date (HES)
+tab ref_12m_preappt rheum_appt_ref if rheum_appt==1, missing
+gen delta_referral = rheum_appt_ref_date - ref_12m_preappt_date if ref_12m_preappt_date!=. & rheum_appt_ref_date!=.
+tabstat delta_referral, stat(n mean sd p50 p25 p75)
+tabstat delta_referral if rheum_appt==1, stat(n mean sd p50 p25 p75)
+
+***From HES OPA (referral_request_received_date) without first attendance flag
+tab rheum_any_ref, missing
+codebook rheum_any_ref_date
+*tab mo_year_diagn rheum_any_ref, missing
+*tab mo_year_diagn rheum_any_ref if rheum_appt_any==1, missing
+*tab mo_year_diagn rheum_any_ref if rheum_appt==1, missing
+
+***Difference between referral ordered date (SNOMED code date) and referral request received date (HES)
+gen delta_referral_any = rheum_appt_any_date - ref_12m_preappt_date if ref_12m_preappt_date!=. & rheum_appt_any_date!=.
+tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
+tabstat delta_referral_any if rheum_appt_any==1, stat(n mean sd p50 p25 p75)
+
+/*
+***From RTT clock-stop data (only available for those with clock-stop date between May 2021 and May 2022)
+tab rtt_cl_ref, missing
+codebook rtt_cl_ref_date
+tab rtt_cl_ref if rheum_appt!=0 & rtt_cl_ref_date<=rheum_appt_date, missing 
+tab mo_year_diagn rtt_cl_ref, missing
+tab mo_year_diagn rtt_cl_ref if rheum_appt!=., missing
+tab rtt_cl_start, missing //check how this differs
+codebook rtt_cl_start_date
+tab rtt_cl_start if rheum_appt!=0 & rtt_cl_start_date<=rheum_appt_date, missing 
+
+***From RTT open pathway data (only available as a snapshot of those with open RTT pathways as of May 2022)
+tab rtt_op_ref, missing
+codebook rtt_op_ref_date
+tab rtt_op_ref if rheum_appt!=0 & rtt_op_ref_date<=rheum_appt_date, missing 
+tab mo_year_diagn rtt_op_ref, missing
+tab mo_year_diagn rtt_op_ref if rheum_appt!=., missing
+tab rtt_op_start, missing //check how this differs
+codebook rtt_op_start_date
+tab rtt_op_start if rheum_appt!=0 & rtt_op_start_date<=rheum_appt_date, missing 
+
+***Combination of RTT clock-stop and open pathway
+gen rtt_ref_date = rtt_cl_ref_date
+replace rtt_ref_date = rtt_op_ref_date if rtt_cl_ref_date==. & rtt_op_ref_date!=. //need to think how to handle duplicate pathways
+format %td rtt_ref_date
+gen rtt_ref =1 if rtt_ref_date!=.
+recode rtt_ref .=0
+tab rtt_ref, missing
+tab mo_year_diagn rtt_ref, missing
+tab mo_year_diagn rtt_ref if rheum_appt!=0 & rtt_ref_date<=rheum_appt_date, missing 
+
+***From GP appointments (proxy)
+tab last_gp_refrheum, missing //proportion with last GP appointment in 2 years before rheum referral (pre-rheum appt); requires there to have been a rheum referral before a rheum appt
+
+gen last_gp_prerheum_12m=last_gp_prerheum if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-365)
+recode last_gp_prerheum_12m .=0
+lab var last_gp_prerheum_12m "GP and rheum appt 12m+"
+lab define last_gp_prerheum_12m 0 "No" 1 "Yes", modify
+lab val last_gp_prerheum_12m last_gp_prerheum_12m
+
+gen last_gp_prerheum_6m=last_gp_prerheum if rheum_appt_date!=. & rheum_appt_date<=(date("$end_date", "DMY")-183)
+recode last_gp_prerheum_6m .=0
+lab var last_gp_prerheum_6m "GP and rheum appt 6m+"
+lab define last_gp_prerheum_6m 0 "No" 1 "Yes", modify
+lab val last_gp_prerheum_6m last_gp_prerheum_6m
+
+tab last_gp_refcode, missing //last GP appointment before rheum ref (pre-EIA code ref); requires there to have been a rheum referral before an EIA code (i.e. rheum appt could have been missing)
+tab last_gp_prerheum, missing //last GP appointment before rheum appt; requires there to have been a rheum appt before and EIA code
+tab last_gp_precode, missing //last GP appointment before EIA code
+
+****All appts in the correct order (using clinical events referrals)
+gen all_appts=1 if last_gp_refrheum==1 & ref_12m_preappt==1 & rheum_appt==1 & (last_gp_refrheum_date<=ref_12m_preappt_date) & (ref_12m_preappt_date<=rheum_appt_date)
+recode all_appts .=0
+tab all_appts, missing //proportion who had a last gp appt, then rheum ref, then rheum appt
+*/
+
+*Check duration of follow-up after first rheumatology appointment===============================*/
+
+**Proportion of patients with at least 6 or 12 months of GP registration after first rheum appt
+gen has_6m_follow_up=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 183)) & ((rheum_appt_date + 183) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 183) <= (date("$fup_date", "DMY"))))
+recode has_6m_follow_up .=0
+tab has_6m_follow_up
+tab mo_year_diagn has_6m_follow_up
+
+gen has_12m_follow_up=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_date + 365)) & ((rheum_appt_date + 365) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_date + 365) <= (date("$fup_date", "DMY"))))
+recode has_12m_follow_up .=0
+tab has_12m_follow_up
+tab mo_year_diagn has_12m_follow_up
+
+/*Proportion of patients with at least 6 or 12 months of GP registration after first rheum appt (without first appt flag)
+gen has_6m_follow_up_any=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_any_date + 183)) & ((rheum_appt_any_date + 183) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_any_date + 183) <= (date("$fup_date", "DMY"))))
+recode has_6m_follow_up_any .=0
+tab has_6m_follow_up_any
+tab mo_year_diagn has_6m_follow_up_any
+
+gen has_12m_follow_up_any=1 if (reg_end_date!=. & (reg_end_date >= (rheum_appt_any_date + 365)) & ((rheum_appt_any_date + 365) <= (date("$fup_date", "DMY")))) | (reg_end_date==. & ((rheum_appt_any_date + 365) <= (date("$fup_date", "DMY"))))
+recode has_12m_follow_up_any .=0
+tab has_12m_follow_up_any
+tab mo_year_diagn has_12m_follow_up_any
+*/
+
+*Define who qualifies in terms of appointments, referrals and follow-up ===============================*/
+
+tab eia_diagnosis, missing
+
+**Drop those without rheum appt with first attendance flag
+tab rheum_appt, missing
+drop if rheum_appt!=1
+tab mo_year_diagn rheum_appt
+*tab rheum_appt_any, missing
+*drop if rheum_appt_any!=1
+*tab mo_year_diagn rheum_appt_any
+tab eia_diagnosis, missing
+
+**Drop if first csDMARD before first attendance at a rheum appt 
+tab csdmard, missing
+drop if rheum_appt_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_date)
+*drop if rheum_appt_any_date!=. & csdmard_date!=. & (csdmard_date<rheum_appt_any_date)
+tab csdmard, missing
+tab eia_diagnosis
+
+**Drop if no referral (from HES data) before first rheum appt
+tab ref_12m_preappt, missing
+tab rheum_appt_ref, missing //from HES OPA
+tab rheum_appt_ref ref_12m_preappt, missing //from HES OPA
+*tab rheum_any_ref ref_12m_preappt, missing //without first attendance flag
+*drop if rheum_any_ref!=1
+drop if rheum_appt_ref!=1
+tab rheum_appt_ref
+tab ref_12m_preappt, missing
+tabstat delta_referral, stat(n mean sd p50 p25 p75)
+*tab rheum_any_ref
+*tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
+tab eia_diagnosis
+
+**Drop if insufficient follow-up (6 months currently)
+tab has_6m_follow_up, missing
+tab mo_year_diagn has_6m_follow_up
+*tab has_6m_follow_up_any, missing //without first attendance flag
+*tab mo_year_diagn has_6m_follow_up_any //without first attendance flag
+*drop if has_6m_follow_up_any!=1
+drop if has_6m_follow_up!=1
+tab has_6m_follow_up
+tab mo_year_diagn has_6m_follow_up
+tab mo_year_diagn has_12m_follow_up
+*tab has_6m_follow_up_any
+*tab mo_year_diagn has_6m_follow_up_any
+*tab mo_year_diagn has_12m_follow_up_any
+tab eia_diagnosis
+
+**Drop if region missing
+drop if region=="Not known"
+tab eia_diagnosis
+
+*Split into time windows=========================================*/
+
+**Separate into 3-month time windows (for diagnosis date)
+gen diagnosis_3m = qofd(diagnosis_date)
+format diagnosis_3m %tq
+lab var diagnosis_3m "Time period for diagnosis"
+tab diagnosis_3m, missing
+bys eia_diagnosis: tab diagnosis_3m, missing
+
+**Separate into 12-month time windows (for diagnosis date)
+gen diagnosis_year = (floor((diagnosis_date - date("$start_date", "DMY")) / 365.25) + 1) if inrange(diagnosis_date, date("$start_date", "DMY"), date("$end_date", "DMY"))
+lab var diagnosis_year "Year of diagnosis"
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+    label define diagnosis_year_lbl `i' "Apr `start'–Mar `end'", add
+}
+lab val diagnosis_year diagnosis_year_lbl
+tab diagnosis_year, missing
+bys eia_diagnosis: tab diagnosis_year, missing
+
+**Separate into 3-month time windows (for appt date)
+gen appt_3m = qofd(rheum_appt_date)
+format appt_3m %tq
+lab var appt_3m "Time period for appointment"
+tab appt_3m, missing
+bys eia_diagnosis: tab appt_3m, missing
+
+**Separate into 12-month time windows (for appt date)
+gen appt_year = (floor((rheum_appt_date - date("$start_date", "DMY")) / 365.25) + 1) if inrange(rheum_appt_date, date("$start_date", "DMY"), date("$end_date", "DMY"))
+lab var appt_year "Year of appointment"
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+    label define appt_year_lbl `i' "Apr `start'–Mar `end'", add
+}
+lab val appt_year appt_year_lbl
+tab appt_year, missing
+bys eia_diagnosis: tab appt_year, missing
+
+**RF and CCP positivity (blood test and/or diagnostic code)=======================*/
+
+codebook rf_code
+codebook rf_test_value
+tabstat rf_test_value, stats (n mean p50 p25 p75) //recode on the basis of values
+gen rf_pos = 1 if (rf_test_value>=20 & rf_test_value!=.) | rf_code==1 //check ranges
+replace rf_pos = 0 if (rf_test_value<20 & rf_test_value!=.) & rf_code!=1 
+recode rf_pos .=2
+lab define rf_pos 0 "RF negative" 1 "RF positive" 2 "Not known"
+lab val rf_pos rf_pos
+lab var rf_pos "Rheumatoid factor positivity"
+tab rf_pos if eia_diagnosis==1 
+
+codebook ccp_code
+codebook ccp_test_value
+tabstat ccp_test_value, stats (n mean p50 p25 p75) //recode on the basis of values
+gen ccp_pos = 1 if (ccp_test_value>=10 & ccp_test_value!=.) | ccp_code==1 //check ranges
+replace ccp_pos = 0 if (ccp_test_value<10 & ccp_test_value!=.) & ccp_code!=1 
+recode ccp_pos .=2
+recode ccp_pos .=0
+lab define ccp_pos 0 "CCP negative" 1 "CCP positive" 2 "Not known"
+lab val ccp_pos ccp_pos
+lab var ccp_pos "CCP positivity"
+tab ccp_pos if eia_diagnosis==1
+
+**Seropositive RA (RF and/or CCP positive and/or seropositive diagnostic code)
+gen seropos = 1 if rf_pos==1 | ccp_pos==1 | seropositive_code==1 //check ranges
+replace seropos = 0 if rf_pos==0 & ccp_pos==0 & seropositive_code!=1
+recode seropos .=2
+lab define seropos 0 "Seronegative" 1 "Seropositive" 2 "Not known"
+lab val seropos seropos
+lab var seropos "Seropositivity"
+tab seropos if eia_diagnosis==1
+
+**Erosive codes
+lab var erosive_ra_code "Erosive rheumatoid arthritis"
+tab erosive_ra_code if eia_diagnosis==1 //Nb. 0 will also include those where test not done (or not coded for)
+
+*Number and medium of rheumatology appointments ======================================*/
+
+***Check number of rheumatology appts in the year after first rheumatology outpatient appointment
+tabstat rheum_appt_count, stat (n mean sd p50 p25 p75)
+bys diagnosis_year: tabstat rheum_appt_count, stat (n mean sd p50 p25 p75)
+bys appt_year: tabstat rheum_appt_count, stat (n mean sd p50 p25 p75) //this is more relevant
+
+***Check medium used for rheumatology appointment
+codebook rheum_appt_medium
+tab rheum_appt_medium, missing
+gen rheum_appt_medium_clean = rheum_appt_medium if rheum_appt_medium >0 & rheum_appt_medium<100
+recode rheum_appt_medium_clean 3=2 //recode telemedicine=telephone
+replace rheum_appt_medium_clean=10 if rheum_appt_medium_clean>2 & rheum_appt_medium_clean!=.
+lab define rheum_appt_medium_clean 1 "Face-to-face" 2 "Telephone" 10 "Other", modify
+lab val rheum_appt_medium_clean rheum_appt_medium_clean
+lab var rheum_appt_medium_clean "Rheumatology consultation medium"
+tab rheum_appt_medium_clean
+tab rheum_appt_medium_clean, missing 
+
+*Time to rheum referral =============================================*/
+
+/*
+**Time from last GP appt to rheum ref before rheum appt (i.e. if appts are present and in correct time order)
+gen time_gp_rheum_ref_appt = (ref_12m_preappt_date - last_gp_refrheum_date) if ref_12m_preappt_date!=. & last_gp_refrheum_date!=. & rheum_appt_date!=. & (ref_12m_preappt_date>=last_gp_refrheum_date) & (ref_12m_preappt_date<=rheum_appt_date)
+tabstat time_gp_rheum_ref_appt, stats (n mean p50 p25 p75) //all patients (should be same number as all_appts)
+
+gen gp_ref_cat=1 if time_gp_rheum_ref_appt<=3 & time_gp_rheum_ref_appt!=. 
+replace gp_ref_cat=2 if time_gp_rheum_ref_appt>3 & time_gp_rheum_ref_appt<=7 & time_gp_rheum_ref_appt!=. & gp_ref_cat==.
+replace gp_ref_cat=3 if time_gp_rheum_ref_appt>7 & time_gp_rheum_ref_appt!=. & gp_ref_cat==.
+lab define gp_ref_cat 1 "Within 3 days" 2 "Between 3-7 days" 3 "More than 7 days", modify
+lab val gp_ref_cat gp_ref_cat
+lab var gp_ref_cat "Time to GP referral"
+tab gp_ref_cat, missing
+
+gen gp_ref_3d=1 if time_gp_rheum_ref_appt<=3 & time_gp_rheum_ref_appt!=. 
+replace gp_ref_3d=2 if time_gp_rheum_ref_appt>3 & time_gp_rheum_ref_appt!=.
+lab define gp_ref_3d 1 "Within 3 days" 2 "More than 3 days", modify
+lab val gp_ref_3d gp_ref_3d
+lab var gp_ref_3d "Time to GP referral"
+tab gp_ref_3d, missing
+
+**Time from last GP to rheum ref before eia code (sensitivity analysis; includes those with no rheum appt)
+gen time_gp_rheum_ref_inc = (ref_12m_precode_date - last_gp_refcode_date) if ref_12m_precode_date!=. & last_gp_refcode_date!=. & ref_12m_precode_date>=last_gp_refcode_date & ref_12m_precode_date<=eia_inc_date
+tabstat time_gp_rheum_ref_inc, stats (n mean p50 p25 p75)
+
+**Time from last GP to rheum ref (combined - sensitivity analysis; includes those with no rheum appt)
+gen time_gp_rheum_ref_comb = time_gp_rheum_ref_appt 
+replace time_gp_rheum_ref_comb = time_gp_rheum_ref_inc if time_gp_rheum_ref_appt==. & time_gp_rheum_ref_inc!=.
+tabstat time_gp_rheum_ref_comb, stats (n mean p50 p25 p75)
+
+*Time to rheum appointment using clinical code for referral=============================================*/
+
+**Time from referral to rheum appt using HES OPA rheum ref to rheum appt
+gen time_hes_rheum_appt = (rheum_appt_date - rheum_appt_ref_date) if rheum_appt_date!=. & rheum_appt_ref_date!=. & (rheum_appt_ref_date<=rheum_appt_date)
+tabstat time_hes_rheum_appt, stats (n mean p50 p25 p75)
+tabstat time_hes_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat time_hes_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat time_hes_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff IA
+tabstat time_hes_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat time_hes_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tab csdmard
+tabstat time_hes_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat time_hes_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat time_hes_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
+**Using working days - as per audit report
+workdays rheum_appt_ref_date rheum_appt_date if rheum_appt_date!=. & rheum_appt_ref_date!=. & (rheum_appt_ref_date<=rheum_appt_date), gen(wd_hes_rheum_appt)
+tabstat wd_hes_rheum_appt, stats (n mean p50 p25 p75)
+tabstat wd_hes_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat wd_hes_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat wd_hes_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff
+tabstat wd_hes_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat wd_hes_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tabstat wd_hes_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat wd_hes_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat wd_hes_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
+/*
+**Time from referral to rheum appt using HES OPA rheum ref to rheum appt without first attendance
+gen time_hes_any_appt = (rheum_appt_any_date - rheum_any_ref_date) if rheum_appt_any_date!=. & rheum_any_ref_date!=. & (rheum_any_ref_date<=rheum_appt_any_date)
+tabstat time_hes_any_appt, stats (n mean p50 p25 p75)
+tabstat time_hes_any_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat time_hes_any_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat time_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff IA
+tabstat time_hes_any_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat time_hes_any_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tab csdmard
+tabstat time_hes_any_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat time_hes_any_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat time_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
+**Using working days - as per audit report
+workdays rheum_any_ref_date rheum_appt_any_date if rheum_appt_any_date!=. & rheum_any_ref_date!=. & (rheum_any_ref_date<=rheum_appt_any_date), gen(wd_hes_any_appt)
+tabstat wd_hes_any_appt, stats (n mean p50 p25 p75)
+tabstat wd_hes_any_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat wd_hes_any_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat wd_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff
+tabstat wd_hes_any_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat wd_hes_any_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tabstat wd_hes_any_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat wd_hes_any_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat wd_hes_any_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+*/
+
+**Time from referral to rheum appt using 12m referral cut-off (using SNOMED referral code)
+gen time_ref_rheum_appt = (rheum_appt_date - ref_12m_preappt_date) if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date)
+tabstat time_ref_rheum_appt, stats (n mean p50 p25 p75)
+tabstat time_ref_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat time_ref_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff IA
+tabstat time_ref_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat time_ref_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tab csdmard
+tabstat time_ref_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat time_ref_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat time_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
+**Using working days - as per audit report
+workdays ref_12m_preappt_date rheum_appt_date if rheum_appt_date!=. & ref_12m_preappt_date!=. & (ref_12m_preappt_date<=rheum_appt_date), gen(wd_ref_rheum_appt)
+tabstat wd_ref_rheum_appt, stats (n mean p50 p25 p75)
+tabstat wd_ref_rheum_appt if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat wd_ref_rheum_appt if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), stats (n mean p50 p25 p75) //RA or PsA or undiff
+tabstat wd_ref_rheum_appt if eia_diagnosis==3, stats (n mean p50 p25 p75) //axSpA
+tabstat wd_ref_rheum_appt if eia_diagnosis==4, stats (n mean p50 p25 p75) //Undiff IA
+
+tabstat wd_ref_rheum_appt if eia_diagnosis==1 & csdmard==1, stats (n mean p50 p25 p75) //RA and csDMARD at any point
+tabstat wd_ref_rheum_appt if eia_diagnosis==2 & csdmard==1, stats (n mean p50 p25 p75) //PsA and csDMARD at any point
+tabstat wd_ref_rheum_appt if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1, stats (n mean p50 p25 p75) //RA or PsA or undiff and csDMARD at any point
+
+/*
+**Time from referral to rheum appt using 6m referral cut-off (using SNOMED referral code)
+gen time_ref_rheum_appt_6m = (rheum_appt_date - ref_6m_preappt_date) if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date)
+tabstat time_ref_rheum_appt_6m, stats (n mean p50 p25 p75)
+
+workdays ref_6m_preappt_date rheum_appt_date if rheum_appt_date!=. & ref_6m_preappt_date!=. & (ref_6m_preappt_date<=rheum_appt_date), gen(wd_ref_rheum_appt_6m)
+tabstat wd_ref_rheum_appt_6m, stats (n mean p50 p25 p75)
+
+**Delay from referral order to receipt of referral
+tabstat delta_referral, stat(n mean sd p50 p25 p75)
+tabstat delta_referral if eia_diagnosis==1, stat(n mean sd p50 p25 p75) //for RA
+tabstat delta_referral_any, stat(n mean sd p50 p25 p75)
+tabstat delta_referral_any if eia_diagnosis==1, stat(n mean sd p50 p25 p75) //for RA
+
+**Time from last GP pre-rheum appt to first rheum appt (proxy for referral to appt delay)
+gen time_gp_rheum_appt = (rheum_appt_date - last_gp_prerheum_date) if rheum_appt_date!=. & last_gp_prerheum_date!=. & (rheum_appt_date>=last_gp_prerheum_date)
+tabstat time_gp_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from RTT combined ref date to rheum appt (i.e. if appts are present and in correct order)
+gen time_rtt_rheum_appt = (rheum_appt_date - rtt_ref_date) if rheum_appt_date!=. & rtt_ref_date!=. & (rtt_ref_date<=rheum_appt_date)
+tabstat time_rtt_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from RTT closed ref date to rheum appt (i.e. if appts are present and in correct order)
+gen time_rtt_cl_rheum_appt = (rheum_appt_date - rtt_cl_ref_date) if rheum_appt_date!=. & rtt_cl_ref_date!=. & (rtt_cl_ref_date<=rheum_appt_date)
+tabstat time_rtt_cl_rheum_appt, stats (n mean p50 p25 p75)
+
+**Time from RTT open ref date to rheum appt (i.e. if appts are present and in correct order)
+gen time_rtt_op_rheum_appt = (rheum_appt_date - rtt_op_ref_date) if rheum_appt_date!=. & rtt_op_ref_date!=. & (rtt_op_ref_date<=rheum_appt_date)
+tabstat time_rtt_op_rheum_appt, stats (n mean p50 p25 p75)
+
+gen gp_appt_cat=1 if time_gp_rheum_appt<=21 & time_gp_rheum_appt!=. 
+replace gp_appt_cat=2 if time_gp_rheum_appt>21 & time_gp_rheum_appt<=42 & time_gp_rheum_appt!=. & gp_appt_cat==.
+replace gp_appt_cat=3 if time_gp_rheum_appt>42 & time_gp_rheum_appt!=. & gp_appt_cat==.
+lab define gp_appt_cat 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
+lab val gp_appt_cat gp_appt_cat
+lab var gp_appt_cat "Time to rheumatology assessment, overall"
+tab gp_appt_cat, missing
+
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+	gen gp_appt_cat_`start'=gp_appt_cat if appt_year==`i'
+    lab define gp_appt_cat_`start' 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
+	lab val gp_appt_cat_`start' gp_appt_cat_`start'
+	lab var gp_appt_cat_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
+	tab gp_appt_cat_`start', missing
+}
+
+gen gp_appt_3w=1 if time_gp_rheum_appt<=21 & time_gp_rheum_appt!=. 
+replace gp_appt_3w=2 if time_gp_rheum_appt>21 & time_gp_rheum_appt!=.
+lab define gp_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
+lab val gp_appt_3w gp_appt_3w
+lab var gp_appt_3w "Time to rheumatology assessment, overall"
+tab gp_appt_3w, missing
+
+*/
+
+**QS2 using HES OPA ref received date, with working days as per audit report
+gen ref_appt_3w=1 if wd_hes_rheum_appt<=15 & wd_hes_rheum_appt!=. 
+replace ref_appt_3w=2 if wd_hes_rheum_appt>15 & wd_hes_rheum_appt!=.
+lab define ref_appt_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
+lab val ref_appt_3w ref_appt_3w
+lab var ref_appt_3w "Time to rheumatology assessment"
+tab ref_appt_3w
+bys region: tab ref_appt_3w
+
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+	di "`start'"
+    local end = `start' + 1
+	gen ref_appt_3w_`start'=ref_appt_3w if appt_year==`i'
+    lab define ref_appt_3w_`start' 1 "Within 3 weeks" 2 "More than 3 weeks", modify
+	lab val ref_appt_3w_`start' ref_appt_3w_`start'
+	lab var ref_appt_3w_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
+	tab ref_appt_3w_`start'
+	tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+	bys region: tab ref_appt_3w_`start' if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+}
+
+**QS2 additional categories, using HES OPA ref received date, using non-work days
+gen ref_appt_cat=1 if time_hes_rheum_appt<=21 & time_hes_rheum_appt!=. 
+replace ref_appt_cat=2 if time_hes_rheum_appt>21 & time_hes_rheum_appt<=42 & time_hes_rheum_appt!=. & ref_appt_cat==.
+replace ref_appt_cat=3 if time_hes_rheum_appt>42 & time_hes_rheum_appt!=. & ref_appt_cat==.
+lab define ref_appt_cat 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
+lab val ref_appt_cat ref_appt_cat
+lab var ref_appt_cat "Time to rheumatology assessment"
+tab ref_appt_cat  
+tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) & csdmard==1 //RA or PsA or undiff and csDMARD at any point
+bys region: tab ref_appt_cat
+bys region: tab ref_appt_cat if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4) //RA or PsA or undiff
+
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+	di "`start'"
+    local end = `start' + 1
+	gen ref_appt_cat_`start'=ref_appt_cat if appt_year==`i'
+    lab define ref_appt_cat_`start' 1 "Within 3 weeks" 2 "Between 3-6 weeks" 3 "More than 6 weeks", modify
+	lab val ref_appt_cat_`start' ref_appt_cat_`start'
+	lab var ref_appt_cat_`start' "Time to rheumatology assessment, Apr `start'-Mar `end'"
+	tab ref_appt_cat_`start'
+}
+
+/*
+**QS2 using HES OPA ref received date, with working days as per audit report, without first flag
+gen ref_appt_any_3w=1 if wd_hes_any_appt<=15 & wd_hes_any_appt!=. 
+replace ref_appt_any_3w=2 if wd_hes_any_appt>15 & wd_hes_any_appt!=.
+lab define ref_appt_any_3w 1 "Within 3 weeks" 2 "More than 3 weeks", modify
+lab val ref_appt_any_3w ref_appt_any_3w
+lab var ref_appt_any_3w "Time to rheumatology assessment"
+tab ref_appt_any_3w
+bys region: tab ref_appt_any_3w
+*/
+
+*Time to EIA code==================================================*/
+
+**Time from rheum ref to EIA code using SNOMED code (Nb. could be after EIA code)
+gen time_ref_rheum_eia = (eia_inc_date - ref_12m_preappt_date) if eia_inc_date!=. & ref_12m_preappt_date!=. 
+tabstat time_ref_rheum_eia, stats (n mean p50 p25 p75)
+
+**Time from rheum ref to EIA code using HES code (Nb. could be after EIA code)
+gen time_hes_rheum_eia = (eia_inc_date - rheum_appt_ref_date) if eia_inc_date!=. & rheum_appt_ref_date!=. 
+tabstat time_hes_rheum_eia, stats (n mean p50 p25 p75)
+
+**Time from rheum appt to EIA code (Nb. could be after EIA code)
+gen time_rheum_eia_inc = (eia_inc_date - rheum_appt_date) if eia_inc_date!=. & rheum_appt_date!=. 
+tabstat time_rheum_eia_inc, stats (n mean p50 p25 p75) 
+
+*Time from rheum appt to first csDMARD prescriptions in primary care; prescription must be within 6m of first rheum appt======*/
+gen time_to_csdmard=(csdmard_date-rheum_appt_date) if csdmard_date!=. & rheum_appt_date!=. & (csdmard_date<=(rheum_appt_date+183))
+tabstat time_to_csdmard, stats (n mean p50 p25 p75)
+
+**Also generate time to first csDMARD script; with no time restriction
+gen time_to_csdmard_unr=(csdmard_date-rheum_appt_date) if csdmard_date!=. & rheum_appt_date!=.
+tabstat time_to_csdmard_unr, stats (n mean p50 p25 p75)
+
+**csDMARD time categories
+gen csdmard_time=1 if time_to_csdmard<=90 & time_to_csdmard!=. 
+replace csdmard_time=2 if time_to_csdmard>90 & time_to_csdmard<=183 & time_to_csdmard!=.
+replace csdmard_time=3 if time_to_csdmard>183 | time_to_csdmard==.
+lab define csdmard_time 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months", modify
+lab val csdmard_time csdmard_time
+lab var csdmard_time "csDMARD in primary care, overall" 
+tab csdmard_time, missing
+tab csdmard_time if eia_diagnosis==1, missing //RA
+tab csdmard_time if eia_diagnosis==2, missing //PsA
+tab csdmard_time if eia_diagnosis==3, missing //axSpA
+tab csdmard_time if eia_diagnosis==4, missing //Undiff IA
+tab csdmard_time if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), missing //RA or PsA or undiff IA
+
+forvalues i = 1/$max_year {
+    local start = $base_year + `i' - 1
+    local end = `start' + 1
+	gen csdmard_time_`start'=csdmard_time if appt_year==`i'
+	recode csdmard_time_`start' .=4
+    lab define csdmard_time_`start' 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months" 4 "Outside `start'/`end'", modify
+	lab val csdmard_time_`start' csdmard_time_`start'
+	lab var csdmard_time_`start' "csDMARD in primary care, Apr `start'-Mar `end'"
+	tab csdmard_time_`start', missing
+}
+
+**csDMARD time categories - binary 6 months
+gen csdmard_6m=1 if time_to_csdmard<=183 & time_to_csdmard!=. 
+replace csdmard_6m=0 if time_to_csdmard>183 | time_to_csdmard==.
+lab define csdmard_6m 1 "Yes" 0 "No", modify
+lab val csdmard_6m csdmard_6m
+lab var csdmard_6m "csDMARD in primary care within 6 months" 
+tab csdmard_6m, missing
+tab csdmard_6m if (eia_diagnosis==1 | eia_diagnosis==2 | eia_diagnosis==4), missing //RA or PsA or undiff IA
+
+**What was first csDMARD in GP record, with time restriction - may need to remove leflunomide for OpenSAFELY report due to small counts at more granular time periods
+gen first_csD=""
+foreach var of varlist hydroxychloroquine_date mtx_date sulfasalazine_date leflunomide_date {
+	replace first_csD="`var'" if csdmard_date==`var' & csdmard_date!=. & (`var'<=(rheum_appt_date+183)) & time_to_csdmard!=.
+	}
+gen first_csDMARD = substr(first_csD, 1, length(first_csD) - 5) if first_csD!="" 
+drop first_csD
+replace first_csDMARD="Methotrexate" if first_csDMARD=="mtx"
+replace first_csDMARD="Sulfasalazine" if first_csDMARD=="sulfasalazine"
+replace first_csDMARD="Hydroxychloroquine" if first_csDMARD=="hydroxychloroquine" 
+replace first_csDMARD="Leflunomide" if first_csDMARD=="leflunomide" 
+tab first_csDMARD if eia_diagnosis==1 //for RA patients
+tab first_csDMARD if eia_diagnosis==2 //for PsA patients
+tab first_csDMARD if eia_diagnosis==3 //for axSpA patients
+tab first_csDMARD if eia_diagnosis==4 //for undiffia IA patients
+
+**What was first csDMARD in GP record, without time restriction
+gen first_csD_unr=""
+foreach var of varlist hydroxychloroquine_date mtx_date sulfasalazine_date leflunomide_date {
+	replace first_csD_unr="`var'" if csdmard_date==`var' & csdmard_date!=.
+	}
+gen first_csDMARD_unr = substr(first_csD_unr, 1, length(first_csD_unr) - 5) if first_csD_unr!="" 
+drop first_csD_unr
+replace first_csDMARD_unr="Methotrexate" if first_csDMARD_unr=="mtx"
+replace first_csDMARD_unr="Sulfasalazine" if first_csDMARD_unr=="sulfasalazine"
+replace first_csDMARD_unr="Hydroxychloroquine" if first_csDMARD_unr=="hydroxychloroquine" 
+replace first_csDMARD_unr="Leflunomide" if first_csDMARD_unr=="leflunomide" 
+tab first_csDMARD_unr if eia_diagnosis==1 //for RA patients
+tab first_csDMARD_unr if eia_diagnosis==2 //for PsA patients
+tab first_csDMARD_unr if eia_diagnosis==3 //for axSpA patients
+tab first_csDMARD_unr if eia_diagnosis==4 //for undiffia IA patients
+
+**Methotrexate use; this is just a check, need time-to-MTX instead (below)
+gen mtx_6m = 1 if mtx==1 & rheum_appt==1 & (mtx_date<=rheum_appt_date+183) 
+recode mtx_6m .=0
+gen mtx_12m = 1 if mtx==1 & rheum_appt==1 & (mtx_date<=rheum_appt_date+365)
+recode mtx_12m .=0
+
+tab mtx if eia_diagnosis==1 //for RA patients
+tab mtx_6m if eia_diagnosis==1 //with 6-month limit
+tab mtx_12m if eia_diagnosis==1 //with 12-month limit
+tab mtx if eia_diagnosis==2 //for PsA patients
+tab mtx_6m if eia_diagnosis==2 //with 6-month limit
+tab mtx_12m if eia_diagnosis==2 //with 12-month limit
+tab mtx if eia_diagnosis==4 //for undiffia IA patients
+tab mtx_6m if eia_diagnosis==4 //with 6-month limit
+tab mtx_12m if eia_diagnosis==4 //with 12-month limit
+
+**Check if medication issued >once
+gen mtx_shared=1 if mtx==1 & (methotrexate_oral_count>1 | methotrexate_inj_count>1)
+recode mtx_shared .=0
+tab mtx_shared
+
+**Methotrexate use (shared care)
+tab mtx_shared if eia_diagnosis==1 //for RA patients; Nb. this is just a check; need time-to-MTX instead (below)
+tab mtx_shared if eia_diagnosis==1 & (mtx_date<=rheum_appt_date+183) //with 6-month limit
+tab mtx_shared if eia_diagnosis==2 //for PsA patients
+tab mtx_shared if eia_diagnosis==2 & (mtx_date<=rheum_appt_date+183) //with 6-month limit
+tab mtx_shared if eia_diagnosis==4 //for undiffia IA patients
+tab mtx_shared if eia_diagnosis==4 & (mtx_date<=rheum_appt_date+183) //with 6-month limit
+
+**Check medication issue number
+gen mtx_issue=0 if mtx==1 & (methotrexate_oral_count==0 | methotrexate_inj_count==0)
+replace mtx_issue=1 if mtx==1 & (methotrexate_oral_count==1 | methotrexate_inj_count==1)
+replace mtx_issue=2 if mtx==1 & (methotrexate_oral_count>1 | methotrexate_inj_count>1)
+tab mtx_issue
+
+**Time to first methotrexate script for RA patients - with time restriction
+gen time_to_mtx=(mtx_date-rheum_appt_date) if mtx==1 & rheum_appt_date!=. & (mtx_date<=rheum_appt_date+183)
+tabstat time_to_mtx if eia_diagnosis==1, stats (n mean p50 p25 p75)
+
+**Time to first methotrexate script for PsA patients 
+tabstat time_to_mtx if eia_diagnosis==2, stats (n mean p50 p25 p75)
+
+**Time to first methotrexate script for undiffia IA patients
+tabstat time_to_mtx if eia_diagnosis==4, stats (n mean p50 p25 p75)
+
+**Methotrexate time categories - those with prescription date after 6 months (i.e. missing) are still counted
+gen mtx_time=1 if time_to_mtx<=90 & time_to_mtx!=. 
+replace mtx_time=2 if time_to_mtx>90 & time_to_mtx<=183 & time_to_mtx!=.
+replace mtx_time=3 if time_to_mtx>183 | time_to_mtx==.
+lab define mtx_time 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months", modify
+lab val mtx_time mtx_time
+lab var mtx_time "Methotrexate in primary care" 
+tab mtx_time if eia_diagnosis==1, missing //RA
+tab mtx_time if eia_diagnosis==2, missing //PsA
+tab mtx_time if eia_diagnosis==4, missing //Undiff IA
+
+**Sulfasalazine use
+gen ssz=1 if sulfasalazine==1
+recode ssz .=0
+gen ssz_6m = 1 if sulfasalazine==1 & rheum_appt==1 & (sulfasalazine_date<=rheum_appt_date+183) 
+recode ssz_6m .=0
+gen ssz_12m = 1 if sulfasalazine==1 & rheum_appt==1 & (sulfasalazine_date<=rheum_appt_date+365)
+recode ssz_12m .=0
+
+**Time to first sulfasalazine script for RA patients
+gen time_to_ssz=(sulfasalazine_date-rheum_appt_date) if sulfasalazine_date!=. & rheum_appt_date!=. & (sulfasalazine_date<=rheum_appt_date+183)
+tabstat time_to_ssz if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat time_to_ssz if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+
+**Sulfasalazine time categories  
+gen ssz_time=1 if time_to_ssz<=90 & time_to_ssz!=. 
+replace ssz_time=2 if time_to_ssz>90 & time_to_ssz<=183 & time_to_ssz!=.
+replace ssz_time=3 if time_to_ssz>183 | time_to_ssz==.
+lab define ssz_time 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months", modify
+lab val ssz_time ssz_time
+lab var ssz_time "Sulfasalazine in primary care" 
+tab ssz_time if eia_diagnosis==1, missing //RA
+tab ssz_time if eia_diagnosis==2, missing //PsA
+tab ssz_time if eia_diagnosis==4, missing //Undiff IA
+
+**Check if medication issued >once
+gen ssz_shared=1 if ssz==1 & sulfasalazine_count>1
+recode ssz_shared .=0
+tab ssz_shared
+
+**sulfasalazine use (shared care)
+tab ssz_shared if eia_diagnosis==1 //RA
+tab ssz_shared if eia_diagnosis==1 & (sulfasalazine_date<=rheum_appt_date+183) //RA with time restriction
+tab ssz_shared if eia_diagnosis==2 //PsA
+tab ssz_shared if eia_diagnosis==2 & (sulfasalazine_date<=rheum_appt_date+183) //PsA with time restriction
+tab ssz_shared if eia_diagnosis==4 //Undiff IA
+tab ssz_shared if eia_diagnosis==4 & (sulfasalazine_date<=rheum_appt_date+183) //Undiff IA with time restriction
+
+**Check medication issue number
+gen ssz_issue=0 if ssz==1 & sulfasalazine_count==0 
+replace ssz_issue=1 if ssz==1 & sulfasalazine_count==1 
+replace ssz_issue=2 if ssz==1 & sulfasalazine_count>1
+tab ssz_issue
+
+**Hydroxychloroquine use
+gen hcq=1 if hydroxychloroquine==1
+recode hcq .=0
+gen hcq_6m = 1 if hydroxychloroquine==1 & rheum_appt==1 & (hydroxychloroquine_date<=rheum_appt_date+183) 
+recode hcq_6m .=0
+gen hcq_12m = 1 if hydroxychloroquine==1 & rheum_appt==1 & (hydroxychloroquine_date<=rheum_appt_date+365)
+recode hcq_12m .=0 
+
+**Time to first hydroxychloroquine script for RA patients
+gen time_to_hcq=(hydroxychloroquine_date-rheum_appt_date) if hydroxychloroquine_date!=. & rheum_appt_date!=. & (hydroxychloroquine_date<=rheum_appt_date+183)
+tabstat time_to_hcq if eia_diagnosis==1, stats (n mean p50 p25 p75) //RA
+tabstat time_to_hcq if eia_diagnosis==2, stats (n mean p50 p25 p75) //PsA
+
+**Hydroxychloroquine time categories  
+gen hcq_time=1 if time_to_hcq<=90 & time_to_hcq!=. 
+replace hcq_time=2 if time_to_hcq>90 & time_to_hcq<=183 & time_to_hcq!=.
+replace hcq_time=3 if time_to_hcq>183 | time_to_hcq==.
+lab define hcq_time 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months", modify
+lab val hcq_time hcq_time
+lab var hcq_time "Hydroxychloroquine in primary care" 
+tab hcq_time if eia_diagnosis==1, missing //RA
+tab hcq_time if eia_diagnosis==2, missing //PsA
+tab hcq_time if eia_diagnosis==4, missing //Undiff IA
+
+**Check if medication issued >once
+gen hcq_shared=1 if hcq==1 & hydroxychloroquine_count>1
+recode hcq_shared .=0
+tab hcq_shared
+
+**hydroxychloroquine use (shared care)
+tab hcq_shared if eia_diagnosis==1 //RA
+tab hcq_shared if eia_diagnosis==1  & (hydroxychloroquine_date<=rheum_appt_date+183) //RA with time restriction
+tab hcq_shared if eia_diagnosis==2 //PsA
+tab hcq_shared if eia_diagnosis==2 & (hydroxychloroquine_date<=rheum_appt_date+183) //PsA with time restriction
+tab hcq_shared if eia_diagnosis==4 //Undiff IA
+tab hcq_shared if eia_diagnosis==4 & (hydroxychloroquine_date<=rheum_appt_date+183) //Undiff IA with time restriction
+
+**Check medication issue number
+gen hcq_issue=0 if hcq==1 & hydroxychloroquine_count==0 
+replace hcq_issue=1 if hcq==1 & hydroxychloroquine_count==1 
+replace hcq_issue=2 if hcq==1 & hydroxychloroquine_count>1
+tab hcq_issue
+
+**Leflunomide use
+gen lef=1 if leflunomide==1
+recode lef .=0 
+gen lef_6m = 1 if leflunomide==1 & rheum_appt==1 & (leflunomide_date<=rheum_appt_date+183) 
+recode lef_6m .=0
+gen lef_12m = 1 if leflunomide==1 & rheum_appt==1 & (leflunomide_date<=rheum_appt_date+365)
+recode lef_12m .=0 
+
+**Time to first leflunomide script for RA patients
+gen time_to_lef=(leflunomide_date-rheum_appt_date) if leflunomide_date!=. & rheum_appt_date!=. & (leflunomide_date<=rheum_appt_date+183)
+tabstat time_to_lef if rheumatoid_inc==1, stats (n mean p50 p25 p75)
+tabstat time_to_lef if psa_inc==1, stats (n mean p50 p25 p75)
+
+**Leflunomide time categories  
+gen lef_time=1 if time_to_lef<=90 & time_to_lef!=. 
+replace lef_time=2 if time_to_lef>90 & time_to_lef<=183 & time_to_lef!=.
+replace lef_time=3 if time_to_lef>183 | time_to_lef==.
+lab define lef_time 1 "Within 3 months" 2 "3-6 months" 3 "No prescription within 6 months", modify
+lab val lef_time lef_time
+lab var lef_time "Leflunomide in primary care" 
+tab lef_time if eia_diagnosis==1, missing //RA
+tab lef_time if eia_diagnosis==2, missing //PsA
+tab lef_time if eia_diagnosis==4, missing //Undiff IA
+
+**Check if medication issued >once
+gen lef_shared=1 if lef==1 & leflunomide_count>1
+recode lef_shared .=0
+tab lef_shared
+
+**leflunomide use (shared care)
+tab lef_shared if eia_diagnosis==1 //RA
+tab lef_shared if eia_diagnosis==1 & (leflunomide_date<=rheum_appt_date+183) //RA with time restriction
+tab lef_shared if eia_diagnosis==2 //PsA
+tab lef_shared if eia_diagnosis==2 & (leflunomide_date<=rheum_appt_date+183) //PsA with time restriction
+tab lef_shared if eia_diagnosis==4 //Undiff IA
+tab lef_shared if eia_diagnosis==4 & (leflunomide_date<=rheum_appt_date+183) //Undiff IA with time restriction
+
+**Check medication issue number
+gen lef_issue=0 if lef==1 & leflunomide_count==0 
+replace lef_issue=1 if lef==1 & leflunomide_count==1 
+replace lef_issue=2 if lef==1 & leflunomide_count>1
+tab lef_issue
+
+**For all csDMARDs, check if issued more than once 
+gen csdmard_shared=1 if lef_shared==1 | mtx_shared==1 | hcq_shared==1 | ssz_shared==1 
+recode csdmard_shared .=0
+tab csdmard_shared
+tab csdmard //for comparison
+
+**Generate number of csDMARDs by time-points
+gen csdmard_num_6m =.
+replace csdmard_num_6m = 0 if (mtx_6m + ssz_6m + hcq_6m + lef_6m) ==0
+replace csdmard_num_6m = 1 if (mtx_6m + ssz_6m + hcq_6m + lef_6m) ==1
+replace csdmard_num_6m = 2 if (mtx_6m + ssz_6m + hcq_6m + lef_6m) ==2
+replace csdmard_num_6m = 3 if (mtx_6m + ssz_6m + hcq_6m + lef_6m) >2
+lab var csdmard_num_6m "Number of csDMARDs by 6 months"
+lab define csdmard_num_6m 0 "0" 1 "1" 2 "2" 3 "3 or more", modify
+lab val csdmard_num_6m csdmard_num_6m
+tab csdmard_num_6m, missing
+tab csdmard_num_6m if eia_diagnosis==1, missing
+
+gen csdmard_num_12m =.
+replace csdmard_num_12m = 0 if (mtx_12m + ssz_12m + hcq_12m + lef_12m) ==0
+replace csdmard_num_12m = 1 if (mtx_12m + ssz_12m + hcq_12m + lef_12m) ==1
+replace csdmard_num_12m = 2 if (mtx_12m + ssz_12m + hcq_12m + lef_12m) ==2
+replace csdmard_num_12m = 3 if (mtx_12m + ssz_12m + hcq_12m + lef_12m) >2
+lab var csdmard_num_12m "Number of csDMARDs by 12 months"
+lab define csdmard_num_12m 0 "0" 1 "1" 2 "2" 3 "3 or more", modify
+lab val csdmard_num_12m csdmard_num_12m
+tab csdmard_num_12m, missing
+tab csdmard_num_12m if eia_diagnosis==1, missing
+
+**Generate categories of csDMARDs by time-points
+gen csdmard_comb_6m =.
+replace csdmard_comb_6m = 0 if (mtx_6m + ssz_6m + hcq_6m + lef_6m) ==0
+replace csdmard_comb_6m = 1 if (mtx_6m==1 & ssz_6m!=1 & hcq_6m!=1 & lef_6m!=1)
+replace csdmard_comb_6m = 2 if (mtx_6m==1 & (ssz_6m==1 | hcq_6m==1 | lef_6m==1))
+replace csdmard_comb_6m = 3 if (mtx_6m!=1 & (ssz_6m==1 | hcq_6m==1 | lef_6m==1))
+lab var csdmard_comb_6m "csDMARDs by 6 months"
+lab define csdmard_comb_6m 0 "No csDMARDs" 1 "Methotrexate monotherapy" 2 "Methotrexate combination therapy" 3 "Non-methotrexate csDMARD(s)", modify
+lab val csdmard_comb_6m csdmard_comb_6m
+tab csdmard_comb_6m, missing
+tab csdmard_comb_6m if eia_diagnosis==1, missing
+
+gen csdmard_comb_12m =.
+replace csdmard_comb_12m = 0 if (mtx_12m + ssz_12m + hcq_12m + lef_12m) ==0
+replace csdmard_comb_12m = 1 if (mtx_12m==1 & ssz_12m!=1 & hcq_12m!=1 & lef_12m!=1)
+replace csdmard_comb_12m = 2 if (mtx_12m==1 & (ssz_12m==1 | hcq_12m==1 | lef_12m==1))
+replace csdmard_comb_12m = 3 if (mtx_12m!=1 & (ssz_12m==1 | hcq_12m==1 | lef_12m==1))
+lab var csdmard_comb_12m "csDMARDs by 12 months"
+lab define csdmard_comb_12m 0 "No csDMARDs" 1 "Methotrexate monotherapy" 2 "Methotrexate combination therapy" 3 "Non-methotrexate csDMARD(s)", modify
+lab val csdmard_comb_12m csdmard_comb_12m
+tab csdmard_comb_12m, missing
+tab csdmard_comb_12m if eia_diagnosis==1, missing
+
+**Corticosteroid use in primary care within first 12 months of diagnosis (PO, IM or IV), including those where received up to 60 days before diagnostic code
+gen steroid_12m = 1 if steroid_12m_first==1
+recode steroid_12m .=0
+lab define steroid_12m 0 "No" 1 "Yes"
+lab val steroid_12m steroid_12m
+lab var steroid_12m "Corticosteroids within 12m of diagnosis"
+tab steroid_12m, missing
+tab eia_diagnosis steroid_12m, missing row
+
+lab var steroid_12m_count "Corticosteroid prescription count within 12m of diagnosis"
+bys eia_diagnosis: tabstat steroid_12m_count, stats (n mean p50 p25 p75)
+
+gen steroid_12m_cat=0 if steroid_12m_count==0
+replace steroid_12m_cat=1 if steroid_12m_count==1
+replace steroid_12m_cat=2 if steroid_12m_count==2
+replace steroid_12m_cat=3 if steroid_12m_count>=3
+lab var steroid_12m_cat "Corticosteroid prescription count within 12m of diagnosis"
+tab steroid_12m_cat, missing
+tab eia_diagnosis steroid_12m_cat, missing row
+
+**Time to first steroid in primary care, with respect to first rheum appt (from -60 days to +365 days from EIA code date)
+gen time_to_steroid_12m = (steroid_12m_first_date-rheum_appt_date) if steroid_12m_first_date!=. & rheum_appt_date!=.
+tabstat time_to_steroid_12m, stats (n mean p50 p25 p75)
+bys eia_diagnosis: tabstat time_to_steroid_12m, stats (n mean p50 p25 p75)
+
+gen time_to_steroid_cat = 1 if time_to_steroid_12m>=-60 & time_to_steroid_12m<0
+replace time_to_steroid_cat = 2 if time_to_steroid_12m>=0 & time_to_steroid_12m<30
+replace time_to_steroid_cat = 3 if time_to_steroid_12m>=30 & time_to_steroid_12m<183
+replace time_to_steroid_cat = 4 if time_to_steroid_12m>=183 & time_to_steroid_12m<365
+replace time_to_steroid_cat = 5 if time_to_steroid_12m>=365 | time_to_steroid_12m==.
+
+lab define time_to_steroid_cat 1 "Up to 60 days before diagnosis" 2 "Up to 30 days after diagnosis" 3 "Between 30 days and 6m after diagnosis" 4 "Between 6m and 12m after diagnosis" 5 "No steroid within 12m of diagnosis"
+lab val time_to_steroid_cat time_to_steroid_cat
+lab var time_to_steroid_cat "Timing of first primary care steroid"
+tab time_to_steroid_cat, missing
+tab eia_diagnosis time_to_steroid_cat, missing row
+
+**Time to first biologic script; high_cost drug data available to Nov 2020. Not for analysis currently due to small numbers======================================================================*/
+
+/* 
+*Below analyses are only for patients with at least 12 months of follow-up available after rheum appt
+gen time_to_biologic=(biologic_date-rheum_appt_date) if biologic==1 & rheum_appt_date!=. & (biologic_date<=rheum_appt_date+365)
+tabstat time_to_biologic, stats (n mean p50 p25 p75) //for all EIA patients
+
+
+**What was first biologic
+gen first_bio=""
+foreach var of varlist abatacept_date adalimumab_date baricitinib_date certolizumab_date etanercept_date golimumab_date guselkumab_date infliximab_date ixekizumab_date rituximab_date sarilumab_date secukinumab_date tocilizumab_date tofacitinib_date upadacitinib_date ustekinumab_date {
+	replace first_bio="`var'" if biologic_date==`var' & biologic_date!=.
+	}
+gen first_biologic = substr(first_bio, 1, length(first_bio) - 5)	
+drop first_bio
+tab first_biologic //for all EIA patients
+
+**Biologic time categories (for all patients)
+gen biologic_time=1 if time_to_biologic<=183 & time_to_biologic!=. 
+replace biologic_time=2 if time_to_biologic>183 & time_to_biologic<=365 & time_to_biologic!=.
+replace biologic_time=3 if time_to_biologic>365 | time_to_biologic==.
+lab define biologic_time 1 "Within 6 months" 2 "6-12 months" 3 "No prescription within 12 months", modify
+lab val biologic_time biologic_time
+lab var biologic_time "bDMARD/tsDMARD prescription" 
+tab biologic_time
+
+**Biologic time categories (by year)
+bys diagnosis_6m: tab biologic_time
+*/
+
+save "$projectdir/output/data/${disease}_data_processed.dta", replace
+
+*Baseline tables================================================================*/
+
+use "$projectdir/output/data/${disease}_data_processed.dta", clear
+
+**Baseline table for each disease
+foreach disease in $diseases {
+preserve
+keep if ${disease}==1
+di "${disease}"
+table1_mc, total(before) onecol nospacelowpercent missing iqrmiddle(",")  ///
+	vars(${disease}_age contn %5.1f \ ///
+		 ${disease}_age_band cat %5.1f \ ///
+		 sex cat %5.1f \ ///
+		 ethnicity_n cat %5.1f \ ///
+		 imd_n cat %5.1f \ ///
+		 )
+restore
+}
+
+**Rounded and redacted baseline tables for each disease
+clear *
+save "$projectdir/output/data/baseline_table_rounded${suffix}.dta", replace emptyok
+
+foreach disease in $diseases {
+	use "$projectdir/output/data/incidence_data_processed${suffix}.dta", clear
+	keep if ${disease}==1
+	drop imd ethnicity
+	rename imd_n imd
+	rename ethnicity_n ethnicity
+	foreach var of varlist imd ethnicity sex ${disease}_age_band {
+		preserve
+		contract `var'
+		local v : variable label `var' 
+		gen variable = `"`v'"'
+		decode `var', gen(categories)
+		gen count = round(_freq, 5)
+		egen total = total(count)
+		gen percent = round((count/total)*100, 0001)
+		order total, before(percent)
+		replace percent = . if count<=7
+		replace total = . if count<=7
+		replace count = . if count<=7
+		gen cohort = "${disease}"
+		order cohort, first
+		format percent %14.4f
+		format count total %14.0f
+		list cohort variable categories count total percent
+		keep cohort variable categories count total percent
+		append using "$projectdir/output/data/baseline_table_rounded${suffix}.dta"
+		save "$projectdir/output/data/baseline_table_rounded${suffix}.dta", replace
+		restore
+	}
+
+	preserve
+	collapse (count) count=${disease} (mean) mean_age=${disease}_age (sd) stdev_age=${disease}_age
+	gen cohort ="${disease}"
+	rename *count freq
+	gen count = round(freq, 5)
+	gen countstr = string(count)
+	replace stdev_age = . if count<=7
+	replace mean_age = . if count<=7
+	replace count = . if count<=7
+	order cohort, first
+	gen variable = "Age"
+	order variable, after(cohort)
+	gen categories = "Not applicable"
+	order categories, after(variable)
+	order count, after(stdev_age)
+	gen total = count
+	order total, after(count)
+	format mean_age %14.4f
+	format stdev_age %14.4f
+	format count %14.0f
+	list cohort variable categories mean_age stdev_age count total
+	keep cohort variable categories mean_age stdev_age count total
+	append using "$projectdir/output/data/baseline_table_rounded${suffix}.dta"
+	save "$projectdir/output/data/baseline_table_rounded${suffix}.dta", replace	
+	restore
+}	
+use "$projectdir/output/data/baseline_table_rounded${suffix}.dta", clear
+export delimited using "$projectdir/output/tables/baseline_table_rounded${suffix}.csv", datafmt replace
+
+
+
+save "$projectdir/output/data/file_eia_all", replace
+
+log close

@@ -1,25 +1,25 @@
-from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of
+from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of, get_parameter
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ethnicity_from_sus 
 from ehrql.codes import ICD10Code
 from datetime import date, datetime
 from functools import reduce
 import codelists_ehrQL as codelists
 
-index_date = date(2016, 4, 1)
-end_date = date(2025, 3, 31)
+studystart_date = date.fromisoformat(get_parameter("studystart_date"))
+studyend_date = date.fromisoformat(get_parameter("studyend_date"))
 
 dataset = create_dataset()
-dataset.configure_dummy_data(population_size=10000)
+dataset.configure_dummy_data(population_size=1000)
 
 # Any practice registration before study end date
 registration_in_window = (
-    practice_registrations.where(practice_registrations.start_date <= end_date)
-    .except_where(practice_registrations.end_date < index_date)
+    practice_registrations.where(practice_registrations.start_date <= studyend_date)
+    .except_where(practice_registrations.end_date < studystart_date)
 )
 
 observed_registration_end = case(
-    when(practice_registrations.end_date.is_null()).then(end_date),
-    otherwise=minimum_of(practice_registrations.end_date, end_date),
+    when(practice_registrations.end_date.is_null()).then(studyend_date),
+    otherwise=minimum_of(practice_registrations.end_date, studyend_date),
 )
 
 # Keep only overlapping episodes that (observably) last at least 12 months
@@ -36,7 +36,7 @@ dataset.first_registration_12m = (
 )
 
 # If you want cohort entry anchored to study start:
-dataset.cohort_entry_date = maximum_of(index_date, dataset.first_registration_12m)
+dataset.cohort_entry_date = maximum_of(studystart_date, dataset.first_registration_12m)
 
 # Define sex
 dataset.sex = patients.sex
@@ -64,7 +64,7 @@ dataset.age_band = case(
 # Define patient ethnicity (latest code)
 latest_ethnicity_code = (
     clinical_events.where(clinical_events.snomedct_code.is_in(codelists.ethnicity_codes))
-    .where(clinical_events.date.is_on_or_before(end_date))
+    .where(clinical_events.date.is_on_or_before(studyend_date))
     .sort_by(clinical_events.date)
     .last_for_patient().snomedct_code.to_category(codelists.ethnicity_codes)
 )

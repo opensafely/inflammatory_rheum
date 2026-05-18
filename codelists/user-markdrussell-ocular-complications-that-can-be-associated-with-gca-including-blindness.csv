@@ -1,0 +1,234 @@
+code,term
+100411000000103,O/E - pinhole R-eye completely blind
+100571000000109,O/E - pinhole L-eye completely blind
+105505001,Blind person
+105597003,Blindness AND/OR vision impairment level
+111518009,"Impairment level: better eye: severe impairment: lesser eye: blind, not further specified"
+111519001,Impairment level: one eye: near-total impairment: other eye: normal vision
+1208859003,Posterior ischemic optic neuropathy due to arteritis
+12237911000119109,Amaurosis fugax of left eye
+12237951000119105,Amaurosis fugax of right eye
+1231188007,Occlusion of ophthalmic artery
+1231696003,Transient vision loss caused by light
+1371298002,Dependent on guide dog
+139548004,Blindness
+141145005,O/E R-eye: [perceives light only] or [blind]
+141146006,O/E - R-eye completely blind
+141159003,O/E L-eye: [perceives light only] or [blind]
+141160008,O/E - L-eye completely blind
+14357004,Ischemic optic neuropathy
+147957006,Registered: [partially sighted] or [partially blind]
+147958001,Registered blind
+151592008,Blind rehabilitation
+15203004,Sudden visual loss
+155111000,(Retinal vascular occlusion) or (amaurosis fugax) or (retinal thrombosis)
+155146008,Impaired vision (& [blindness &/or low] or [partial sight])
+155147004,Blindness - both eyes
+155148009,Blind or low vision - both eyes
+155149001,Blind or low vision - one eye only
+155150001,Blindness or low vision NOS
+15997471000119103,Ischemia of retina of left eye
+15997511000119107,Ischemia of retina of bilateral eyes
+15997551000119108,Ischemia of retina of right eye
+16279401000119108,Occlusion of right cilioretinal artery
+16279441000119105,Occlusion of left cilioretinal artery
+16279481000119100,Occlusion of bilateral cilioretinal arteries
+16376191000119109,Arteritic anterior ischemic optic neuropathy of bilateral eyes
+16376241000119109,Arteritic anterior ischemic optic neuropathy of left eye
+16376391000119106,Arteritic anterior ischemic optic neuropathy of right eye
+163945008,O/E R-eye: [perceives light only] or [blind]
+163946009,On examination - right eye completely blind
+163959001,O/E L-eye: [perceives light only] or [blind]
+163960006,On examination - left eye completely blind
+16931000000106,Certification of blindness - Scotland
+16941000000102,Scottish - partially sighted certification
+16961000000101,Scottish certification visual handicap - likely to improve
+16971000000108,Scottish certification visual handicap - likely to deteriorate
+170726007,Registered: [partially sighted] or [partially blind]
+170727003,Registered blind
+183361009,Blind rehabilitation
+193427006,Retinal ischaemia
+193644003,Other transient visual loss
+193698004,Impaired vision (& [blindness &/or low] or [partial sight])
+193699007,Blindness - both eyes
+193700008,Unspecified blindness both eyes
+193701007,Both eyes total visual impairment
+193702000,"Better eye: near total visual impairment, Lesser eye: unspecified"
+193703005,"Better eye: near total visual impairment, Lesser eye: total visual impairment"
+193704004,"Better eye: near total visual impairment, Lesser eye: near total visual impairment"
+193705003,"Better eye: profound visual impairment, Lesser eye: unspecified"
+193706002,"Better eye: profound visual impairment, Lesser eye: total visual impairment"
+193707006,"Better eye: profound visual impairment, Lesser eye: near total visual impairment"
+193708001,"Better eye: profound visual impairment, Lesser eye: profound visual impairment"
+193709009,Acquired blindness of bilateral eyes
+193710004,Blindness both eyes NOS
+193711000,"Better eye: low vision, Lesser eye: profound visual impairment"
+193712007,"One eye blind, one eye low vision"
+193713002,"Better eye: severe visual impairment, Lesser eye: blind, unspecified"
+193714008,"Better eye: severe visual impairment, Lesser eye: total visual impairment"
+193715009,"Better eye: severe visual impairment, Lesser eye: near total visual impairment"
+193716005,"Better eye: severe visual impairment, Lesser eye: profound visual impairment"
+193717001,"Better eye: moderate visual impairment, Lesser eye: blind, unspecified"
+193718006,"Better eye: moderate visual impairment, Lesser eye: total visual impairment"
+193720009,"Better eye: moderate visual impairment, Lesser eye: profound visual impairment"
+193721008,"One eye blind, one eye low vision NOS"
+193722001,"Low vision, both eyes"
+193724000,"Better eye: severe visual impairment, Lesser eye: low vision unspecified"
+193725004,"Better eye: severe visual impairment, Lesser eye: severe visual impairment"
+193727007,"Better eye: moderate visual impairment, Lesser eye: severe visual impairment"
+193730000,"Visual loss, both eyes unqualified"
+193733003,"Blindness, one eye, unspecified"
+193734009,"Lesser eye: total visual impairment, Better eye: unspecified"
+193735005,"Lesser eye: total visual impairment, Better eye: near normal vision"
+193736006,"Lesser eye: total visual impairment, Better eye: normal vision"
+193737002,"Lesser eye: near total visual impairment, Better eye: unspecified"
+193738007,"Lesser eye: near total visual impairment, Better eye: near normal vision"
+193739004,"Lesser eye: near total visual impairment, Better eye: normal vision"
+193740002,"Lesser eye: profound visual impairment, Better eye: unspecified"
+193741003,"Lesser eye: profound visual impairment, Better eye: near normal vision"
+193742005,"Lesser eye: profound visual impairment, Better eye: normal vision"
+193743000,"Acquired blindness, one eye"
+193745007,"Low vision, one eye"
+193747004,"Lesser eye: severe visual impairment, Better eye: unspecified"
+193748009,"Lesser eye: severe visual impairment, Better eye: near normal vision"
+193749001,"Lesser eye: severe visual impairment, Better eye: normal vision"
+193754005,"Visual loss, one eye, unqualified"
+193755006,(Visual loss NOS) or (acquired blindness)
+194626003,[X]Other retinal artery occlusions
+194654005,[X]Visual disturbances and blindness
+225569001,Painful blind eye
+22950006,Blindness of one eye
+230508004,Arteritic ischemic optic neuropathy
+232035005,Retinal artery occlusion
+232036006,Cilioretinal artery occlusion
+232037002,Branch macular artery occlusion
+232149003,Acquired blindness
+232150003,Partial sight - both eyes
+23653003,Traumatic blindness
+23672003,"Impairment level: better eye: moderate impairment: lesser eye: blind, not further specified"
+240311000000103,Loss of vision
+243113006,Blind and partially sighted rehabilitation - employment placement
+243886006,Blind registration
+2457001,Blind rehabilitation therapy
+2481000000102,England and Wales blind certification
+2491000000100,Scottish - blind certification
+2501000000106,Scottish partially sighted certification - blindness likely over 16
+2511000000108,Scottish - certification visual handicap
+2521000000102,Scottish certification visual handicap - stable
+2531000000100,England and Wales partially sighted certification
+264524000,Eye completely blind
+26468004,Retinal ischemia
+26520008,Optic nerve infarction
+267631003,Visual loss NOS
+267717005,(Retinal vascular occlusion) or (amaurosis fugax) or (retinal thrombosis)
+267727004,Blind or low vision - both eyes
+267728009,Blind or low vision - one eye only
+267729001,Blindness or low vision NOS
+274571007,Blind left eye
+274572000,Blind right eye
+277675000,Blind
+300994001,Registered partially sighted
+306961005,Training for blind or partially sighted person
+310418000,Blindness certification
+312916003,Choroidal ischemia
+312978008,"Acquired blindness, both eyes"
+312979000,"Acquired blindness, one eye"
+313165001,Functional visual loss
+314436005,Ocular ischemic syndrome
+331791000119103,Transient visual loss of right eye
+331801000119102,Transient occlusion of right retinal artery
+331921000119103,Sudden visual loss of right eye
+333281000119108,Partial occlusion of right retinal artery
+334311000119108,"Low vision left eye, normal vision right eye"
+334651000119101,Ischemic optic neuropathy of right eye
+336191000119105,Occlusion of right central retinal artery
+337411000119105,Transient visual loss of left eye
+337421000119103,Transient occlusion of left retinal artery
+337541000119105,Sudden visual loss of left eye
+338891000119100,Partial occlusion of left retinal artery
+339911000119106,"Low vision right eye, normal vision left eye"
+340251000119108,Ischemic optic neuropathy of left eye
+341801000119101,Occlusion of left central retinal artery
+343021000119100,"Blind right eye, normal vision left eye"
+343031000119102,"Blind right eye, low vision left eye"
+343041000119106,"Blind left eye, normal vision right eye"
+343051000119108,"Blind left eye, low vision right eye"
+343201000119104,Transient visual loss of bilateral eyes
+343211000119101,Transient occlusion of bilateral retinal arteries
+343331000119104,Sudden visual loss of bilateral eyes
+344661000119103,Partial occlusion of retinal artery of bilateral eyes
+345611000119102,Ischemic optic neuropathy of bilateral eyes
+347011000119102,Occlusion of bilateral central retinal arteries
+347311000000109,Issue of local authority blind registration
+361122008,Impairment level of vision
+36676002,Impairment level: profound impairment of both eyes
+36994005,Transient visual loss
+38465001,Impairment level: near-total impairment of both eyes
+38742007,Central retinal artery occlusion
+397541004,Severe visual impairment
+404659001,Anterior ischemic optic neuropathy
+408318008,On examination - pinhole left eye completely blind
+408322003,On examination - pinhole right eye completely blind
+415147002,Posterior ischemic optic neuropathy
+421293001,Unexplained visual loss
+431771000000102,[X]Visual disturbances and blindness
+439411000000103,[X]Other retinal artery occlusions
+45092003,Activities of daily living training for the blind
+492371000000104,Referral to visual impairment multidisciplinary team 
+492381000000102,Referral to visual impairment multidisciplinary team 
+50821009,Arterial retinal branch occlusion
+548871000000107,"Better eye: moderate visual impairment, Lesser eye: blind, unspecified"
+548881000000109,"One eye blind, one eye low vision NOS"
+548921000000103,"Lesser eye: near total visual impairment, Better eye: unspecified"
+548931000000101,"Lesser eye: profound visual impairment, Better eye: unspecified"
+566991000000106,Visual loss NOS
+592641000000107,"Lesser eye: total visual impairment, Better eye: unspecified"
+599731000000100,Unspecified blindness both eyes
+599761000000105,Blindness both eyes NOS
+605331000000105,"Better eye: profound visual impairment, Lesser eye: unspecified"
+606951000000109,Other transient visual loss
+619201000000106,"Blindness, one eye, unspecified"
+619221000000102,"Lesser eye: severe visual impairment, Better eye: unspecified"
+619431000000104,"Better eye: near total visual impairment, Lesser eye: unspecified"
+619441000000108,"Better eye: severe visual impairment, Lesser eye: blind, unspecified"
+619481000000100,"Better eye: severe visual impairment, Lesser eye: low vision unspecified"
+65956007,Legal blindness
+677771000119102,Occlusion of bilateral branch retinal arteries
+677781000119104,Occlusion of left branch retinal artery
+677791000119101,Occlusion of right branch retinal artery
+679411000000103,Blindness or low vision NOS
+68114006,Unqualified visual loss of both eyes
+68777001,Impairment level of both eyes
+70449006,Amaurosis
+713031000000100,Registered sight impaired
+727451000000103,Completion of certificate of vision impairment form
+727741000000106,Certified sight impaired
+727761000000107,Certified severely sight impaired
+73000008,Unqualified visual loss of one eye
+733325006,Combined occlusion by thrombus of retinal artery and retinal vein
+733506009,Arteritic anterior ischemic optic neuropathy
+75133003,Impairment level: moderate impairment of both eyes
+758381000000104,Registered sight impaired
+776009,Partial occlusion of retinal artery
+787411000000108,Registration of visual impairment
+813871000000108,Severe binocular visual impairment
+813881000000105,Severe monocular visual impairment
+829979008,Complete blindness of right eye
+829980006,Complete blindness of left eye
+830270002,Complete pinhole blindness of left eye
+830271003,Complete pinhole blindness of right eye
+832731000000101,Severe binocular visual impairment
+832741000000105,Severe monocular visual impairment
+832771000000104,"Blindness, monocular"
+83785004,Transient blindness
+838363001,Arteritic anterior ischemic optic neuropathy due to giant cell arteritis
+862731000000105,Uses guide dog for the blind
+86643000,Impairment level: severe impairment of both eyes
+87224000,Transient arterial retinal occlusion
+875801000000109,Uses guide dog for the blind
+88032003,Amaurosis fugax
+88768004,Impairment level: total impairment of both eyes
+903008,Chorioretinal infarction
+91408006,"Impairment level: blindness, one eye - low vision other eye"
+95531000000107,O/E - pinhole R-eye completely blind
+95701000000109,O/E - pinhole L-eye completely blind

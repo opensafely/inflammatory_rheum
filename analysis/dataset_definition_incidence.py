@@ -1,34 +1,40 @@
-from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of
+from ehrql import create_dataset, days, months, years, case, when, minimum_of, maximum_of, get_parameter
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ethnicity_from_sus 
 from ehrql.codes import ICD10Code
 from datetime import date, datetime
 from functools import reduce
 import codelists_ehrQL as codelists
 
-diseases = ["rheumatoid", "psa", "axialspa", "undiffia", "gca", "sjogren", "ssc", "sle", "myositis", "anca"]
-codelist_types = ["snomed", "icd"]
+# Read parameters from project.yaml
+studystart_date = get_parameter("studystart_date")
+studyend_date = get_parameter("studyend_date")
+studyfup_date = get_parameter("studyfup_date")
+diseases_list = get_parameter("diseases_list")
+registration_months = int(get_parameter("registration_months"))
 
-index_date = "2016-04-01"
-end_date = "2025-03-31"
-fup_date = "2025-09-30"
+diseases = diseases_list if isinstance(diseases_list, list) else [diseases_list]
+print("Diseases:", diseases)
+
+# Define codelist types
+codelist_types = ["snomed", "icd"]
 
 # Any practice registration before study end date
 any_registration = practice_registrations.where(
-            practice_registrations.start_date <= end_date
+            practice_registrations.start_date <= studyend_date
         ).except_where(
-            practice_registrations.end_date < index_date    
+            practice_registrations.end_date < studystart_date    
         ).exists_for_patient()
 
 def create_dataset_with_variables():
     dataset = create_dataset()
-    dataset.configure_dummy_data(population_size=10000)
+    dataset.configure_dummy_data(population_size=1000)
 
     # Incident diagnostic code in primary care record (SNOMED) (assuming before study end date)
     def first_code_in_period_snomed(dx_codelist):
         return clinical_events.where(
             clinical_events.snomedct_code.is_in(dx_codelist)
         ).where(
-            clinical_events.date.is_on_or_before(end_date)
+            clinical_events.date.is_on_or_before(studyend_date)
         ).sort_by(
             clinical_events.date
         ).first_for_patient()
@@ -38,7 +44,7 @@ def create_dataset_with_variables():
         return apcs.where(
             apcs.primary_diagnosis.is_in(dx_codelist)
         ).where(
-            apcs.admission_date.is_on_or_before(end_date)
+            apcs.admission_date.is_on_or_before(studyend_date)
         ).sort_by(
             apcs.admission_date
         ).first_for_patient()
@@ -48,9 +54,9 @@ def create_dataset_with_variables():
         return clinical_events.where(
             clinical_events.snomedct_code.is_in(dx_codelist)
         ).where(
-            clinical_events.date.is_on_or_before(fup_date)
+            clinical_events.date.is_on_or_before(studyfup_date)
         ).except_where(
-            clinical_events.date.is_before(index_date)
+            clinical_events.date.is_before(studystart_date)
         ).count_for_patient()
 
     # Count of diagnostic codes in secondary care record - could be used for sensitivity of those with 2+ codes
@@ -58,15 +64,15 @@ def create_dataset_with_variables():
         return apcs.where(
             apcs.primary_diagnosis.is_in(dx_codelist)
         ).where(
-            apcs.admission_date.is_on_or_before(fup_date)
+            apcs.admission_date.is_on_or_before(studyfup_date)
         ).except_where(
-            apcs.admission_date.is_before(index_date)
+            apcs.admission_date.is_before(studystart_date)
         ).count_for_patient()
 
-    # Registration for 12 months prior to incident diagnosis date
+    # Registration for X months prior to incident diagnosis date
     def preceding_registration(dx_date):
         return practice_registrations.where(
-            practice_registrations.start_date.is_on_or_before(dx_date - months(12))
+            practice_registrations.start_date.is_on_or_before(dx_date - months(registration_months))
         ).except_where(
             practice_registrations.end_date.is_on_or_before(dx_date)
         ).sort_by(
@@ -88,7 +94,7 @@ def create_dataset_with_variables():
    # Define patient ethnicity
     latest_ethnicity_code = (
         clinical_events.where(clinical_events.snomedct_code.is_in(codelists.ethnicity_codes))
-        .where(clinical_events.date.is_on_or_before(end_date))
+        .where(clinical_events.date.is_on_or_before(studyend_date))
         .sort_by(clinical_events.date)
         .last_for_patient().snomedct_code.to_category(codelists.ethnicity_codes)
     )
@@ -152,11 +158,11 @@ def create_dataset_with_variables():
 
         # Incident date within window - combined primary and secondary care 
         dataset.add_column(f"{disease}_inc_case",
-            (getattr(dataset, disease + "_inc_date").is_on_or_between(index_date, end_date)
+            (getattr(dataset, disease + "_inc_date").is_on_or_between(studystart_date, studyend_date)
             ).when_null_then(False)
         )
 
-        # 12 months registration preceding incident diagnosis date - combined primary and secondary care
+        # X months of registration preceding incident diagnosis date - combined primary and secondary care
         dataset.add_column(f"{disease}_pre_reg", 
             preceding_registration(getattr(dataset, f"{disease}_inc_date")
             ).exists_for_patient()
@@ -176,11 +182,11 @@ def create_dataset_with_variables():
 
         # Incident date within window - primary care only
         dataset.add_column(f"{disease}_inc_case_p",
-            (getattr(dataset, disease + "_prim_date").is_on_or_between(index_date, end_date)
+            (getattr(dataset, disease + "_prim_date").is_on_or_between(studystart_date, studyend_date)
             ).when_null_then(False)
         )
 
-        # 12 months registration preceding incident diagnosis date - primary care only
+        # X months registration preceding incident diagnosis date - primary care only
         dataset.add_column(f"{disease}_pre_reg_p", 
             preceding_registration(getattr(dataset, f"{disease}_prim_date")
             ).exists_for_patient()

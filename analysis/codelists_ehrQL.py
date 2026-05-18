@@ -172,7 +172,7 @@ all_icd = (
     gca_icd
 )
 
-# Relevant comorbidities
+# Relevant comorbidities and complications
 chd_codes = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-chd_cod.csv", column="code",
 )
@@ -190,8 +190,9 @@ copd_codes = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-copd_cod.csv", column="code",
 )
 
+# Non-ischaemic stroke
 stroke_codes = codelist_from_csv(
-    "codelists/nhsd-primary-care-domain-refsets-strk_cod.csv", column="code",
+    "codelists/nhsd-primary-care-domain-refsets-ostr_cod.csv", column="code",
 )
 
 tia_codes = codelist_from_csv(
@@ -202,6 +203,14 @@ cva_codes = (
     stroke_codes +
     tia_codes
 )
+
+htn_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-hyp_cod.csv", column="code",
+) 
+
+ccf_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-hflvsd_cod.csv", column="code",
+) 
 
 lung_cancer_codes = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-lung-cancer-codes.csv", column="code",
@@ -217,10 +226,6 @@ solid_cancer_codes = codelist_from_csv(
 
 ckd_codes = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-ckdatrisk2_cod.csv", column="code",
-)
-
-creatinine_codes = codelist_from_csv(
-    "codelists/ardens-creatinine-level.csv", column="code",
 )
 
 depression_codes = codelist_from_csv(
@@ -250,14 +255,6 @@ referral_rheumatology = codelist_from_csv(
     "codelists/user-markdrussell-referral-to-rheumatology-only.csv", column = "code"
 )
 
-rf_tests = codelist_from_csv(
-    "codelists/user-markdrussell-rheumatoid-factor.csv", column = "code"
-)
-
-ccp_tests = codelist_from_csv(
-    "codelists/user-markdrussell-cyclic-citrullinated-peptide-ccp-antibody.csv", column = "code"
-)
-
 rf_codes = codelist_from_csv(
     "codelists/user-markdrussell-rheumatoid-factor-positive-finding.csv", column = "code"
 )
@@ -274,7 +271,36 @@ erosive_codes = codelist_from_csv(
     "codelists/user-markdrussell-erosive-rheumatoid-arthritis.csv", column = "code"
 )
 
-# MEDICATIONS
+pmr_codes = codelist_from_csv(
+    "codelists/user-markdrussell-polymyalgia-rheumatica-prevalent.csv", column = "code"
+)
+
+ocular_codes = codelist_from_csv(
+    "codelists/user-markdrussell-ocular-complications-that-can-be-associated-with-gca-including-blindness.csv", column = "code"
+)
+
+aortic_codes = codelist_from_csv(
+    "codelists/user-markdrussell-large-vessel-complications-associated-with-giant-cell-arterities.csv", column = "code"
+)
+
+# Blood tests
+creatinine_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-cre_cod.csv", column="code",
+)
+
+hba1c_codes = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-ifcchbam_cod.csv", column="code",
+)
+
+rf_tests = codelist_from_csv(
+    "codelists/user-markdrussell-rheumatoid-factor.csv", column = "code"
+)
+
+ccp_tests = codelist_from_csv(
+    "codelists/user-markdrussell-cyclic-citrullinated-peptide-ccp-antibody.csv", column = "code"
+)
+
+# Medications
 hydroxychloroquine_codes = codelist_from_csv(
     "codelists/opensafely-hydroxychloroquine.csv", column="code"
 )  
@@ -292,4 +318,7 @@ sulfasalazine_codes = codelist_from_csv(
 )
 steroid_codes = codelist_from_csv(       
     "codelists/user-markdrussell-corticosteroids-oral-im-or-iv-dmd.csv", column="code"
+)
+prednisolone_codes = codelist_from_csv(       
+    "codelists/nhs-drug-refsets-c19preddrug_cod.csv", column="code"
 )

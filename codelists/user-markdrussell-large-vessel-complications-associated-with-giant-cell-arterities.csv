@@ -1,0 +1,136 @@
+code,term
+10878002,Aneurysm of common carotid artery
+1208818009,Arterial obstruction due to thrombotic embolism from aneurysm of thoracic aorta
+1208822004,Arterial obstruction due to thrombotic embolism from aneurysm of abdominal aorta
+1303726005,Dissection of infrarenal aorta
+1332267005,Dissection of subclavian artery
+1344840006,DeBakey type III dissection of descending aorta
+1344841005,Stanford type B dissection of descending aorta
+1344842003,DeBakey type IIIb dissection of descending thoracic and abdominal aorta
+14336007,Ruptured abdominal aortic aneurysm
+155419006,Aortic aneurysm
+155420000,Dissecting aortic aneurysm
+155421001,Thoracic aortic aneurysm
+155422008,Abdominal aortic aneurysm
+155423003,Ruptured aortic aneurysm NOS
+155424009,Aortic aneurysm NOS
+15648201000119100,Aneurysm of intracranial portion of right internal carotid artery
+15648241000119103,Aneurysm of intracranial portion of left internal carotid artery
+15648281000119108,Aneurysm of extracranial portion of right internal carotid artery
+15648321000119103,Aneurysm of extracranial portion of left internal carotid artery
+15648361000119108,Aneurysm of right internal carotid artery
+15648401000119104,Aneurysm of left internal carotid artery
+15648441000119102,Aneurysm of right common carotid artery
+15648481000119107,Aneurysm of left common carotid artery
+15648521000119107,Aneurysm of right carotid artery
+15648561000119102,Aneurysm of left carotid artery
+15648861000119100,Aneurysm of right subclavian artery
+15648921000119102,Aneurysm of left subclavian artery
+15707961000119109,Dissection of bilateral carotid arteries
+15708001000119106,Dissection of left carotid artery
+15708041000119108,Dissection of right carotid artery
+16289261000119103,Dissection of left subclavian artery
+16289301000119106,Dissection of bilateral subclavian arteries
+16289341000119108,Dissection of right subclavian artery
+195258006,Thoracic aortic aneurysm which has ruptured
+195259003,Thoracic aortic aneurysm without mention of rupture
+195260008,Ruptured suprarenal aortic aneurysm
+195261007,Abdominal aortic aneurysm without mention of rupture
+195262000,Juxtarenal aortic aneurysm
+195263005,Inflammatory abdominal aortic aneurysm
+195264004,Ruptured aortic aneurysm NOS
+195265003,"Thoracoabdominal aortic aneurysm, ruptured"
+195266002,Aortic aneurysm without mention of rupture NOS
+195267006,"Thoracoabdominal aortic aneurysm, without mention of rupture"
+195268001,Leaking abdominal aortic aneurysm
+195269009,Aortic aneurysm NOS
+195615002,"[X]Aortic aneurysm of unspecified site, ruptured"
+195616001,"[X]Aortic aneurysm of unspecified site, nonruptured"
+195622005,[X]Aneurysm of aorta in diseases classified elsewhere
+214071000000105,Carotid artery dissection
+230729006,Carotid artery dissection
+233984007,Thoracoabdominal aortic aneurysm
+233985008,Abdominal aortic aneurysm
+233988005,Carotid artery aneurysm
+233994002,Dissection of thoracic aorta
+233995001,DeBakey type I dissection of thoracic aorta
+233996000,DeBakey type II dissection of thoracic aorta
+233997009,Dissection of distal aorta
+24624008,Aneurysm of internal carotid artery
+251037007,Type II dissection of thoracic aorta
+276279006,Unruptured aneurysm of carotid artery
+27631000146108,Dissection of aortic arch
+27651000146102,Dissection of descending aorta
+277328007,Ruptured internal carotid-anterior communicating artery zone aneurysm
+277329004,Ruptured internal carotid-posterior communicating artery zone aneurysm
+277330009,Ruptured internal carotid bifurcation aneurysm
+2831000119107,Aneurysm of descending thoracic aorta
+284811000119102,Aneurysm of extracranial portion of internal carotid artery
+284821000119109,Aneurysm of intracranial portion of internal carotid artery
+301899003,Stanford type A dissection of aorta
+308546005,Dissection of aorta
+314184006,Ruptured suprarenal aortic aneurysm
+314185007,Juxtarenal aortic aneurysm
+314186008,Inflammatory abdominal aortic aneurysm
+315295003,Recurrent abdominal aortic aneurysm
+34365005,Ruptured thoracic aortic aneurysm
+373134008,Aneurysm of aortic root
+40136003,Aneurysm of subclavian artery
+405577005,Nontraumatic dissection of thoracic aorta
+408666009,Dissection of abdominal aorta
+409791000000107,"[X]Aortic aneurysm of unspecified site, ruptured"
+425453009,Chronic nontraumatic dissection of thoracic aorta
+425771001,Enlarging abdominal aortic aneurysm
+425963007,Aneurysm of ascending aorta
+426270006,Aneurysm of suprarenal aorta
+426948001,Aneurysm of descending aorta
+427490006,Aneurysm of supraceliac aorta
+428326005,Chronic dissecting aneurysm of thoracic aorta
+433068007,Aneurysm of thoracic aorta
+444569004,Aneurysm of infrarenal abdominal aorta
+444701000,Dissecting aneurysm of thoracoabdominal aorta
+45894003,Medionecrosis of aorta
+469871000000102,"[X]Aortic aneurysm of unspecified site, nonruptured"
+470011000000101,[X]Aneurysm of aorta in diseases classified elsewhere
+529602851000119106,Paravisceral abdominal aortic aneurysm
+530151000000109,Abdominal aortic aneurysm without mention of rupture
+530161000000107,"Thoracoabdominal aortic aneurysm, without mention of rupture"
+557571231000119105,Ruptured aneurysm of ascending aorta
+588189031000119106,Ruptured aneurysm of juxtarenal abdominal aorta
+600621000000105,Aortic aneurysm without mention of rupture NOS
+609590581000119102,Ruptured aneurysm of descending thoracic aorta
+61091005,Aneurysm of external carotid artery
+61575003,Pericarditis due to aortic aneurysm
+660721000000103,Ruptured aortic aneurysm NOS
+660741000000105,Aortic aneurysm NOS
+67076004,Dissecting aortic aneurysm
+67362008,Aortic aneurysm
+703325005,Aortic valve regurgitation due to aortic dissection
+705066004,Dissection of internal carotid artery
+712578006,Aneurysm of aortic arch
+713029000,Dissection of thoracoabdominal aorta
+713030005,Chronic dissection of thoracic aorta
+715571000000109,Infrarenal abdominal aortic aneurysm
+720626009,Dissection of carotid artery
+720809000,Dissection of external carotid artery
+724442004,Dissection of ascending aorta and aortic arch
+73067008,Ruptured aortic aneurysm
+735575007,Perforation of thoracic aorta co-occurrent and due to aneurysm of thoracic aorta
+735576008,Perforation of abdominal aorta co-occurrent and due to aneurysm of abdominal aorta
+735577004,Perforation of thoracoabdominal aorta co-occurrent and due to aneurysm of thoracoabdominal aorta
+74883004,Thoracic aortic aneurysm without rupture
+756281000000109,Aneurysm of suprarenal aorta
+756641000000104,Infrarenal abdominal aortic aneurysm
+758061000000105,Aneurysm of suprarenal aorta
+75878002,Abdominal aortic aneurysm without rupture
+783415001,Aneurysm of internal carotid bifurcation
+783422009,Aneurysm of internal carotid-anterior communicating artery zone
+783423004,Aneurysm of internal carotid-posterior communicating artery zone
+796936501000119105,DeBakey type IIIa dissection of descending thoracic aorta
+824031000000109,Leaking thoracic aortic aneurysm
+8256001,Pericarditis secondary to aortic aneurysm with leakage into pericardial sac
+840419005,Dissection of extracranial carotid artery
+840439009,Dissection of intracranial carotid artery
+871536000,Aneurysm of pararenal aorta
+895205251000119104,Ruptured aneurysm of aortic arch
+914650261000119108,Ruptured aneurysm of infrarenal abdominal aorta

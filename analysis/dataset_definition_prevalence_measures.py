@@ -1,22 +1,19 @@
-from ehrql import create_dataset, days, months, years, case, when, create_measures, INTERVAL, minimum_of, maximum_of
+from ehrql import create_dataset, days, months, years, case, when, create_measures, INTERVAL, minimum_of, maximum_of, get_parameter
 from ehrql.tables.tpp import patients, medications, practice_registrations, clinical_events, apcs, addresses, ons_deaths, appointments
 from datetime import date, datetime
 import codelists_ehrQL as codelists
 from analysis.dataset_definition_prevalence import dataset
 import sys
 
-# Arguments (from project.yaml)
-from argparse import ArgumentParser
+# Read parameters from project.yaml
+measure_date = get_parameter("studystart_date")
+intervals_years = int(get_parameter("intervals"))
+disease = get_parameter("disease")
 
-parser = ArgumentParser()
-parser.add_argument("--start-date", type=str)
-parser.add_argument("--intervals", type=int)
-parser.add_argument("--disease", type=str)
-args = parser.parse_args()
-
-start_date = args.start_date
-intervals_years = args.intervals
-disease = args.disease
+studystart_date = get_parameter("studystart_date")
+studyend_date = get_parameter("studyend_date")
+studyfup_date = get_parameter("studyfup_date")
+diseases_list = get_parameter("diseases_list")
 
 index_date = INTERVAL.start_date
 
@@ -39,7 +36,7 @@ age_band = case(
 measures = create_measures()
 measures.configure_dummy_data(population_size=1000, legacy=True)
 measures.configure_disclosure_control(enabled=False)
-measures.define_defaults(intervals=years(intervals_years).starting_on(start_date))
+measures.define_defaults(intervals=years(intervals_years).starting_on(measure_date))
 
 # Population denominator (currently registered)
 prev_denominator = (
@@ -68,7 +65,7 @@ measures.define_measure(
     name=disease + "_prevalence",
     numerator=prev_numerators[disease + "_prev_num"],
     denominator=prev_denominator,
-    intervals=years(intervals_years).starting_on(start_date),
+    intervals=years(intervals_years).starting_on(measure_date),
     group_by={
         "sex": dataset.sex,
         "age": age_band,  
