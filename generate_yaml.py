@@ -335,13 +335,29 @@ if gca == "yes":
         highly_sensitive:
           cohort: output/dataset_gca.csv
 
-  # gca_cleaning:
-  #   run: stata-mp:latest analysis/101_gca_cleaning.do ""{studystart_date}" "{studyend_date}" "{studyfup_date}"
-  #   needs: [generate_dataset_gca]
-  #   outputs:
-  #     highly_sensitive:
-  #       log1: logs/gca_cleaning.log   
-  #       data1: output/data/gca_clean.dta                                 
+  gca_cleaning:
+    run: stata-mp:latest analysis/101_gca_cleaning.do "{studystart_date}" "{studyend_date}" "{studyfup_date}"
+    needs: [generate_dataset_gca]
+    outputs:
+      highly_sensitive:
+        log1: logs/gca_cleaning.log   
+        data1: output/data/gca_processed.dta
+
+  gca_datatables:
+    run: stata-mp:latest analysis/201_gca_datatables.do "{studystart_date}" "{studyend_date}" "{studyfup_date}"
+    needs: [gca_cleaning]
+    outputs:
+      highly_sensitive:
+        log1: logs/gca_datatables.log   
+        table1: output/tables/gca_datatable_*.csv
+
+  gca_temporal_plots:
+    run: stata-mp:latest analysis/301_gca_plots.do "{studystart_date}" "{studyend_date}" "{studyfup_date}" "{intervention_date_covid}"
+    needs: [gca_datatables]
+    outputs:
+      highly_sensitive:
+        log1: logs/gca_plots.log   
+        figure1: output/figures/gca_plot_*.svg                                                            
 """
 
 # Combine header, body, and footer

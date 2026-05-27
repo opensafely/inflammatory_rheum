@@ -42,6 +42,7 @@ dataset.solid_ca_before_date=first_comorbidity_before_diagnosis(codelists.solid_
 dataset.haem_ca_before_date=first_comorbidity_before_diagnosis(codelists.haem_cancer_codes).date
 dataset.ckd_before_date=first_comorbidity_before_diagnosis(codelists.ckd_codes).date
 dataset.depr_before_date=first_comorbidity_before_diagnosis(codelists.depression_codes).date
+dataset.dem_before_date=first_comorbidity_before_diagnosis(codelists.dementia_codes).date
 dataset.htn_before_date=first_comorbidity_before_diagnosis(codelists.htn_codes).date
 dataset.ccf_before_date=first_comorbidity_before_diagnosis(codelists.ccf_codes).date
 
@@ -242,7 +243,7 @@ dataset.leflunomide_date = medication_dates_dmd(codelists.leflunomide_codes).fir
 dataset.methotrexate_oral_date = medication_dates_dmd(codelists.methotrexate_codes).first_for_patient().date
 dataset.methotrexate_inj_date = medication_dates_dmd(codelists.methotrexate_inj_codes).first_for_patient().date
 
-### Last prescriptions before end date
+### Last prescriptions before end date //change mtx and lef labelling
 dataset.prednisolone_last_date = medication_dates_dmd(codelists.steroid_codes).last_for_patient().date
 dataset.lef_last_date = medication_dates_dmd(codelists.leflunomide_codes).last_for_patient().date
 dataset.mtx_oral_last_date = medication_dates_dmd(codelists.methotrexate_codes).last_for_patient().date
