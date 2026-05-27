@@ -347,7 +347,7 @@ if gca == "yes":
     run: stata-mp:latest analysis/201_gca_datatables.do "{studystart_date}" "{studyend_date}" "{studyfup_date}"
     needs: [gca_cleaning]
     outputs:
-      highly_sensitive:
+      moderately_sensitive:
         log1: logs/gca_datatables.log   
         table1: output/tables/gca_datatable_*.csv
 
@@ -355,7 +355,7 @@ if gca == "yes":
     run: stata-mp:latest analysis/301_gca_plots.do "{studystart_date}" "{studyend_date}" "{studyfup_date}" "{intervention_date_covid}"
     needs: [gca_datatables]
     outputs:
-      highly_sensitive:
+      moderately_sensitive:
         log1: logs/gca_plots.log   
         figure1: output/figures/gca_plot_*.svg                                                            
 """
