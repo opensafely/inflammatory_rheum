@@ -6,14 +6,14 @@ diseases = "eia rheumatoid psa axialspa undiffia gca sjogren ssc sle myositis an
 # Define study dates
 studystart_date = "2016-04-01"
 studyend_date = "2025-03-31"
-studyfup_date = "2025-09-30"
+studyfup_date = "2026-03-31"
 
 # Including incidence graphs +/- sensitivity analyses with 24 months preceding registration (yes or no)
-incidence_graphs = "yes"
-incidence_sensitivity = "yes"
+incidence_graphs = "no"
+incidence_sensitivity = "no"
 
 # Include prevalence analyses (yes or no)
-prevalence = "yes"
+prevalence = "no"
 
 # Define intervention date(s) of interest for intervention analyses
 intervention_date_covid = "2020-03-01"

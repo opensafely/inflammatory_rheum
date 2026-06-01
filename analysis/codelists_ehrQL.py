@@ -307,12 +307,16 @@ hydroxychloroquine_codes = codelist_from_csv(
 leflunomide_codes = codelist_from_csv(  
     "codelists/opensafely-leflunomide-dmd.csv", column="code"
 )    
-methotrexate_codes = codelist_from_csv(                   
+methotrexate_oral_codes = codelist_from_csv(                   
     "codelists/opensafely-methotrexate-oral.csv", column="code"
 )                   
 methotrexate_inj_codes = codelist_from_csv(                         
     "codelists/opensafely-methotrexate-injectable.csv", column="code"
-)                   
+) 
+methotrexate_codes = (
+    methotrexate_oral_codes +
+    methotrexate_inj_codes
+)
 sulfasalazine_codes = codelist_from_csv(       
     "codelists/opensafely-sulfasalazine-oral-dmd.csv", column="code"
 )

@@ -32,10 +32,10 @@ global disease "gca"
 global disease_lbl = upper("$disease")
 
 *Define comorbidities and outcomes of interest
-global comorbidities "ocular aortic chd cva osteop frac pmr dm ild copd lung_ca solid_ca haem_ca depr ckd htn ccf"
+global comorbidities "ocular aortic chd cva osteop frac pmr dm ckd htn ccf depr dem"
 
 *Define medications of interest
-global medications "prednisolone leflunomide methotrexate_oral methotrexate_inj"
+global medications "steroid prednisolone methotrexate leflunomide"
 
 *Define study dates (passed from yaml)
 global arglist studystart_date studyend_date studyfup_date
@@ -52,7 +52,7 @@ if $running_locally ==0 {
 if $running_locally ==1 {
 	global studystart_date "2016-04-01"
 	global studyend_date "2025-03-31"
-	global studyfup_date "2025-09-30"
+	global studyfup_date "2026-03-31"
 }
 
 di "$studystart_date"
@@ -131,7 +131,7 @@ foreach var of global medications {
 }
 
 **Loop through outcomes of interest for full cohort (have to be binary variables: yes 1 and no 0)
-foreach var of varlist `comorbidity_bl' rheum_appt rheum_appt_any ref_12m_preappt rheum_appt_ref rheum_any_ref `medication_bl'  {
+foreach var of varlist `comorbidity_bl' `medication_bl' rheum_appt rheum_appt_any has_12m_fup {
 	rounded_datatable `var', timevar(`time_variable')
 }
 
@@ -177,7 +177,7 @@ foreach t in 12 {
 
 	
 	**Loop through outcomes of interest for full cohort (have to be binary variables: yes 1 and no 0)
-	foreach var of varlist `comorbidity_new12m' `comorbidity_after12m' `medication_12m' {
+	foreach var of varlist death_new12m `comorbidity_new12m' `comorbidity_after12m' `medication_12m' {
 		rounded_datatable `var', timevar(`time_variable')
 	}
 	

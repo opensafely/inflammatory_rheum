@@ -88,7 +88,7 @@ def create_dataset_with_variables():
     # Define sex
     dataset.sex = patients.sex
 
-    # Date of death
+    # Date of death (check ONS too)
     dataset.date_of_death = patients.date_of_death
 
    # Define patient ethnicity

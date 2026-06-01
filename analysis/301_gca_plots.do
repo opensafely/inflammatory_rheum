@@ -48,7 +48,7 @@ if $running_locally ==0 {
 if $running_locally ==1 {
 	global studystart_date "2016-04-01"
 	global studyend_date "2025-03-31"
-	global studyfup_date "2025-09-30"
+	global studyfup_date "2026-03-31"
 	global intervention_date "2020-03-01"
 }
 
@@ -125,8 +125,35 @@ foreach table in postdiagnosis baseline {
 		}
 		*/
 		
-		**Set y-axis format and title
-		local format "format(%9.0f)"
+		***Set y-axis format
+		summ prop_all, meanonly
+		local ymax = r(max)
+
+		if `ymax' < 3 {
+			local lower = 0
+			local upper = 5
+		}
+		else if `ymax' < 10 {
+			local lower = 0
+			local upper = 10
+		}
+		else if `ymax' < 20 {
+			local lower = 0
+			local upper = 25
+		}
+		else if `ymax' < 50 {
+			local lower = 0
+			local upper = 50
+		}
+		else {
+			local lower = 0
+			local upper = 100
+		}
+
+		nicelabels `lower' `upper', local(ylab)
+		di "`ylab'"
+		
+		***Set y-axis title
 		local ytitle "Percentage of patients"
 
 		***Set x-axis format and title
@@ -141,7 +168,7 @@ foreach table in postdiagnosis baseline {
 		local outcome_desc = outcome_desc
 
 		***Temporal plot over study period (scatter with moving average)
-		twoway line prop month_year, ytitle("`ytitle'", size(medsmall)) color(emerald%30) msymbol(circle) lcolor(emerald) lstyle(solid) ylabel(, `format' nogrid labsize(small)) xaxis(1 2) xtitle("`xtitle'", size(medsmall) margin(medsmall) axis(1)) xlabel(`xlabel', nogrid labsize(small) axis(1)) xlabel($intervention_year "COVID-19", axis(2) labsize(small) labcolor(navy)) xtitle("", axis(2)) xscale(noline axis(2)) title("`outcome_desc'", size(medium) margin(b=2)) xline($intervention_year) legend(off) xsize(16) ysize(9) name("`outcome'", replace) saving("$projectdir/output/figures/gca_plot_`outcome'.gph", replace)
+		twoway connect prop month_year, ytitle("`ytitle'", size(medsmall)) color(emerald%30) msymbol(circle) lcolor(emerald) lstyle(solid) ylabel("`ylab'", nogrid labsize(small)) xaxis(1 2) xtitle("`xtitle'", size(medsmall) margin(medsmall) axis(1)) xlabel(`xlabel', nogrid labsize(small) axis(1)) xlabel($intervention_year "COVID-19", axis(2) labsize(small) labcolor(navy)) xtitle("", axis(2)) xscale(noline axis(2)) title("`outcome_desc'", size(medium) margin(b=2)) xline($intervention_year) legend(off) xsize(16) ysize(9) name("`outcome'", replace) saving("$projectdir/output/figures/gca_plot_`outcome'.gph", replace)
 		graph export "$projectdir/output/figures/gca_plot_`table'_`outcome'.$img", replace
 /*
 		**ITSA graphs

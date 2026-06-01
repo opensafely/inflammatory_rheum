@@ -33,10 +33,10 @@ global disease "gca"
 global disease_lbl = upper("$disease")
 
 *Define comorbidities and outcomes of interest
-global comorbidities "ocular aortic chd cva osteop frac pmr dm ild copd lung_ca solid_ca haem_ca depr ckd htn ccf"
+global comorbidities "ocular aortic chd cva osteop frac pmr dm ckd htn ccf depr dem"
 
 *Define medications of interest
-global medications "prednisolone leflunomide methotrexate_oral methotrexate_inj"
+global medications "steroid prednisolone methotrexate leflunomide"
 
 *Define study dates (passed from yaml)
 global arglist studystart_date studyend_date studyfup_date
@@ -53,7 +53,7 @@ if $running_locally ==0 {
 if $running_locally ==1 {
 	global studystart_date "2016-04-01"
 	global studyend_date "2025-03-31"
-	global studyfup_date "2025-09-30"
+	global studyfup_date "2026-03-31"
 }
 
 di "$studystart_date"
@@ -111,7 +111,19 @@ if !_rc & "`r(varlist)'" != "" {
 
 *Keep cohort of interest====================================================*
 
+**Restrict to primary care diagnoses only (restricted in dataset definition too)
 codebook ${disease}_inc_case
+codebook ${disease}_inc_case_p
+rename ${disease}_inc_case ${disease}_inc_case_ps
+rename ${disease}_inc_case_p ${disease}_inc_case
+rename ${disease}_inc_date ${disease}_inc_date_ps
+rename ${disease}_prim_date ${disease}_inc_date
+rename ${disease}_pre_reg ${disease}_pre_reg_ps
+rename ${disease}_pre_reg_p ${disease}_pre_reg
+rename ${disease}_age ${disease}_age_ps
+rename ${disease}_age_p ${disease}_age
+rename ${disease}_alive_inc ${disease}_alive_inc_ps
+rename ${disease}_alive_inc_p ${disease}_alive_inc
 
 **Check criteria applied in dataset definition (restricted to minimum age of 50 for GCA)
 gen ${disease} = 1 if ${disease}_inc_case=="T" & ((${disease}_inc_date >= date("$studystart_date", "YMD")) & (${disease}_inc_date <= date("$studyend_date", "YMD"))) & (${disease}_age >=50 & ${disease}_age <= 110) & (sex!="") & ${disease}_pre_reg=="T" & ${disease}_alive_inc=="T"
@@ -120,6 +132,7 @@ tab ${disease}, missing
 
 keep if ${disease} == 1
 
+/*
 **First code recorded in primary care
 gen ${disease}_p = 1 if ${disease}_inc_date==${disease}_prim_date
 recode ${disease}_p .=0 if ${disease} == 1
@@ -157,7 +170,7 @@ foreach t in 6 12 {
 	
 	gen has_`t'm_fup=1 if (reg_end_date!=. & (reg_end_date >= (${disease}_inc_date + `days')) & ((${disease}_inc_date + `days') <= (date("$studyfup_date", "YMD")))) | (reg_end_date==. & ((${disease}_inc_date + `days') <= (date("$studyfup_date", "YMD"))))
 	recode has_`t'm_fup .=0
-	lab var has_`t'm_fup "At least `t' months of follow-up after diagnosis"
+	lab var has_`t'm_fup "At least `t' months of follow-up after ${disease_lbl} diagnosis"
 	lab def has_`t'm_fup 0 "No" 1 "Yes"
 	lab val has_`t'm_fup has_`t'm_fup
 	tab has_`t'm_fup
@@ -168,11 +181,11 @@ foreach t in 6 12 {
 
 **Age
 rename ${disease}_age age
-lab var age "Age at diagnosis"
+lab var age "Age at ${disease_lbl} diagnosis"
 tabstat age, stat(n mean sd p50 p25 p75)
 
 gen age_decile = age/10
-lab var age_decile "Age decile at diagnosis"
+lab var age_decile "Age decile at ${disease_lbl} diagnosis"
 
 ***Define 10-year age bands
 recode age 18/29.9999 = 1 /// 
@@ -318,6 +331,16 @@ label values smoke_nomiss smoke
 lab var smoke_nomiss "Smoking status"
 tab smoke_nomiss, missing
 
+**Clean death date
+gen death_after_date = date_of_death if date_of_death!=. & (date_of_death > ${disease}_inc_date)
+gen death_new12m = 1 if ((death_after_date > ${disease}_inc_date) & (death_after_date <= (${disease}_inc_date + 365))) &death_after_date!=.
+recode death_new12m .=0
+lab define death_new12m 0 "No" 1 "Yes", modify
+lab var death_new12m "`lbl' within 12m of ${disease_lbl} diagnosis"
+lab val death_new12m death_new12m
+order death_new12m, after(death_after_date)
+tab death_new12m, missing
+
 **Clinical comorbidities and outcomes (Nb. not using creatinine or HBA1c values for now, just codes)
 foreach comorbidity in $comorbidities {
     local lbl : subinstr local comorbidity "_" " ", all
@@ -380,23 +403,41 @@ local vars ///
     frac "Fragility fracture" ///
 	pmr "Polymyalgia rheumatica" ///
     dm "Type 2 diabetes mellitus" ///
-    ild "Interstitial lung disease" ///
-    copd "COPD" ///
-    lung_ca "Lung cancer" ///
-    solid_ca "Solid organ cancer" ///
-    haem_ca "Haematological cancer" ///
-    depr "Depression" ///
 	ckd "Chronic kidney disease" ///
 	htn "Hypertension" ///
-	ccf "Heart failure"
+	ccf "Heart failure" ///
+	depr "Depression" ///
+	dem "Dementia"
 
-foreach suffix in bl after new after12m new12m {
+foreach suffix in bl {
     local i = 1
     while `i' <= wordcount(`"`vars'"') {
         local var: word `i' of `vars'
         local ++i
         local label : word `i' of `vars'
-        capture label variable `var'_`suffix' "`label'"
+        capture label variable `var'_`suffix' "`label' before ${disease_lbl} diagnosis"
+        local ++i
+    }
+}
+
+foreach suffix in new12m {
+    local i = 1
+    while `i' <= wordcount(`"`vars'"') {
+        local var: word `i' of `vars'
+        local ++i
+        local label : word `i' of `vars'
+        capture label variable `var'_`suffix' "`label' within 12m of ${disease_lbl} diagnosis (new)"
+        local ++i
+    }
+}
+
+foreach suffix in after12m {
+    local i = 1
+    while `i' <= wordcount(`"`vars'"') {
+        local var: word `i' of `vars'
+        local ++i
+        local label : word `i' of `vars'
+        capture label variable `var'_`suffix' "`label' within 12m of ${disease_lbl} diagnosis (new or recurrent)"
         local ++i
     }
 }
@@ -454,7 +495,7 @@ label define egfr_bl_cat 	1 ">=60" 		///
 							9 "Not known"
 					
 label val egfr_bl_cat egfr_bl_cat
-lab var egfr_bl_cat "eGFR at baseline"
+lab var egfr_bl_cat "eGFR at ${disease_lbl} diagnosis"
 tab egfr_bl_cat, missing
 
 ***Categorise baseline eGFR into more granular CKD stages
@@ -476,7 +517,7 @@ label define egfr_bl_finecat 	1 ">=90" 		///
 								9 "Not known"
 					
 label val egfr_bl_finecat egfr_bl_finecat
-lab var egfr_bl_finecat "eGFR at baseline"
+lab var egfr_bl_finecat "eGFR at ${disease_lbl} diagnosis"
 tab egfr_bl_finecat, missing
 
 ***Generate baseline CKD code that combines CKD coding (stages 3-5) + eGFR (stages 3-5)
@@ -509,7 +550,7 @@ replace hba1c_bl_cat = 1 if hba1c_bl_value >= 58 & hba1c_bl_val !=.
 replace hba1c_bl_cat = 9 if hba1c_bl_cat ==. 
 label define hba1c_bl_cat 0 "HbA1c <58mmol/mol" 1 "HbA1c >=58mmol/mol" 9 "Not known"
 label val hba1c_bl_cat hba1c_bl_cat
-lab var hba1c_bl_cat "HbA1c at baseline"
+lab var hba1c_bl_cat "HbA1c at ${disease_lbl} diagnosis"
 tab hba1c_bl_cat, missing
 
 ***Create combined diabetes code that combines diabetes coding + HBA1c
@@ -536,13 +577,13 @@ gen rheum_appt = 1 if rheum_appt_date!=.
 recode rheum_appt .=0
 lab def rheum_appt 0 "No" 1 "Yes"
 lab val rheum_appt rheum_appt
-lab var rheum_appt "First rheumatology appointment within 12 months before or after diagnosis"
+lab var rheum_appt "First rheumatology appointment within 12 months before or after ${disease_lbl} diagnosis"
 
 gen rheum_appt_any = 1 if rheum_appt_any_date!=. 
 recode rheum_appt_any .=0
 lab def rheum_appt_any 0 "No" 1 "Yes"
 lab val rheum_appt_any rheum_appt_any
-lab var rheum_appt_any "Any rheumatology appointment within 12 months before or after diagnosis"
+lab var rheum_appt_any "Any rheumatology appointment within 12 months before or after ${disease_lbl} diagnosis"
 
 tab rheum_appt, missing //proportion of patients with an rheum outpatient date (with first attendance option selected) in the 12 months before or after after diagnosis code appeared in GP record; data only April 2019 onwards
 tab rheum_appt if rheum_appt_date<=${disease}_inc_date & rheum_appt_date!=. //confirm proportion who had first rheum appt (i.e. not missing) before diagnosis code
@@ -675,14 +716,6 @@ tabstat time_rheum_appt_code, stats (n mean p50 p25 p75)
 
 *Medication use in primary care==================================================*/
 
-***REMOVE LATER
-rename leflunomide_date leflunomide_first_date
-rename methotrexate_oral_date methotrexate_oral_first_date
-rename methotrexate_inj_date methotrexate_inj_first_date
-rename lef_last_date leflunomide_last_date
-rename mtx_oral_last_date methotrexate_oral_last_date
-rename mtx_inj_last_date methotrexate_inj_last_date
-
 foreach medication in $medications {
     local lbl : subinstr local medication "_" " ", all
 	local lbl = strproper("`lbl'")
@@ -701,7 +734,7 @@ foreach medication in $medications {
 	recode `medication'_bl .=0
 	lab define `medication'_bl 0 "No" 1 "Yes", modify
 	lab val `medication'_bl `medication'_bl
-	lab var `medication'_bl "`lbl' prescribed within 90 days before diagnosis"
+	lab var `medication'_bl "`lbl' prescribed within 90 days before ${disease_lbl} diagnosis"
 	tab `medication'_bl, missing
 	
 	**Prescribed from 90 days before to 1 year after diagnosis
@@ -709,7 +742,7 @@ foreach medication in $medications {
 	recode `medication'_12m .=0
 	lab define `medication'_12m 0 "No" 1 "Yes", modify
 	lab val `medication'_12m `medication'_12m
-	lab var `medication'_12m "`lbl' prescribed within 1 year of diagnosis"
+	lab var `medication'_12m "`lbl' prescribed within 1 year of ${disease_lbl} diagnosis"
 	tab `medication'_12m, missing
 	
 	**Time to first prescription in primary care (from -90 days onwards)

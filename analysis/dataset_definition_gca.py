@@ -13,8 +13,8 @@ studyfup_date = get_parameter("studyfup_date")
 diseases_list = get_parameter("diseases_list")
 registration_months = int(get_parameter("registration_months"))
 
-# Define primary diagnosis date
-diag_date = getattr(dataset, "gca_inc_date")
+# Define primary diagnosis date (limited to primary care diagnoses only)
+diag_date = getattr(dataset, "gca_prim_date")
 
 # Baseline comorbidities (first match before rheum diagnostic code)
 def first_comorbidity_before_diagnosis(dx_codelist):
@@ -238,30 +238,30 @@ def medication_dates_dmd (dx_codelist):
     )
 
 ### First prescriptions
-dataset.prednisolone_first_date = medication_dates_dmd(codelists.steroid_codes).first_for_patient().date
-dataset.leflunomide_date = medication_dates_dmd(codelists.leflunomide_codes).first_for_patient().date
-dataset.methotrexate_oral_date = medication_dates_dmd(codelists.methotrexate_codes).first_for_patient().date
-dataset.methotrexate_inj_date = medication_dates_dmd(codelists.methotrexate_inj_codes).first_for_patient().date
+dataset.steroid_first_date = medication_dates_dmd(codelists.steroid_codes).first_for_patient().date
+dataset.prednisolone_first_date = medication_dates_dmd(codelists.prednisolone_codes).first_for_patient().date
+dataset.methotrexate_first_date = medication_dates_dmd(codelists.methotrexate_codes).first_for_patient().date
+dataset.leflunomide_first_date = medication_dates_dmd(codelists.leflunomide_codes).first_for_patient().date
 
-### Last prescriptions before end date //change mtx and lef labelling
-dataset.prednisolone_last_date = medication_dates_dmd(codelists.steroid_codes).last_for_patient().date
-dataset.lef_last_date = medication_dates_dmd(codelists.leflunomide_codes).last_for_patient().date
-dataset.mtx_oral_last_date = medication_dates_dmd(codelists.methotrexate_codes).last_for_patient().date
-dataset.mtx_inj_last_date = medication_dates_dmd(codelists.methotrexate_inj_codes).last_for_patient().date
+### Last prescriptions before end date
+dataset.steroid_last_date = medication_dates_dmd(codelists.steroid_codes).last_for_patient().date
+dataset.prednisolone_last_date = medication_dates_dmd(codelists.prednisolone_codes).last_for_patient().date
+dataset.methotrexate_last_date = medication_dates_dmd(codelists.methotrexate_codes).last_for_patient().date
+dataset.leflunomide_last_date = medication_dates_dmd(codelists.leflunomide_codes).last_for_patient().date
 
 ### Count of prescriptions before end date
-dataset.prednisolone_count = medication_dates_dmd(codelists.steroid_codes).count_for_patient()
+dataset.steroid_count = medication_dates_dmd(codelists.steroid_codes).count_for_patient()
+dataset.prednisolone_count = medication_dates_dmd(codelists.prednisolone_codes).count_for_patient()
+dataset.methotrexate_count = medication_dates_dmd(codelists.methotrexate_codes).count_for_patient()
 dataset.leflunomide_count = medication_dates_dmd(codelists.leflunomide_codes).count_for_patient()
-dataset.methotrexate_oral_count = medication_dates_dmd(codelists.methotrexate_codes).count_for_patient()
-dataset.methotrexate_inj_count = medication_dates_dmd(codelists.methotrexate_inj_codes).count_for_patient()
 
-# Define study population
+# Define study population (limited to primary care diagnoses only)
 incidence_dataset_population = get_population(dataset)
 
 dataset.define_population(
     incidence_dataset_population &
-    (getattr(dataset, "gca_inc_case")) &
-    ((getattr(dataset, "gca_age") >= 18) & (getattr(dataset, "gca_age") <= 110)) &
-    (getattr(dataset, "gca_pre_reg")) &
-    (getattr(dataset, "gca_alive_inc"))
+    (getattr(dataset, "gca_inc_case_p")) &
+    ((getattr(dataset, "gca_age_p") >= 18) & (getattr(dataset, "gca_age_p") <= 110)) &
+    (getattr(dataset, "gca_pre_reg_p")) &
+    (getattr(dataset, "gca_alive_inc_p"))
 )
